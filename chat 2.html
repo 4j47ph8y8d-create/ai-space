@@ -272,6 +272,25 @@
             border-radius: 10px;
             flex-shrink: 0;
         }
+        /* 未读红点或数字 */
+        .contact-item .unread-dot {
+            background: #ff3b30;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+        .contact-item .unread-dot.empty {
+            display: none;
+        }
 
         .empty-contacts {
             text-align: center;
@@ -359,6 +378,7 @@
         .chat-header .title .status {
             font-size: 8px;
             color: #07c160;
+            display: none; /* 隐藏旧的绿点，用未读数字代替 */
         }
         .chat-header .actions {
             display: flex;
@@ -2317,6 +2337,7 @@
             bubbleStyle: 'default',
             permission: null,
             temperature: 0.9,
+            unreadCount: {}, // 按角色 id 存储未读消息数量
         };
 
         function createDefaultRole(name) {
@@ -2351,6 +2372,8 @@
 
             if (savedData) {
                 config = savedData.config || { ...DEFAULT_CONFIG };
+                // 确保 unreadCount 存在
+                if (!config.unreadCount) config.unreadCount = {};
                 roles = savedData.roles;
                 currentRoleId = savedData.currentRoleId || roles[0].id;
                 console.log('✅ 从 localStorage 加载数据成功，角色数:', roles.length);
@@ -2433,6 +2456,19 @@
                 if (role === 'assistant' && r.messages.length > 2) {
                     autoExtractMemory(r);
                 }
+                // 如果是 AI 回复 (assistant)，增加该角色的未读数
+                if (role === 'assistant') {
+                    if (!config.unreadCount) config.unreadCount = {};
+                    config.unreadCount[roleId] = (config.unreadCount[roleId] || 0) + 1;
+                }
+                saveAllData();
+            }
+        }
+
+        // 清空某个角色的未读数
+        function clearUnreadForRole(roleId) {
+            if (config.unreadCount) {
+                config.unreadCount[roleId] = 0;
                 saveAllData();
             }
         }
@@ -3036,7 +3072,7 @@
         }
 
         // ============================================================
-        //  渲染：联系人列表
+        //  渲染：联系人列表（含未读红点）
         // ============================================================
 
         function renderContacts() {
@@ -3077,16 +3113,22 @@
 
                 const preview = getLastMessage(role.id);
 
+                // 获取未读数
+                const unread = config.unreadCount && config.unreadCount[role.id] ? config.unreadCount[role.id] : 0;
+                const dotHtml = unread > 0 ? `<span class="unread-dot">${unread}</span>` : '';
+
                 item.innerHTML = `
                     <div class="contact-avatar" style="${avatarStyle}">${role.avatar ? '' : getInitials(role.name)}</div>
                     <div class="contact-info">
                         <div class="contact-name">${role.name}</div>
                         <div class="contact-preview">${preview}</div>
                     </div>
-                    ${role.messages && role.messages.length > 0 ? `<div class="contact-badge">${role.messages.length}</div>` : ''}
+                    ${dotHtml}
                 `;
 
                 item.addEventListener('click', () => {
+                    // 点进聊天时，清除该角色的未读数
+                    clearUnreadForRole(role.id);
                     currentRoleId = role.id;
                     saveAllData();
                     closeContacts();
@@ -3363,6 +3405,7 @@
                 clearMsgsBtn.addEventListener('click', () => {
                     if (confirm(`确定要清空「${role.name}」的所有聊天记录吗？`)) {
                         role.messages = [];
+                        clearUnreadForRole(role.id);
                         saveAllData();
                         renderRoleManager();
                         renderContacts();
@@ -3386,6 +3429,8 @@
                             if (currentRoleId === role.id) {
                                 currentRoleId = roles[0]?.id || null;
                             }
+                            // 清理未读记录
+                            if (config.unreadCount) delete config.unreadCount[role.id];
                             saveAllData();
                             renderRoleManager();
                             renderContacts();
@@ -3582,6 +3627,11 @@
 
         function openChat(fromContacts = false) {
             isFromContacts = fromContacts;
+            // 清除当前角色的未读数（用户进入聊天）
+            const role = getCurrentRole();
+            if (role) {
+                clearUnreadForRole(role.id);
+            }
             launcherScreen.classList.add('hidden');
             if (fromContacts) {
                 contactsScreen.classList.add('open');
@@ -3592,6 +3642,10 @@
             updateChatTitle();
             renderMessages();
             setTimeout(() => input.focus(), 400);
+            // 刷新联系人列表以更新未读标记
+            if (contactsScreen.classList.contains('open')) {
+                renderContacts();
+            }
         }
 
         function closeChat() {
@@ -3599,6 +3653,7 @@
             if (isFromContacts) {
                 contactsScreen.classList.add('open');
                 launcherScreen.classList.add('hidden');
+                renderContacts(); // 刷新未读标记
             } else {
                 launcherScreen.classList.remove('hidden');
                 contactsScreen.classList.remove('open');
@@ -3703,7 +3758,7 @@
         }
 
         // ============================================================
-        //  DeepSeek API（支持记忆库 + 温度调节）
+        //  DeepSeek API（支持记忆库 + 温度调节 + 气泡拆分）
         // ============================================================
 
         function buildSystemPrompt(role) {
@@ -3733,6 +3788,17 @@
         5. 如果用户提到【记忆库】中的信息，请主动回应。
         6. 保持角色一致性，不要出戏。
       `.trim();
+        }
+
+        // 拆分回复为多个短句（按标点和换行）
+        function splitReplyIntoMessages(text) {
+            // 按句号、问号、感叹号、换行分割，保留分隔符
+            const rawSegments = text.match(/[^。！？.!?]*[。！？.!?]+|[^。！？.!?]+/g) || [];
+            const segments = rawSegments
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+            // 如果拆分后为空，则保留原文本            if (segments.length === 0) return [text.trim()];
+            return segments;
         }
 
         async function callDeepSeek(userMessage, role) {
@@ -3783,7 +3849,7 @@
         }
 
         // ============================================================
-        //  发送消息
+        //  发送消息（含气泡拆分）
         // ============================================================
 
         async function handleSend() {
@@ -3808,6 +3874,7 @@
             input.disabled = true;
             sendBtn.disabled = true;
 
+            // 添加用户消息（单条）
             addMessageToRole(role.id, 'user', finalMessage);
             renderMessages();
 
@@ -3816,11 +3883,41 @@
             try {
                 const reply = await callDeepSeek(finalMessage, role);
                 hideTyping();
-                addMessageToRole(role.id, 'assistant', reply);
-                renderMessages();
+
+                // ---- 核心修改：拆分回复为多个气泡 ----
+                const segments = splitReplyIntoMessages(reply);
+                // 逐个添加消息，模拟逐条发送
+                for (let i = 0; i < segments.length; i++) {
+                    const msg = segments[i];
+                    // 如果是最后一条，不用延迟
+                    const delay = (i === segments.length - 1) ? 0 : 300;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    addMessageToRole(role.id, 'assistant', msg);
+                    renderMessages();
+                    // 滚动到底部
+                    container.scrollTop = container.scrollHeight;
+                }
+
                 if (contactsScreen.classList.contains('open')) {
                     renderContacts();
                 }
+                // 未读标记已经由 addMessageToRole 自动增加
+                // 如果当前聊天界面是打开的，不显示未读（但我们已经渲染了消息）
+                // 如果联系人列表打开，刷新列表
+                if (contactsScreen.classList.contains('open')) {
+                    renderContacts();
+                } else {
+                    // 如果不在联系人列表，也要更新未读标记（在后台）
+                    // 但用户当前在聊天界面，未读应该为0，我们已经在 openChat 里清除了
+                    // 但这里由于是 AI 回复，如果用户没离开聊天界面，未读不应增加
+                    // 然而 addMessageToRole 已经增加了，所以我们进入聊天时再清除
+                    // 但为了体验，如果当前聊天界面是打开的，我们立即清除未读
+                    const currentRole = getCurrentRole();
+                    if (currentRole && chatScreen.classList.contains('open')) {
+                        clearUnreadForRole(currentRole.id);
+                    }
+                }
+
             } catch (e) {
                 hideTyping();
                 addMessageToRole(role.id, 'assistant', `💔 ${e.message}`);
@@ -3937,6 +4034,7 @@
             if (!role) return;
             if (confirm(`确定要清空「${role.name}」的所有聊天记录吗？`)) {
                 role.messages = [];
+                clearUnreadForRole(role.id);
                 saveAllData();
                 renderMessages();
                 renderContacts();
@@ -3949,6 +4047,7 @@
             if (confirm('⚠️ 确定要清空所有角色的聊天记录吗？此操作不可恢复！')) {
                 roles.forEach(role => {
                     role.messages = [];
+                    clearUnreadForRole(role.id);
                 });
                 saveAllData();
                 renderMessages();
