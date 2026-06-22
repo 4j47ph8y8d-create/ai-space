@@ -451,6 +451,46 @@
             margin: 4px 0;
         }
 
+        /* ===== 消息气泡里的引用样式（微信风格） ===== */
+        .message-row .bubble .quote-block {
+            background: rgba(0, 0, 0, 0.05);
+            border-left: 3px solid #07c160;
+            padding: 6px 10px;
+            margin-bottom: 6px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #888;
+            word-break: break-word;
+        }
+        .message-row.self .bubble .quote-block {
+            background: rgba(0, 0, 0, 0.06);
+            border-left-color: #07c160;
+        }
+        .message-row .bubble .quote-block .quote-sender {
+            font-size: 12px;
+            color: #07c160;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        .message-row .bubble .quote-block .quote-content {
+            font-style: italic;
+        }
+        .message-row .bubble .quote-divider {
+            border: none;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            margin: 4px 0 6px 0;
+        }
+        .message-row.self .bubble .quote-divider {
+            border-top-color: rgba(0, 0, 0, 0.1);
+        }
+        .message-row .bubble .reply-content {
+            font-size: 15px;
+            color: #1a1a1a;
+        }
+        .message-row.self .bubble .reply-content {
+            color: #1a1a1a;
+        }
+
         .typing-indicator {
             display: flex;
             align-items: center;
@@ -558,7 +598,7 @@
             cursor: not-allowed;
         }
 
-        /* ===== 引用栏样式 ===== */
+        /* ===== 引用栏样式（输入框上方） ===== */
         .quote-bar {
             display: none;
             align-items: center;
@@ -1230,6 +1270,69 @@
         }
         .settings-drawer .save-btn:active {
             transform: scale(0.98);
+        }
+
+        /* ===== 温度滑块 ===== */
+        .temp-slider-container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        }
+        .temp-slider-container .temp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .temp-slider-container .temp-header .temp-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .temp-slider-container .temp-header .temp-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #07c160;
+        }
+        .temp-slider-container input[type="range"] {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #e0e0e0;
+            border-radius: 4px;
+            outline: none;
+            transition: background 0.2s;
+        }
+        .temp-slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #07c160;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(7, 193, 96, 0.3);
+        }
+        .temp-slider-container input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #07c160;
+            cursor: pointer;
+            border: none;
+        }
+        .temp-slider-container .temp-hints {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #999;
+            margin-top: 2px;
         }
 
         /* ===== 美化分类 ===== */
@@ -2005,7 +2108,7 @@
                     <span class="status"><i class="fas fa-circle"></i></span>
                 </div>
                 <div class="actions">
-                    <i class="fas fa-ellipsis-v"></i>
+                    <i class="fas fa-trash-alt" id="clearChatBtn" style="color:#e74c3c;cursor:pointer;" title="清空聊天记录"></i>
                 </div>
             </div>
 
@@ -2053,6 +2156,20 @@
             <div class="settings-drawer">
                 <button class="close-drawer" id="closeSettingsBtn">×</button>
                 <h2><i class="fas fa-sliders-h"></i> 设置</h2>
+
+                <!-- ===== 温度调节 ===== -->
+                <div class="temp-slider-container">
+                    <div class="temp-header">
+                        <span class="temp-label"><i class="fas fa-thermometer-half" style="color:#07c160;"></i> 温度调节</span>
+                        <span class="temp-value" id="tempDisplay">0.9</span>
+                    </div>
+                    <input type="range" id="tempSlider" min="0.0" max="1.5" step="0.1" value="0.9" />
+                    <div class="temp-hints">
+                        <span>稳定</span>
+                        <span>平衡</span>
+                        <span>创意</span>
+                    </div>
+                </div>
 
                 <!-- ===== 角色管理 ===== -->
                 <div style="margin-bottom:14px;">
@@ -2147,6 +2264,14 @@
                     <div style="font-size:11px; color:#aaa; margin-top:4px;">备份或恢复所有数据，支持分类导出</div>
                 </div>
 
+                <!-- ===== 清空所有聊天记录 ===== -->
+                <div class="setting-group" style="margin-top:10px; border-top:1px solid #eee; padding-top:14px;">
+                    <button id="clearAllChatsBtn" style="width:100%; padding:10px; border:1px solid #e74c3c; border-radius:8px; background:#fff; color:#e74c3c; font-size:13px; cursor:pointer; transition:0.15s; display:flex; align-items:center; justify-content:center; gap:8px;">
+                        <i class="fas fa-trash-alt"></i> 清空所有角色的聊天记录
+                    </button>
+                    <div style="font-size:11px; color:#aaa; margin-top:4px;">此操作将删除所有角色的聊天记录，不可恢复</div>
+                </div>
+
                 <button class="save-btn" id="saveSettingsBtn"><i class="fas fa-save"></i> 保存设置</button>
                 <div style="margin-top:10px;font-size:11px;color:#999;text-align:center;line-height:1.5;">
                     <i class="fas fa-database"></i> 所有数据仅保存在本地浏览器
@@ -2191,6 +2316,7 @@
             iconStyle: 'glass',
             bubbleStyle: 'default',
             permission: null,
+            temperature: 0.9,
         };
 
         function createDefaultRole(name) {
@@ -2201,7 +2327,7 @@
                 chatBg: '',
                 persona: '一个温柔体贴的AI伴侣，善解人意。',
                 background: '生活在充满爱的世界里。',
-                style: '说话轻声细语，喜欢用「呢」「呀」。',
+                style: '只说对话内容，不要任何动作、表情、环境描写。用短句，像真人微信聊天一样自然分段回复。',
                 extra: '',
                 messages: [],
                 memory: [],
@@ -2233,7 +2359,7 @@
                 const defaultRole = createDefaultRole('温柔学长');
                 defaultRole.persona = '25岁音乐系研究生，性格内敛细腻，喜欢弹钢琴';
                 defaultRole.background = '从小在江南小镇长大，家里开旧书店';
-                defaultRole.style = '轻声细语，喜欢用「呢」「呀」，偶尔会哼两句歌';
+                defaultRole.style = '只说对话内容，不要任何动作、表情、环境描写。用短句，像真人微信聊天一样自然分段回复。';
                 defaultRole.extra = '有一只叫「糯米」的白猫';
                 defaultRole.memory = ['用户喜欢被叫"小乖"', '用户对猫毛过敏'];
                 defaultRole.messages = [
@@ -2855,6 +2981,10 @@
         const resetPermissionBtn = document.getElementById('resetPermissionBtn');
         const permissionStatus = document.getElementById('permissionStatus');
 
+        // ===== 温度滑块 DOM =====
+        const tempSlider = document.getElementById('tempSlider');
+        const tempDisplay = document.getElementById('tempDisplay');
+
         // ===== 数据管理 DOM =====
         const dataModalOverlay = document.getElementById('dataModalOverlay');
         const dataModalClose = document.getElementById('dataModalClose');
@@ -3020,6 +3150,7 @@
                         <input class="role-name-input" type="text" value="${role.name}" data-id="${role.id}" placeholder="输入角色名" />
                         <button class="role-expand" data-id="${role.id}"><i class="fas fa-chevron-down"></i></button>
                         <button class="role-delete" data-id="${role.id}"><i class="fas fa-trash-alt"></i></button>
+                        <button class="role-clear-msgs" data-id="${role.id}" style="color:#e74c3c;font-size:14px;cursor:pointer;background:none;border:none;padding:4px;" title="清空该角色聊天记录"><i class="fas fa-eraser"></i></button>
                     </div>
                     <div class="role-body" id="roleBody_${role.id}">
                         <div class="role-avatar-upload">
@@ -3227,6 +3358,21 @@
                     }
                 });
 
+                // 清空该角色聊天记录
+                const clearMsgsBtn = card.querySelector('.role-clear-msgs');
+                clearMsgsBtn.addEventListener('click', () => {
+                    if (confirm(`确定要清空「${role.name}」的所有聊天记录吗？`)) {
+                        role.messages = [];
+                        saveAllData();
+                        renderRoleManager();
+                        renderContacts();
+                        if (currentRoleId === role.id) {
+                            renderMessages();
+                        }
+                        showToast(`🗑️ 已清空「${role.name}」的聊天记录`);
+                    }
+                });
+
                 const deleteBtn = card.querySelector('.role-delete');
                 deleteBtn.addEventListener('click', () => {
                     if (roles.length <= 1) {
@@ -3348,8 +3494,27 @@
                     row.className = `message-row ${msg.role === 'user' ? 'self' : ''}`;
                     const avatarClass = msg.role === 'user' ? 'user' : 'bot';
                     const nick = msg.role === 'user' ? '我' : role.name;
+
                     let contentHtml = msg.content;
-                    if (msg.type === 'image') contentHtml = `<img src="${msg.content}" alt="图片" />`;
+
+                    // 检查是否是引用消息（以 "> " 开头）
+                    if (msg.type === 'text' && msg.content.startsWith('> ')) {
+                        const lines = msg.content.split('\n');
+                        const quoteLine = lines[0].substring(2); // 去掉 "> "
+                        const replyLines = lines.slice(2).join('\n').trim(); // 去掉空行后的回复
+                        const senderName = msg.role === 'user' ? '我' : role.name;
+
+                        contentHtml = `
+                            <div class="quote-block">
+                                <div class="quote-sender">${senderName} 引用：</div>
+                                <div class="quote-content">${quoteLine}</div>
+                            </div>
+                            ${replyLines ? `<hr class="quote-divider" /><div class="reply-content">${replyLines}</div>` : ''}
+                        `;
+                    } else if (msg.type === 'image') {
+                        contentHtml = `<img src="${msg.content}" alt="图片" />`;
+                    }
+
                     row.innerHTML = `
                         <div class="avatar ${avatarClass}"></div>
                         <div class="bubble">
@@ -3538,7 +3703,7 @@
         }
 
         // ============================================================
-        //  DeepSeek API（支持记忆库）
+        //  DeepSeek API（支持记忆库 + 温度调节）
         // ============================================================
 
         function buildSystemPrompt(role) {
@@ -3582,6 +3747,9 @@
                     content: m.content,
                 }));
 
+            // 获取当前温度
+            const temperature = parseFloat(config.temperature) || 0.9;
+
             const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
@@ -3595,8 +3763,8 @@
                         ...history,
                         { role: 'user', content: userMessage },
                     ],
-                    temperature: 0.9,
-                    max_tokens: 1024,
+                    temperature: temperature,
+                    max_tokens: 300,
                 }),
             });
 
@@ -3759,16 +3927,54 @@
             showToast('已取消引用');
         });
 
-        // 重新绑定发送事件
-        sendBtn.removeEventListener('click', handleSend);
-        sendBtn.addEventListener('click', handleSend);
-        input.removeEventListener('keydown', handleSend);
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
+        // ============================================================
+        //  清空聊天记录功能
+        // ============================================================
+
+        // 清空当前角色聊天记录（聊天界面右上角）
+        document.getElementById('clearChatBtn').addEventListener('click', () => {
+            const role = getCurrentRole();
+            if (!role) return;
+            if (confirm(`确定要清空「${role.name}」的所有聊天记录吗？`)) {
+                role.messages = [];
+                saveAllData();
+                renderMessages();
+                renderContacts();
+                showToast(`🗑️ 已清空「${role.name}」的聊天记录`);
             }
         });
+
+        // 清空所有角色聊天记录（设置页面）
+        document.getElementById('clearAllChatsBtn').addEventListener('click', () => {
+            if (confirm('⚠️ 确定要清空所有角色的聊天记录吗？此操作不可恢复！')) {
+                roles.forEach(role => {
+                    role.messages = [];
+                });
+                saveAllData();
+                renderMessages();
+                renderContacts();
+                renderRoleManager();
+                showToast('🗑️ 已清空所有角色的聊天记录');
+            }
+        });
+
+        // ============================================================
+        //  温度滑块控制
+        // ============================================================
+
+        tempSlider.addEventListener('input', function() {
+            const val = parseFloat(this.value);
+            tempDisplay.textContent = val.toFixed(1);
+            config.temperature = val;
+            saveAllData();
+        });
+
+        // 加载时同步滑块显示
+        function loadTemperature() {
+            const val = parseFloat(config.temperature) || 0.9;
+            tempSlider.value = val;
+            tempDisplay.textContent = val.toFixed(1);
+        }
 
         // ============================================================
         //  发送图片
@@ -4293,6 +4499,7 @@
             modelSelect.value = config.model || 'deepseek-chat';
             renderRoleManager();
             updatePermissionStatusUI();
+            loadTemperature();
 
             if (config.wallpaper) {
                 document.getElementById('wallpaperPreviewImg').src = config.wallpaper;
@@ -4440,6 +4647,8 @@
             applyIconStyle('glass');
             applyBubbleStyle(config.bubbleStyle || 'default');
 
+            loadTemperature();
+
             updateChatTitle();
 
             renderContacts();
@@ -4461,6 +4670,17 @@
             console.log('当前角色:', roles.map(r => r.name));
             console.log('当前气泡风格:', getBubbleName(config.bubbleStyle || 'default'));
         }
+
+        // 重新绑定发送事件
+        sendBtn.removeEventListener('click', handleSend);
+        sendBtn.addEventListener('click', handleSend);
+        input.removeEventListener('keydown', handleSend);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        });
 
         init();
     </script>
