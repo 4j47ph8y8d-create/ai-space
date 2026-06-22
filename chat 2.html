@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -410,19 +411,6 @@
         .avatar:active {
             transform: scale(0.92);
         }
-        .avatar:hover::after {
-            content: '✎';
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.35);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            color: #fff;
-            line-height: normal;
-            border-radius: 6px;
-        }
         .avatar.user {
             background-color: #576b95;
         }
@@ -520,11 +508,16 @@
             padding: 8px 12px;
             border-top: 1px solid rgba(224, 224, 224, 0.5);
             display: flex;
-            align-items: center;
-            gap: 8px;
+            flex-direction: column;
+            gap: 4px;
             flex-shrink: 0;
             position: relative;
             z-index: 1;
+        }
+        .chat-input-area .input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .chat-input-area .plus-btn {
             background: none;
@@ -563,6 +556,73 @@
         .chat-input-area .send-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        /* ===== 引用栏样式 ===== */
+        .quote-bar {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            background: rgba(237, 237, 237, 0.8);
+            border-radius: 8px;
+            font-size: 13px;
+            color: #666;
+            border-left: 3px solid #07c160;
+        }
+        .quote-bar.active {
+            display: flex;
+        }
+        .quote-bar .quote-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-style: italic;
+        }
+        .quote-bar .quote-cancel {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+
+        /* ===== 长按菜单 ===== */
+        .longpress-menu {
+            position: fixed;
+            background: rgba(40, 40, 40, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 6px 0;
+            min-width: 140px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            z-index: 999;
+            display: none;
+        }
+        .longpress-menu.active {
+            display: block;
+        }
+        .longpress-menu .menu-item {
+            padding: 10px 18px;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+        .longpress-menu .menu-item:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .longpress-menu .menu-item i {
+            width: 18px;
+            color: #07c160;
         }
 
         /* ============================================================
@@ -1304,18 +1364,6 @@
         .role-card .role-card-header .role-avatar-mini:active {
             transform: scale(0.92);
         }
-        .role-card .role-card-header .role-avatar-mini:hover::after {
-            content: '✎';
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.35);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: #fff;
-            border-radius: 6px;
-        }
         .role-card .role-card-header .role-name-input {
             flex: 1;
             border: none;
@@ -1783,9 +1831,7 @@
         }
     </style>
 </head>
-<body>
-
-    <div class="phone-frame" id="app">
+<body> <div class="phone-frame" id="app">
 
         <!-- ============================================================
         权限弹窗
@@ -1966,9 +2012,17 @@
             <div class="chat-messages" id="messageContainer"></div>
 
             <div class="chat-input-area">
-                <button class="plus-btn" id="plusBtn"><i class="fas fa-plus-circle"></i></button>
-                <input type="text" id="messageInput" placeholder="输入消息..." />
-                <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+                <!-- 引用栏 -->
+                <div class="quote-bar" id="quoteBar">
+                    <i class="fas fa-quote-left" style="color:#07c160;font-size:12px;"></i>
+                    <span class="quote-text" id="quoteText">引用内容</span>
+                    <button class="quote-cancel" id="quoteCancelBtn"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="input-row">
+                    <button class="plus-btn" id="plusBtn"><i class="fas fa-plus-circle"></i></button>
+                    <input type="text" id="messageInput" placeholder="输入消息..." />
+                    <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+                </div>
             </div>
         </div>
 
@@ -3311,6 +3365,7 @@
             applyAvatars();
             applyBubbleStyle(config.bubbleStyle || 'default');
             updateChatTitle();
+            attachLongPressEvents();
         }
 
         function applyAvatars() {
@@ -3567,6 +3622,14 @@
             const text = input.value.trim();
             if (!text) return;
 
+            let finalMessage = text;
+            if (quotedMessage) {
+                const quotedContent = quotedMessage.content.replace(/\n/g, '\n> ');
+                finalMessage = `> ${quotedContent}\n\n${text}`;
+                quotedMessage = null;
+                document.getElementById('quoteBar').classList.remove('active');
+            }
+
             const role = getCurrentRole();
             if (!role) {
                 showToast('⚠️ 未找到当前角色');
@@ -3577,13 +3640,13 @@
             input.disabled = true;
             sendBtn.disabled = true;
 
-            addMessageToRole(role.id, 'user', text);
+            addMessageToRole(role.id, 'user', finalMessage);
             renderMessages();
 
             showTyping();
 
             try {
-                const reply = await callDeepSeek(text, role);
+                const reply = await callDeepSeek(finalMessage, role);
                 hideTyping();
                 addMessageToRole(role.id, 'assistant', reply);
                 renderMessages();
@@ -3601,7 +3664,105 @@
             }
         }
 
+        // ============================================================
+        //  长按引用回复功能
+        // ============================================================
+
+        let quotedMessage = null;
+
+        const longpressMenu = document.createElement('div');
+        longpressMenu.className = 'longpress-menu';
+        longpressMenu.id = 'longpressMenu';
+        longpressMenu.innerHTML = `
+            <button class="menu-item" data-action="quote"><i class="fas fa-quote-left"></i> 引用回复</button>
+        `;
+        document.body.appendChild(longpressMenu);
+
+        let longpressTimer = null;
+
+        function attachLongPressEvents() {
+            const rows = container.querySelectorAll('.message-row');
+            rows.forEach(row => {
+                row.removeEventListener('touchstart', onTouchStart);
+                row.removeEventListener('touchend', onTouchEnd);
+                row.removeEventListener('touchmove', onTouchMove);
+                row.addEventListener('touchstart', onTouchStart);
+                row.addEventListener('touchend', onTouchEnd);
+                row.addEventListener('touchmove', onTouchMove);
+            });
+        }
+
+        function onTouchStart(e) {
+            const row = this;
+            longpressTimer = setTimeout(() => {
+                const role = getCurrentRole();
+                if (!role) return;
+                const idx = Array.from(container.querySelectorAll('.message-row')).indexOf(row);
+                const msgs = role.messages || [];
+                if (idx >= msgs.length) return;
+                const msg = msgs[idx];
+                if (!msg) return;
+
+                const senderName = msg.role === 'user' ? '我' : (role ? role.name : '对方');
+                const preview = msg.content.length > 50 ? msg.content.substring(0, 50) + '…' : msg.content;
+
+                const menu = document.getElementById('longpressMenu');
+                const touch = e.touches ? e.touches[0] : e;
+                let x = touch.clientX || window.innerWidth / 2;
+                let y = touch.clientY || window.innerHeight / 2;
+
+                if (x + 160 > window.innerWidth) x = window.innerWidth - 170;
+                if (y + 50 > window.innerHeight) y = window.innerHeight - 60;
+                if (x < 10) x = 10;
+                if (y < 10) y = 10;
+
+                menu.style.left = x + 'px';
+                menu.style.top = y + 'px';
+                menu.classList.add('active');
+
+                const quoteItem = menu.querySelector('[data-action="quote"]');
+                quoteItem.onclick = () => {
+                    quotedMessage = { role: msg.role, content: msg.content, name: senderName };
+                    document.getElementById('quoteText').textContent = `引用 ${senderName}：${preview}`;
+                    document.getElementById('quoteBar').classList.add('active');
+                    input.focus();
+                    hideLongpressMenu();
+                    showToast('💬 已引用，输入回复内容');
+                };
+
+                longpressTimer = null;
+            }, 500);
+        }
+
+        function onTouchEnd() {
+            clearTimeout(longpressTimer);
+            longpressTimer = null;
+        }
+
+        function onTouchMove() {
+            clearTimeout(longpressTimer);
+            longpressTimer = null;
+        }
+
+        function hideLongpressMenu() {
+            const menu = document.getElementById('longpressMenu');
+            menu.classList.remove('active');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.longpress-menu')) hideLongpressMenu();
+        });
+
+        document.getElementById('quoteCancelBtn').addEventListener('click', () => {
+            quotedMessage = null;
+            document.getElementById('quoteBar').classList.remove('active');
+            showToast('已取消引用');
+        });
+
+        // 重新绑定发送事件
+        sendBtn.removeEventListener('click', handleSend);
         sendBtn.addEventListener('click', handleSend);
+        input.removeEventListener('keydown', handleSend);
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -4303,6 +4464,5 @@
 
         init();
     </script>
-
 </body>
 </html>
