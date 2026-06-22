@@ -400,19 +400,21 @@
             z-index: 1;
         }
 
+        /* ===== 消息行容器（新布局） ===== */
         .message-row {
             display: flex;
+            flex-direction: column;
             align-items: flex-start;
-            gap: 10px;
             max-width: 85%;
             animation: fadeInUp 0.25s ease;
-            position: relative;
+            gap: 2px;
         }
         .message-row.self {
             align-self: flex-end;
-            flex-direction: row-reverse;
+            align-items: flex-end;
         }
 
+        /* ===== 消息头像 ===== */
         .avatar {
             width: 36px;
             height: 36px;
@@ -427,6 +429,7 @@
             color: transparent;
             transition: 0.15s;
             cursor: pointer;
+            margin-bottom: 2px;
         }
         .avatar:active {
             transform: scale(0.92);
@@ -438,57 +441,48 @@
             background-color: transparent !important;
         }
 
+        /* ===== 消息主体（头像 + 内容区） ===== */
+        .message-body {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            width: 100%;
+        }
+        .message-row.self .message-body {
+            flex-direction: row-reverse;
+        }
+
+        /* ===== 内容区（时间戳在上，气泡在下，按钮在右下） ===== */
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            flex: 1;
+            min-width: 0;
+        }
+        .message-row.self .message-content {
+            align-items: flex-end;
+        }
+
+        /* ===== 时间戳（气泡左侧上方） ===== */
+        .msg-time {
+            font-size: 10px;
+            color: #999;
+            padding: 0 4px 2px 4px;
+            opacity: 0.7;
+        }
+        .message-row.self .msg-time {
+            text-align: right;
+        }
+
+        /* ===== 气泡（只包含消息内容） ===== */
         .bubble {
             padding: 10px 14px;
             border-radius: 8px;
             font-size: 15px;
             line-height: 1.6;
             word-break: break-word;
-            position: relative;
             max-width: 100%;
-        }
-        .bubble .msg-time {
-            font-size: 10px;
-            opacity: 0.5;
-            margin-top: 4px;
-            text-align: right;
-        }
-        .bubble .msg-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 4px;
-            opacity: 0.4;
-            transition: opacity 0.2s;
-        }
-        .bubble:hover .msg-actions,
-        .message-row:hover .bubble .msg-actions {
-            opacity: 0.8;
-        }
-        .bubble .msg-actions .action-btn {
-            background: none;
-            border: none;
-            color: #666;
-            font-size: 14px;
-            cursor: pointer;
-            padding: 2px 4px;
-            transition: 0.15s;
-        }
-        .bubble .msg-actions .action-btn:active {
-            transform: scale(0.85);
-            color: #07c160;
-        }
-        .bubble .msg-actions .action-btn.regenerate-btn {
-            color: #07c160;
-        }
-        .bubble .msg-actions .action-btn.regenerate-btn:active {
-            color: #05a050;
-        }
-        .bubble .msg-actions .action-btn.delete-btn:active {
-            color: #e74c3c;
-        }
-
-        .bubble {
             background: rgba(255, 255, 255, 0.92);
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
             color: #1a1a1a;
@@ -505,7 +499,40 @@
             margin: 4px 0;
         }
 
-        /* ===== 消息气泡里的引用样式（微信风格） ===== */
+        /* ===== 操作按钮（气泡右侧下方） ===== */
+        .msg-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 2px;
+            opacity: 0.3;
+            transition: opacity 0.2s;
+        }
+        .message-row:hover .msg-actions {
+            opacity: 0.8;
+        }
+        .msg-actions .action-btn {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 2px 4px;
+            transition: 0.15s;
+        }
+        .msg-actions .action-btn:active {
+            transform: scale(0.85);
+        }
+        .msg-actions .action-btn.regenerate-btn {
+            color: #07c160;
+        }
+        .msg-actions .action-btn.regenerate-btn:active {
+            color: #05a050;
+        }
+        .msg-actions .action-btn.delete-btn:active {
+            color: #e74c3c;
+        }
+
+        /* ===== 引用样式（在气泡内） ===== */
         .message-row .bubble .quote-block {
             background: rgba(0, 0, 0, 0.05);
             border-left: 3px solid #07c160;
@@ -545,6 +572,7 @@
             color: #1a1a1a;
         }
 
+        /* ===== 打字指示器 ===== */
         .typing-indicator {
             display: flex;
             align-items: center;
@@ -594,6 +622,7 @@
             }
         }
 
+        /* ===== 输入区域 ===== */
         .chat-input-area {
             background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(10px);
@@ -650,7 +679,7 @@
             cursor: not-allowed;
         }
 
-        /* ===== 引用栏样式（输入框上方） ===== */
+        /* ===== 引用栏（输入框上方） ===== */
         .quote-bar {
             display: none;
             align-items: center;
@@ -1945,6 +1974,12 @@
                     <!-- 由 JS 动态生成 -->
                 </div>
 
+                <!-- ===== 时间模式选择 ===== -->
+                <div class="style-category-title" style="margin-top:18px;">🕒 时间显示</div>
+                <div class="style-option-grid" id="timeModeGrid">
+                    <!-- 由 JS 动态生成 -->
+                </div>
+
             </div>
         </div>
 
@@ -2253,9 +2288,7 @@
             </div>
         </div>
 
-    </div>
-
-    <script>
+    </div> <script>
         // ============================================================
         //  最关键的修复：这两个函数必须先定义，否则联系人渲染会报错
         // ============================================================
@@ -2289,6 +2322,7 @@
             userAvatar: '',
             iconStyle: 'glass',
             bubbleStyle: 'default',
+            timeMode: 'HH:MM', // 'HH:MM' | 'YYYY-MM-DD HH:MM' | 'hidden'
             permission: null,
             temperature: 0.9,
             unreadCount: {}, // 按角色 id 存储未读消息数量
@@ -2328,6 +2362,7 @@
                 config = savedData.config || { ...DEFAULT_CONFIG };
                 // 确保 unreadCount 存在
                 if (!config.unreadCount) config.unreadCount = {};
+                if (!config.timeMode) config.timeMode = 'HH:MM';
                 roles = savedData.roles;
                 currentRoleId = savedData.currentRoleId || roles[0].id;
                 console.log('✅ 从 localStorage 加载数据成功，角色数:', roles.length);
@@ -2960,10 +2995,62 @@
         }
 
         // ============================================================
-        //  个性化弹窗渲染
+        //  时间模式系统
+        // ============================================================
+
+        const TIME_MODES = [
+            { id: 'HH:MM', name: '简洁 (HH:MM)' },
+            { id: 'YYYY-MM-DD HH:MM', name: '完整 (年月日 时:分)' },
+            { id: 'hidden', name: '隐藏时间' },
+        ];
+
+        function getTimeModeName(id) {
+            const found = TIME_MODES.find(m => m.id === id);
+            return found ? found.name : '简洁 (HH:MM)';
+        }
+
+        function applyTimeMode(modeId) {
+            config.timeMode = modeId || 'HH:MM';
+            saveAllData();
+            renderMessages();
+        }
+
+        function formatTime(timeStr, mode) {
+            if (mode === 'hidden') return '';
+            if (!timeStr) return '';
+
+            try {
+                const date = new Date(timeStr);
+                if (isNaN(date.getTime())) {
+                    // 如果是纯时间字符串（如 "14:30:25"），直接用
+                    if (mode === 'HH:MM') return timeStr.slice(0, 5);
+                    if (mode === 'YYYY-MM-DD HH:MM') {
+                        const today = new Date();
+                        const datePart = today.toISOString().slice(0, 10);
+                        return datePart + ' ' + timeStr.slice(0, 5);
+                    }
+                    return timeStr;
+                }
+                if (mode === 'HH:MM') {
+                    return date.toTimeString().slice(0, 5);
+                }
+                if (mode === 'YYYY-MM-DD HH:MM') {
+                    const datePart = date.toISOString().slice(0, 10);
+                    const timePart = date.toTimeString().slice(0, 5);
+                    return datePart + ' ' + timePart;
+                }
+                return timeStr;
+            } catch (_) {
+                return timeStr;
+            }
+        }
+
+        // ============================================================
+        //  个性化弹窗渲染（含时间模式）
         // ============================================================
 
         function renderStylePicker() {
+            // 图标风格
             const iconGrid = document.getElementById('styleOptionGrid');
             iconGrid.innerHTML = '';
             STYLES.forEach(style => {
@@ -3006,6 +3093,7 @@
                 iconGrid.appendChild(option);
             });
 
+            // 气泡风格
             const bubbleGrid = document.getElementById('bubbleOptionGrid');
             bubbleGrid.innerHTML = '';
             BUBBLE_STYLES.forEach(style => {
@@ -3054,6 +3142,37 @@
                 });
 
                 bubbleGrid.appendChild(option);
+            });
+
+            // 时间模式
+            const timeGrid = document.getElementById('timeModeGrid');
+            timeGrid.innerHTML = '';
+            TIME_MODES.forEach(mode => {
+                const option = document.createElement('div');
+                option.className = `style-option ${mode.id === config.timeMode ? 'active' : ''}`;
+                option.dataset.timeMode = mode.id;
+
+                let previewText = '';
+                if (mode.id === 'HH:MM') previewText = '14:30';
+                else if (mode.id === 'YYYY-MM-DD HH:MM') previewText = '2026-06-23 14:30';
+                else previewText = '（无时间）';
+
+                option.innerHTML = `
+                    <div style="font-size:13px;color:rgba(255,255,255,0.7);padding:4px 0;">${previewText}</div>
+                    <div class="style-name-label">
+                        ${mode.name}
+                        <span class="style-check">✓</span>
+                    </div>
+                `;
+
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('#timeModeGrid .style-option').forEach(el => el.classList.remove('active'));
+                    option.classList.add('active');
+                    applyTimeMode(mode.id);
+                    showToast(`🕒 已切换至「${mode.name}」时间显示模式`);
+                });
+
+                timeGrid.appendChild(option);
             });
         }
 
@@ -3632,7 +3751,7 @@
         });
 
         // ============================================================
-        //  渲染：聊天消息
+        //  渲染：聊天消息（新布局）
         // ============================================================
 
         function renderMessages() {
@@ -3649,10 +3768,12 @@
                 w.className = 'message-row';
                 w.innerHTML = `
                     <div class="avatar bot"></div>
-                    <div class="bubble">
-                        <div class="msg-nick" style="font-size:12px;color:#999;margin-bottom:2px;">${role.name}</div>
-                        你好呀~ 我是 ${role.name}，很高兴认识你 💕
-                        <div class="msg-time">${new Date().toLocaleTimeString()}</div>
+                    <div class="message-body">
+                        <div class="message-content">
+                            <div class="bubble">
+                                你好呀~ 我是 ${role.name}，很高兴认识你 💕
+                            </div>
+                        </div>
                     </div>
                 `;
                 container.appendChild(w);
@@ -3665,6 +3786,8 @@
                         break;
                     }
                 }
+
+                const timeMode = config.timeMode || 'HH:MM';
 
                 msgs.forEach((msg) => {
                     const row = document.createElement('div');
@@ -3694,7 +3817,10 @@
                         contentHtml = `<img src="${msg.content}" alt="图片" />`;
                     }
 
-                    // 气泡底部操作按钮
+                    // 时间戳（在气泡外部上方）
+                    const timeStr = formatTime(msg.time, timeMode);
+
+                    // 操作按钮（在气泡外部下方）
                     let actionsHtml = '';
                     if (msg.role === 'assistant') {
                         actionsHtml = `
@@ -3713,11 +3839,14 @@
 
                     row.innerHTML = `
                         <div class="avatar ${avatarClass}"></div>
-                        <div class="bubble">
-                            <div class="msg-nick" style="font-size:12px;color:#999;margin-bottom:2px;">${nick}</div>
-                            ${contentHtml}
-                            <div class="msg-time">${msg.time || new Date().toLocaleTimeString()}</div>
-                            ${actionsHtml}
+                        <div class="message-body">
+                            <div class="message-content">
+                                ${timeStr ? `<div class="msg-time">${timeStr}</div>` : ''}
+                                <div class="bubble">
+                                    ${contentHtml}
+                                </div>
+                                ${actionsHtml}
+                            </div>
                         </div>
                     `;
                     container.appendChild(row);
@@ -4976,6 +5105,7 @@
             console.log('当前角色数量:', roles.length);
             console.log('当前角色:', roles.map(r => r.name));
             console.log('当前气泡风格:', getBubbleName(config.bubbleStyle || 'default'));
+            console.log('当前时间模式:', getTimeModeName(config.timeMode || 'HH:MM'));
         }
 
         // 重新绑定发送事件
