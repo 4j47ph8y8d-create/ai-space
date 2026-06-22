@@ -400,21 +400,20 @@
             z-index: 1;
         }
 
-        /* ===== 消息行容器（新布局） ===== */
+        /* ===== 消息行容器 ===== */
         .message-row {
             display: flex;
-            flex-direction: column;
             align-items: flex-start;
-            max-width: 85%;
+            gap: 0;
+            max-width: 90%;
             animation: fadeInUp 0.25s ease;
-            gap: 2px;
         }
         .message-row.self {
             align-self: flex-end;
-            align-items: flex-end;
+            flex-direction: row-reverse;
         }
 
-        /* ===== 消息头像 ===== */
+        /* ===== 头像 ===== */
         .avatar {
             width: 36px;
             height: 36px;
@@ -429,7 +428,7 @@
             color: transparent;
             transition: 0.15s;
             cursor: pointer;
-            margin-bottom: 2px;
+            margin-top: 2px;
         }
         .avatar:active {
             transform: scale(0.92);
@@ -440,39 +439,45 @@
         .avatar.has-image {
             background-color: transparent !important;
         }
-
-        /* ===== 消息主体（头像 + 内容区） ===== */
-        .message-body {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            width: 100%;
+        .message-row.self .avatar {
+            margin-left: 8px;
         }
-        .message-row.self .message-body {
-            flex-direction: row-reverse;
+        .message-row:not(.self) .avatar {
+            margin-right: 8px;
         }
 
-        /* ===== 内容区（时间戳在上，气泡在下，按钮在右下） ===== */
-        .message-content {
+        /* ===== 气泡容器（包含时间戳 + 气泡 + 按钮） ===== */
+        .bubble-container {
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            flex: 1;
-            min-width: 0;
+            max-width: 85%;
+            flex-shrink: 1;
         }
-        .message-row.self .message-content {
+        .message-row.self .bubble-container {
             align-items: flex-end;
         }
+        .message-row:not(.self) .bubble-container {
+            align-items: flex-start;
+        }
 
-        /* ===== 时间戳（气泡左侧上方） ===== */
+        /* ===== 时间戳（气泡外部上方） ===== */
         .msg-time {
             font-size: 10px;
             color: #999;
             padding: 0 4px 2px 4px;
             opacity: 0.7;
+            user-select: none;
         }
-        .message-row.self .msg-time {
-            text-align: right;
+
+        /* ===== 气泡 + 按钮行 ===== */
+        .bubble-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            width: 100%;
+        }
+        .message-row.self .bubble-row {
+            flex-direction: row-reverse;
         }
 
         /* ===== 气泡（只包含消息内容） ===== */
@@ -482,10 +487,11 @@
             font-size: 15px;
             line-height: 1.6;
             word-break: break-word;
-            max-width: 100%;
             background: rgba(255, 255, 255, 0.92);
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
             color: #1a1a1a;
+            max-width: 100%;
+            flex-shrink: 1;
         }
         .message-row.self .bubble {
             background: rgba(149, 236, 105, 0.92);
@@ -499,13 +505,15 @@
             margin: 4px 0;
         }
 
-        /* ===== 操作按钮（气泡右侧下方） ===== */
+        /* ===== 操作按钮（气泡外部下方） ===== */
         .msg-actions {
             display: flex;
-            gap: 8px;
-            margin-top: 2px;
+            gap: 6px;
+            flex-shrink: 0;
+            align-items: center;
             opacity: 0.3;
             transition: opacity 0.2s;
+            padding-bottom: 2px;
         }
         .message-row:hover .msg-actions {
             opacity: 0.8;
@@ -2322,10 +2330,10 @@
             userAvatar: '',
             iconStyle: 'glass',
             bubbleStyle: 'default',
-            timeMode: 'HH:MM', // 'HH:MM' | 'YYYY-MM-DD HH:MM' | 'hidden'
+            timeMode: 'HH:MM',
             permission: null,
             temperature: 0.9,
-            unreadCount: {}, // 按角色 id 存储未读消息数量
+            unreadCount: {},
         };
 
         function createDefaultRole(name) {
@@ -2360,7 +2368,6 @@
 
             if (savedData) {
                 config = savedData.config || { ...DEFAULT_CONFIG };
-                // 确保 unreadCount 存在
                 if (!config.unreadCount) config.unreadCount = {};
                 if (!config.timeMode) config.timeMode = 'HH:MM';
                 roles = savedData.roles;
@@ -2430,7 +2437,6 @@
             return role ? role.messages : [];
         }
 
-        // 生成唯一消息 ID
         function generateMessageId() {
             return 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
         }
@@ -2452,7 +2458,6 @@
                 if (role === 'assistant' && r.messages.length > 2) {
                     autoExtractMemory(r, msgId);
                 }
-                // 如果是 AI 回复 (assistant)，增加该角色的未读数
                 if (role === 'assistant') {
                     if (!config.unreadCount) config.unreadCount = {};
                     config.unreadCount[roleId] = (config.unreadCount[roleId] || 0) + 1;
@@ -2461,7 +2466,6 @@
             }
         }
 
-        // 清空某个角色的未读数
         function clearUnreadForRole(roleId) {
             if (config.unreadCount) {
                 config.unreadCount[roleId] = 0;
@@ -2470,7 +2474,7 @@
         }
 
         // ============================================================
-        //  自动记忆提取（关联消息 ID）
+        //  自动记忆提取
         // ============================================================
 
         function autoExtractMemory(role, sourceMsgId) {
@@ -2505,8 +2509,7 @@
                         if (extract.length > 30) extract = extract.substring(0, 30) + '…';
                         if (extract.length > 2) {
                             const newEntry = pattern.prefix + '：' + extract;
-                            const exists = role.memory.some(m => m.text && m.text.includes(pattern.prefix) && m.text.includes(extract.substring(0,
-                                10)));
+                            const exists = role.memory.some(m => m.text && m.text.includes(pattern.prefix) && m.text.includes(extract.substring(0, 10)));
                             if (!exists) {
                                 newMemories.push({
                                     text: newEntry,
@@ -2530,22 +2533,21 @@
             }
         }
 
-        // 删除消息及其关联的记忆
+        // ============================================================
+        //  删除 & 重新生成
+        // ============================================================
+
         function deleteMessageAndMemory(roleId, messageId) {
             const role = roles.find(r => r.id === roleId);
             if (!role) return;
 
-            // 找到消息索引
             const msgIndex = role.messages.findIndex(m => m.id === messageId);
             if (msgIndex === -1) return;
 
-            // 删除消息
             role.messages.splice(msgIndex, 1);
 
-            // 删除关联的记忆（sourceMessageId 匹配）
             if (Array.isArray(role.memory)) {
                 role.memory = role.memory.filter(mem => {
-                    // 如果是旧版记忆（没有 sourceMessageId），保留
                     if (!mem.sourceMessageId) return true;
                     return mem.sourceMessageId !== messageId;
                 });
@@ -2557,7 +2559,6 @@
             if (roleManagerContainer) renderRoleManager();
         }
 
-        // 重新生成消息
         async function regenerateMessage(roleId, messageId) {
             const role = roles.find(r => r.id === roleId);
             if (!role) {
@@ -2565,20 +2566,17 @@
                 return;
             }
 
-            // 找到要重新生成的消息索引
             const msgIndex = role.messages.findIndex(m => m.id === messageId);
             if (msgIndex === -1) {
                 showToast('⚠️ 未找到该消息');
                 return;
             }
 
-            // 必须是 AI 回复
             if (role.messages[msgIndex].role !== 'assistant') {
                 showToast('⚠️ 只能重新生成 AI 的回复');
                 return;
             }
 
-            // 必须是最新一条 AI 回复
             let lastAssistantIdx = -1;
             for (let i = role.messages.length - 1; i >= 0; i--) {
                 if (role.messages[i].role === 'assistant') {
@@ -2591,7 +2589,6 @@
                 return;
             }
 
-            // 找到该 AI 回复之前的那条用户消息
             let userMsgIndex = -1;
             for (let i = msgIndex - 1; i >= 0; i--) {
                 if (role.messages[i].role === 'user') {
@@ -2606,7 +2603,6 @@
 
             const userMessage = role.messages[userMsgIndex].content;
 
-            // 删除该 AI 回复及其关联记忆
             if (Array.isArray(role.memory)) {
                 role.memory = role.memory.filter(mem => {
                     if (!mem.sourceMessageId) return true;
@@ -2617,14 +2613,12 @@
             saveAllData();
             renderMessages();
 
-            // 重新调用 API
             showTyping();
 
             try {
                 const reply = await callDeepSeek(userMessage, role);
                 hideTyping();
 
-                // 拆分回复为多个气泡
                 const segments = splitReplyIntoMessages(reply);
                 for (let i = 0; i < segments.length; i++) {
                     const msg = segments[i];
@@ -2635,7 +2629,6 @@
                     container.scrollTop = container.scrollHeight;
                 }
 
-                // 清空未读
                 if (chatScreen.classList.contains('open')) {
                     clearUnreadForRole(role.id);
                 }
@@ -3022,7 +3015,6 @@
             try {
                 const date = new Date(timeStr);
                 if (isNaN(date.getTime())) {
-                    // 如果是纯时间字符串（如 "14:30:25"），直接用
                     if (mode === 'HH:MM') return timeStr.slice(0, 5);
                     if (mode === 'YYYY-MM-DD HH:MM') {
                         const today = new Date();
@@ -3174,9 +3166,7 @@
 
                 timeGrid.appendChild(option);
             });
-        }
-
-        // ============================================================
+        } // ============================================================
         //  DOM 引用
         // ============================================================
 
@@ -3247,18 +3237,6 @@
             permissionOverlay.classList.remove('active');
         }
 
-        function checkPermissionAndExecute(action) {
-            if (config.permission === 'allowed') {
-                executePickerAction(action);
-                return;
-            }
-            if (config.permission === 'denied') {
-                showToast('🚫 相册权限已被拒绝，请在设置中重新请求');
-                return;
-            }
-            showPermissionDialog(action);
-        }
-
         function updatePermissionStatusUI() {
             if (config.permission === 'allowed') {
                 permissionStatus.textContent = '✅ 已允许';
@@ -3314,7 +3292,6 @@
 
                 const preview = getLastMessage(role.id);
 
-                // 获取未读数
                 const unread = config.unreadCount && config.unreadCount[role.id] ? config.unreadCount[role.id] : 0;
                 const dotHtml = unread > 0 ? `<span class="unread-dot">${unread}</span>` : '';
 
@@ -3328,7 +3305,6 @@
                 `;
 
                 item.addEventListener('click', () => {
-                    // 点进聊天时，清除该角色的未读数
                     clearUnreadForRole(role.id);
                     currentRoleId = role.id;
                     saveAllData();
@@ -3601,7 +3577,6 @@
                     }
                 });
 
-                // 清空该角色聊天记录
                 const clearMsgsBtn = card.querySelector('.role-clear-msgs');
                 clearMsgsBtn.addEventListener('click', () => {
                     if (confirm(`确定要清空「${role.name}」的所有聊天记录吗？`)) {
@@ -3630,7 +3605,6 @@
                             if (currentRoleId === role.id) {
                                 currentRoleId = roles[0]?.id || null;
                             }
-                            // 清理未读记录
                             if (config.unreadCount) delete config.unreadCount[role.id];
                             saveAllData();
                             renderRoleManager();
@@ -3713,7 +3687,7 @@
         //  已读标记优化：看过即已读
         // ============================================================
 
-        let readMessages = new Set(); // 记录已读的消息 ID
+        let readMessages = new Set();
 
         function markVisibleMessagesAsRead() {
             const role = getCurrentRole();
@@ -3728,10 +3702,8 @@
                 if (readMessages.has(msgId)) return;
 
                 const rowRect = row.getBoundingClientRect();
-                // 如果消息出现在可视区域（顶部或中间）
                 if (rowRect.top < containerRect.bottom && rowRect.bottom > containerRect.top) {
                     readMessages.add(msgId);
-                    // 减少未读数
                     if (config.unreadCount && config.unreadCount[role.id] > 0) {
                         config.unreadCount[role.id] = Math.max(0, config.unreadCount[role.id] - 1);
                         saveAllData();
@@ -3741,7 +3713,6 @@
             });
         }
 
-        // 监听滚动事件
         let scrollTimeout = null;
         container.addEventListener('scroll', () => {
             clearTimeout(scrollTimeout);
@@ -3751,7 +3722,7 @@
         });
 
         // ============================================================
-        //  渲染：聊天消息（新布局）
+        //  渲染：聊天消息（新布局：时间戳在气泡外上方，按钮在气泡外下方）
         // ============================================================
 
         function renderMessages() {
@@ -3768,8 +3739,8 @@
                 w.className = 'message-row';
                 w.innerHTML = `
                     <div class="avatar bot"></div>
-                    <div class="message-body">
-                        <div class="message-content">
+                    <div class="bubble-container">
+                        <div class="bubble-row">
                             <div class="bubble">
                                 你好呀~ 我是 ${role.name}，很高兴认识你 💕
                             </div>
@@ -3778,7 +3749,6 @@
                 `;
                 container.appendChild(w);
             } else {
-                // 找到最后一条 AI 消息的 ID（用于显示重新生成按钮）
                 let lastAssistantId = null;
                 for (let i = msgs.length - 1; i >= 0; i--) {
                     if (msgs[i].role === 'assistant') {
@@ -3799,11 +3769,10 @@
 
                     let contentHtml = msg.content;
 
-                    // 检查是否是引用消息（以 "> " 开头）
                     if (msg.type === 'text' && msg.content.startsWith('> ')) {
                         const lines = msg.content.split('\n');
-                        const quoteLine = lines[0].substring(2); // 去掉 "> "
-                        const replyLines = lines.slice(2).join('\n').trim(); // 去掉空行后的回复
+                        const quoteLine = lines[0].substring(2);
+                        const replyLines = lines.slice(2).join('\n').trim();
                         const senderName = msg.role === 'user' ? '我' : role.name;
 
                         contentHtml = `
@@ -3817,10 +3786,8 @@
                         contentHtml = `<img src="${msg.content}" alt="图片" />`;
                     }
 
-                    // 时间戳（在气泡外部上方）
                     const timeStr = formatTime(msg.time, timeMode);
 
-                    // 操作按钮（在气泡外部下方）
                     let actionsHtml = '';
                     if (msg.role === 'assistant') {
                         actionsHtml = `
@@ -3839,12 +3806,10 @@
 
                     row.innerHTML = `
                         <div class="avatar ${avatarClass}"></div>
-                        <div class="message-body">
-                            <div class="message-content">
-                                ${timeStr ? `<div class="msg-time">${timeStr}</div>` : ''}
-                                <div class="bubble">
-                                    ${contentHtml}
-                                </div>
+                        <div class="bubble-container">
+                            ${timeStr ? `<div class="msg-time">${timeStr}</div>` : ''}
+                            <div class="bubble-row">
+                                <div class="bubble">${contentHtml}</div>
                                 ${actionsHtml}
                             </div>
                         </div>
@@ -3858,7 +3823,6 @@
             updateChatTitle();
             attachLongPressEvents();
 
-            // 绑定操作按钮事件
             container.querySelectorAll('.regenerate-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -3881,7 +3845,6 @@
                 });
             });
 
-            // 标记已读
             setTimeout(() => {
                 markVisibleMessagesAsRead();
             }, 100);
@@ -3936,11 +3899,9 @@
 
         function openChat(fromContacts = false) {
             isFromContacts = fromContacts;
-            // 清除当前角色的未读数（用户进入聊天）
             const role = getCurrentRole();
             if (role) {
                 clearUnreadForRole(role.id);
-                // 重置已读记录
                 readMessages = new Set();
             }
             launcherScreen.classList.add('hidden');
@@ -3953,7 +3914,6 @@
             updateChatTitle();
             renderMessages();
             setTimeout(() => input.focus(), 400);
-            // 刷新联系人列表以更新未读标记
             if (contactsScreen.classList.contains('open')) {
                 renderContacts();
             }
@@ -3964,7 +3924,7 @@
             if (isFromContacts) {
                 contactsScreen.classList.add('open');
                 launcherScreen.classList.add('hidden');
-                renderContacts(); // 刷新未读标记
+                renderContacts();
             } else {
                 launcherScreen.classList.remove('hidden');
                 contactsScreen.classList.remove('open');
@@ -4066,9 +4026,7 @@
             const el = document.getElementById('typingIndicator');
             if (el) el.remove();
             hideTypingIndicator();
-        }
-
-        // ============================================================
+        } // ============================================================
         //  DeepSeek API（支持记忆库 + 温度调节 + 气泡拆分）
         // ============================================================
 
@@ -4102,14 +4060,11 @@
       `.trim();
         }
 
-        // 拆分回复为多个短句（按标点和换行）
         function splitReplyIntoMessages(text) {
-            // 按句号、问号、感叹号、换行分割，保留分隔符
             const rawSegments = text.match(/[^。！？.!?]*[。！？.!?]+|[^。！？.!?]+/g) || [];
             const segments = rawSegments
                 .map(s => s.trim())
                 .filter(s => s.length > 0);
-            // 如果拆分后为空，则保留原文本
             if (segments.length === 0) return [text.trim()];
             return segments;
         }
@@ -4126,7 +4081,6 @@
                     content: m.content,
                 }));
 
-            // 获取当前温度
             const temperature = parseFloat(config.temperature) || 0.9;
 
             const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
@@ -4187,7 +4141,6 @@
             input.disabled = true;
             sendBtn.disabled = true;
 
-            // 添加用户消息（单条）
             addMessageToRole(role.id, 'user', finalMessage);
             renderMessages();
 
@@ -4197,31 +4150,23 @@
                 const reply = await callDeepSeek(finalMessage, role);
                 hideTyping();
 
-                // ---- 核心修改：拆分回复为多个气泡，间隔 600ms ----
                 const segments = splitReplyIntoMessages(reply);
-                // 逐个添加消息，模拟逐条发送
                 for (let i = 0; i < segments.length; i++) {
                     const msg = segments[i];
-                    // 如果是最后一条，不用延迟
                     const delay = (i === segments.length - 1) ? 0 : 600;
                     await new Promise(resolve => setTimeout(resolve, delay));
                     addMessageToRole(role.id, 'assistant', msg);
                     renderMessages();
-                    // 滚动到底部
                     container.scrollTop = container.scrollHeight;
                 }
 
                 if (contactsScreen.classList.contains('open')) {
                     renderContacts();
                 }
-                // 未读标记已经由 addMessageToRole 自动增加
-                // 如果当前聊天界面是打开的，立即清除未读
                 const currentRole = getCurrentRole();
                 if (currentRole && chatScreen.classList.contains('open')) {
                     clearUnreadForRole(currentRole.id);
-                    // 重置已读记录
                     readMessages = new Set();
-                    // 标记当前可见消息为已读
                     setTimeout(() => {
                         markVisibleMessagesAsRead();
                     }, 300);
@@ -4297,7 +4242,6 @@
                 menu.style.top = y + 'px';
                 menu.classList.add('active');
 
-                // 引用回复
                 const quoteItem = menu.querySelector('[data-action="quote"]');
                 quoteItem.onclick = () => {
                     quotedMessage = { role: msg.role, content: msg.content, name: senderName };
@@ -4308,7 +4252,6 @@
                     showToast('💬 已引用，输入回复内容');
                 };
 
-                // 删除
                 const deleteItem = menu.querySelector('[data-action="delete"]');
                 deleteItem.onclick = () => {
                     if (confirm('确定要删除这条消息吗？关联的记忆也会被删除。')) {
@@ -4350,7 +4293,6 @@
         //  清空聊天记录功能
         // ============================================================
 
-        // 清空当前角色聊天记录（聊天界面右上角）
         document.getElementById('clearChatBtn').addEventListener('click', () => {
             const role = getCurrentRole();
             if (!role) return;
@@ -4364,7 +4306,6 @@
             }
         });
 
-        // 清空所有角色聊天记录（设置页面）
         document.getElementById('clearAllChatsBtn').addEventListener('click', () => {
             if (confirm('⚠️ 确定要清空所有角色的聊天记录吗？此操作不可恢复！')) {
                 roles.forEach(role => {
@@ -4390,7 +4331,6 @@
             saveAllData();
         });
 
-        // 加载时同步滑块显示
         function loadTemperature() {
             const val = parseFloat(config.temperature) || 0.9;
             tempSlider.value = val;
@@ -4655,19 +4595,15 @@
         }
 
         // ============================================================
-        //  数据管理（导入/导出）- 新增功能
+        //  数据管理（导入/导出）
         // ============================================================
 
-        // 打开数据管理弹窗
         function openDataModal() {
-            // 更新角色选择列表
             renderRoleSelectList();
-            // 重置所有复选框为默认状态（只选中「全部数据」）
             const checkboxes = dataModalOptions.querySelectorAll('.export-option input[type="checkbox"]');
             checkboxes.forEach((cb, index) => {
-                cb.checked = (index === 0); // 第一个是「全部数据」
+                cb.checked = (index === 0);
             });
-            // 隐藏角色选择列表
             roleSelectList.style.display = 'none';
             dataModalOverlay.classList.add('active');
         }
@@ -4676,7 +4612,6 @@
             dataModalOverlay.classList.remove('active');
         }
 
-        // 渲染角色选择列表
         function renderRoleSelectList() {
             roleSelectList.innerHTML = '';
             roles.forEach(role => {
@@ -4690,7 +4625,6 @@
             });
         }
 
-        // 获取选中的导出类型
         function getSelectedExportType() {
             const options = dataModalOptions.querySelectorAll('.export-option');
             for (const opt of options) {
@@ -4702,17 +4636,14 @@
             return 'all';
         }
 
-        // 获取选中的角色ID列表（用于「按角色选择」）
         function getSelectedRoleIds() {
             const checkboxes = roleSelectList.querySelectorAll('.role-select-checkbox:checked');
             return Array.from(checkboxes).map(cb => cb.value);
         }
 
-        // ===== 导出数据 =====
         function exportData() {
             const exportType = getSelectedExportType();
 
-            // 深拷贝数据，避免修改原始数据
             let exportData = {
                 exportTime: new Date().toISOString(),
                 version: '1.0',
@@ -4721,36 +4652,28 @@
                 roles: [],
             };
 
-            // 根据类型处理数据
             let roleData = [];
 
             if (exportType === 'all') {
-                // 全部数据
                 roleData = JSON.parse(JSON.stringify(roles));
-                // 清空 API Key（安全考虑）
                 exportData.config.apiKey = '';
             } else if (exportType === 'settings') {
-                // 仅美化设置 - 不包含角色数据
                 exportData.roles = [];
                 exportData.config.apiKey = '';
-                // 直接导出配置
                 const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
                 downloadFile(blob, `梦女空间_美化设置_${new Date().toISOString().slice(0,10)}.json`);
                 showToast('✅ 美化设置已导出');
                 closeDataModal();
                 return;
             } else if (exportType === 'roles') {
-                // 仅角色设定（不含聊天记录和记忆）
                 roleData = JSON.parse(JSON.stringify(roles));
                 roleData.forEach(r => {
                     r.messages = [];
                     r.memory = [];
                 });
             } else if (exportType === 'chats') {
-                // 仅聊天记录 + 记忆（不含角色设定）
                 roleData = JSON.parse(JSON.stringify(roles));
                 roleData.forEach(r => {
-                    // 保留 messages 和 memory，清空其他设定字段
                     const messages = r.messages || [];
                     const memory = r.memory || [];
                     r.persona = '';
@@ -4763,7 +4686,6 @@
                     r.memory = memory;
                 });
             } else if (exportType === 'selected') {
-                // 按角色选择导出
                 const selectedIds = getSelectedRoleIds();
                 if (selectedIds.length === 0) {
                     showToast('⚠️ 请至少选择一个角色');
@@ -4803,7 +4725,6 @@
             URL.revokeObjectURL(url);
         }
 
-        // ===== 导入数据 =====
         function importData() {
             const input = document.createElement('input');
             input.type = 'file';
@@ -4816,33 +4737,26 @@
                 reader.onload = (ev) => {
                     try {
                         const imported = JSON.parse(ev.target.result);
-                        // 校验数据格式
                         if (!imported.roles || !Array.isArray(imported.roles)) {
                             showToast('❌ 无效的数据文件，请检查');
                             return;
                         }
 
-                        // 确认导入
                         if (!confirm(`即将导入 ${imported.roles.length} 个角色的数据，当前数据将被覆盖。是否继续？`)) {
                             return;
                         }
 
-                        // 合并配置（API Key 不覆盖）
                         if (imported.config) {
                             const oldApiKey = config.apiKey;
                             config = { ...config, ...imported.config };
-                            config.apiKey = oldApiKey; // 保留当前的 API Key
+                            config.apiKey = oldApiKey;
                         }
 
-                        // 导入角色数据
                         roles = imported.roles;
-                        // 确保每个角色有必要的字段
                         roles.forEach(role => {
                             if (!Array.isArray(role.messages)) role.messages = [];
                             if (!Array.isArray(role.memory)) role.memory = [];
-                            if (!role.id) role.id = 'role_' + Date.now() + '_' + Math.random().toString(36).substr(2,
-                            4);
-                            // 兼容旧版记忆格式
+                            if (!role.id) role.id = 'role_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
                             role.memory = role.memory.map(m => {
                                 if (typeof m === 'string') return { text: m };
                                 return m;
@@ -4856,11 +4770,9 @@
                         }
 
                         saveAllData();
-                        // 刷新所有界面
                         renderContacts();
                         renderRoleManager();
                         updateChatTitle();
-                        // 如果当前在聊天界面，刷新消息
                         if (chatScreen.classList.contains('open')) {
                             renderMessages();
                         }
@@ -4896,17 +4808,14 @@
         dataExportBtn.addEventListener('click', exportData);
         dataImportBtn.addEventListener('click', importData);
 
-        // 当「按角色选择」被选中时，显示角色列表
         dataModalOptions.addEventListener('change', (e) => {
             if (e.target.type === 'checkbox') {
-                // 处理单选逻辑：只能选一个
                 const allCheckboxes = dataModalOptions.querySelectorAll('.export-option input[type="checkbox"]');
                 if (e.target.checked) {
                     allCheckboxes.forEach(cb => {
                         if (cb !== e.target) cb.checked = false;
                     });
                 }
-                // 检查「按角色选择」是否被选中
                 const selectedOpt = e.target.closest('.export-option');
                 if (selectedOpt && selectedOpt.dataset.value === 'selected') {
                     roleSelectList.style.display = e.target.checked ? 'block' : 'none';
@@ -5063,7 +4972,6 @@
         function init() {
             loadAllData();
 
-            // 兼容旧版记忆格式
             roles.forEach(role => {
                 if (Array.isArray(role.memory)) {
                     role.memory = role.memory.map(m => {
@@ -5108,7 +5016,6 @@
             console.log('当前时间模式:', getTimeModeName(config.timeMode || 'HH:MM'));
         }
 
-        // 重新绑定发送事件
         sendBtn.removeEventListener('click', handleSend);
         sendBtn.addEventListener('click', handleSend);
         input.removeEventListener('keydown', handleSend);
