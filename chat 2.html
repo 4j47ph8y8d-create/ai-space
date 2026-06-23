@@ -54,7 +54,6 @@
             --font-weight-base: 400;
             --pinned-bg: rgba(243, 156, 18, 0.08);
             --pinned-border: rgba(243, 156, 18, 0.3);
-            /* 心跳颜色 */
             --heart-color: #ff6b81;
             --heart-glow-color: rgba(255, 107, 129, 0.2);
         }
@@ -149,26 +148,27 @@
         }
 
         /* ===== 心跳卡片（桌面） ===== */
+        .heart-card {
+            width: 92%;
+            max-width: 280px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 14px 16px 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+            margin: 0 auto 16px auto;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+        }
 
-.heart-card {
-    width: 92%;
-    max-width: 280px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 20px;
-    padding: 14px 16px 14px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-    margin: 0 auto 16px auto;
-    overflow: hidden;
-    position: relative;
-    transition: all 0.3s ease;
-}
+        .heart-card .heart-wrap {
             position: relative;
             width: 72px;
             height: 64px;
@@ -256,7 +256,6 @@
             display: none;
         }
 
-        /* 绑定信息 */
         .heart-card .bind-info {
             font-size: 11px;
             color: rgba(255, 255, 255, 0.25);
@@ -292,7 +291,6 @@
             100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
         }
 
-        /* ===== 心跳速度控制 ===== */
         .heart-card .heart-wrap.slow svg { animation-duration: 1.8s; }
         .heart-card .heart-wrap.slow .heart-glow { animation-duration: 1.8s; }
         .heart-card .heart-wrap.normal svg { animation-duration: 1.2s; }
@@ -362,7 +360,7 @@
             margin-top: 1px;
         }
 
-        /* ===== 心动详情面板（点击悬浮窗弹出） ===== */
+        /* ===== 心动详情面板 ===== */
         .heart-detail-overlay {
             position: fixed;
             inset: 0;
@@ -2431,13 +2429,11 @@
                     <!-- 由 JS 动态生成 -->
                 </div>
 
-                <!-- ===== 悬浮窗开关 ===== -->
                 <div class="style-category-title" style="margin-top:18px;">💕 心动悬浮窗</div>
                 <div class="style-option-grid" id="floatingSwitchGrid">
                     <!-- 由 JS 动态生成 -->
                 </div>
 
-                <!-- ===== 心动颜色自定义 ===== -->
                 <div class="style-category-title" style="margin-top:18px;">🎨 心动颜色</div>
                 <div class="style-option-grid" id="heartColorGrid">
                     <!-- 由 JS 动态生成 -->
@@ -2455,7 +2451,6 @@
                 <div class="modal-title">💾 数据管理</div>
                 <div class="modal-subtitle">选择要导出或导入的数据类型</div>
 
-                <!-- 导出选项 -->
                 <div id="dataModalOptions">
                     <div class="export-option" data-value="all">
                         <input type="checkbox" checked />
@@ -2517,16 +2512,7 @@
             <div class="heart-card" id="heartCard">
                 <div class="heart-wrap normal" id="heartWrap">
                     <svg viewBox="0 0 100 92" id="heartSvg">
-                        <path d="
-                            M 50 90
-                            C 30 70, 0 50, 0 30
-                            C 0 12, 18 0, 34 6
-                            C 42 10, 48 20, 50 26
-                            C 52 20, 58 10, 66 6
-                            C 82 0, 100 12, 100 30
-                            C 100 50, 70 70, 50 90
-                            Z"
-                            fill="#ff6b81" />
+                        <path d="M 50 90 C 30 70, 0 50, 0 30 C 0 12, 18 0, 34 6 C 42 10, 48 20, 50 26 C 52 20, 58 10, 66 6 C 82 0, 100 12, 100 30 C 100 50, 70 70, 50 90 Z" fill="#ff6b81" />
                     </svg>
                     <div class="heart-glow" id="heartGlow"></div>
                 </div>
@@ -2850,12 +2836,13 @@
             </div>
         </div>
 
-    </div> <script>
+    </div>
+
+    <script>
         // ============================================================
         //  最关键的修复：这两个函数必须先定义，否则联系人渲染会报错
         // ============================================================
 
-        // 获取角色最后一条消息用于联系人预览
         function getLastMessage(roleId) {
             const role = roles.find(r => r.id === roleId);
             if (!role) return '暂无消息';
@@ -2866,7 +2853,6 @@
             return preview.length > 30 ? preview.substring(0, 30) + '…' : preview;
         }
 
-        // 获取角色名字首字母用于头像占位
         function getInitials(name) {
             if (!name) return '?';
             return name.charAt(0).toUpperCase();
@@ -2893,16 +2879,15 @@
             splitEnabled: true,
             theme: 'dark',
             pinnedContacts: [],
-            // ===== 心跳系统新增配置 =====
             heart: {
-                bindRoleId: null,          // 绑定的角色ID
-                value: 78,                  // 当前心动值 0-99
-                level: '心动中',            // 心动等级
-                signature: '今天也很想你 💕', // 个签
-                color: '#ff6b81',           // 心动颜色
-                floatingEnabled: true,      // 悬浮窗是否开启
-                speed: 'normal',            // 心跳速度
-                recentTrigger: '等待你的第一句情话', // 最近心动时刻
+                bindRoleId: null,
+                value: 78,
+                level: '心动中',
+                signature: '今天也很想你 💕',
+                color: '#ff6b81',
+                floatingEnabled: true,
+                speed: 'normal',
+                recentTrigger: '等待你的第一句情话',
             },
         };
 
@@ -2919,11 +2904,10 @@
                 messages: [],
                 memory: [],
                 createdAt: new Date().toISOString(),
-                // ===== 每个角色独立的心动数据 =====
                 heartData: {
-                    value: 50,              // 该角色的心动值
-                    signature: '今天也很想你 💕', // 该角色的个签
-                    recentTrigger: '初次相遇', // 最近心动时刻
+                    value: 50,
+                    signature: '今天也很想你 💕',
+                    recentTrigger: '初次相遇',
                 }
             };
         }
@@ -2951,7 +2935,6 @@
                 if (config.splitEnabled === undefined) config.splitEnabled = true;
                 if (!config.theme) config.theme = 'dark';
                 if (!config.pinnedContacts || !Array.isArray(config.pinnedContacts)) config.pinnedContacts = [];
-                // 兼容旧版心跳配置
                 if (!config.heart) {
                     config.heart = { ...DEFAULT_CONFIG.heart };
                 }
@@ -2959,20 +2942,7 @@
                 if (config.heart.floatingEnabled === undefined) config.heart.floatingEnabled = true;
                 if (!config.heart.speed) config.heart.speed = 'normal';
                 if (!config.heart.level) config.heart.level = '心动中';
-                // 兼容旧版 pinnedMessages
-                if (savedData.config && savedData.config.pinnedMessages && !Array.isArray(savedData.config.pinnedMessages)) {
-                    const oldPinned = savedData.config.pinnedMessages;
-                    if (typeof oldPinned === 'object') {
-                        const pinnedIds = Object.keys(oldPinned);
-                        pinnedIds.forEach(id => {
-                            if (!config.pinnedContacts.includes(id)) {
-                                config.pinnedContacts.push(id);
-                            }
-                        });
-                    }
-                }
                 roles = savedData.roles;
-                // 确保每个角色有 heartData
                 roles.forEach(role => {
                     if (!role.heartData) {
                         role.heartData = {
@@ -3084,7 +3054,6 @@
                     if (!config.unreadCount) config.unreadCount = {};
                     config.unreadCount[roleId] = (config.unreadCount[roleId] || 0) + 1;
                 }
-                // ===== 检测心动关键词 =====
                 if (role === 'user' || role === 'assistant') {
                     detectHeartKeywords(r.id, content, role);
                 }
@@ -3092,7 +3061,6 @@
                 if (r.messages.length % 6 === 0 && r.messages.length > 0) {
                     triggerSmartSummary(r);
                 }
-                // 更新心跳显示
                 updateHeartDisplay();
             }
         }
@@ -3189,7 +3157,7 @@
         }
 
         // ============================================================
-        //  AI 智能记忆总结（结合上下文，新增功能）
+        //  AI 智能记忆总结
         // ============================================================
 
         async function triggerSmartSummary(role) {
@@ -3779,7 +3747,7 @@
         }
 
         // ============================================================
-        //  个性化弹窗渲染（含时间模式 + 悬浮窗开关 + 颜色）
+        //  个性化弹窗渲染
         // ============================================================
 
         function renderStylePicker() {
@@ -3980,11 +3948,12 @@
 
                 colorGrid.appendChild(option);
             });
-        } // ============================================================
-        //  心动关键词检测（用于自动计算心跳值）
+        }
+
+        // ============================================================
+        //  心动关键词检测
         // ============================================================
 
-        // 关键词权重配置
         const HEART_KEYWORDS = [
             { keywords: ['我爱你', '我喜欢你', '爱死你了', '最爱', '好爱你'], weight: 8, level: '热恋' },
             { keywords: ['想你', '好想你', '想你了', '想见你'], weight: 5, level: '思念' },
@@ -4000,7 +3969,6 @@
             { keywords: ['Puppy', 'puppy'], weight: 5, level: '专属' },
         ];
 
-        // 心动等级映射
         const LEVEL_MAP = [
             { max: 20, label: '初遇' },
             { max: 40, label: '好感' },
@@ -4020,8 +3988,6 @@
         function detectHeartKeywords(roleId, content, sender) {
             const role = roles.find(r => r.id === roleId);
             if (!role) return;
-
-            // 只检测用户发送的消息（避免AI自己触发自己）
             if (sender !== 'user') return;
 
             let valueChange = 0;
@@ -4040,24 +4006,19 @@
                 if (valueChange > 0) break;
             }
 
-            // 如果检测到关键词，更新心动值
             if (valueChange > 0) {
-                // 确保角色有 heartData
                 if (!role.heartData) {
                     role.heartData = { value: 50, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
                 }
 
-                // 计算新值（每次增加，但不超过99）
                 const oldValue = role.heartData.value || 50;
                 let newValue = Math.min(99, oldValue + valueChange);
                 role.heartData.value = newValue;
 
-                // 更新最近心动时刻
                 const time = new Date().toLocaleString();
                 const triggerText = `你说了「${matchedKeyword}」❤️ +${valueChange}`;
                 role.heartData.recentTrigger = triggerText;
 
-                // 更新全局配置中的心动值（如果是当前绑定角色）
                 if (config.heart.bindRoleId === roleId) {
                     config.heart.value = newValue;
                     config.heart.level = getLevel(newValue);
@@ -4066,14 +4027,12 @@
 
                 saveAllData();
                 
-                // 显示心动提示（但不频繁打扰）
                 if (valueChange >= 4) {
                     showToast(`💕 心动 +${valueChange}！`);
                 } else {
                     showToast(`❤️ 心动 +${valueChange}`);
                 }
 
-                // 更新UI
                 updateHeartDisplay();
             }
         }
@@ -4089,13 +4048,11 @@
                 return;
             }
 
-            // 确保角色有 heartData
             if (!role.heartData) {
                 role.heartData = { value: 50, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
                 saveAllData();
             }
 
-            // 更新配置
             config.heart.bindRoleId = roleId;
             config.heart.value = role.heartData.value || 50;
             config.heart.signature = role.heartData.signature || '今天也很想你 💕';
@@ -4109,7 +4066,7 @@
         }
 
         // ============================================================
-        //  心跳显示更新（桌面卡片 + 悬浮窗 + 详情面板）
+        //  心跳显示更新
         // ============================================================
 
         function updateHeartDisplay() {
@@ -4121,7 +4078,6 @@
             const bindRole = bindRoleId ? roles.find(r => r.id === bindRoleId) : null;
             const color = config.heart.color || '#ff6b81';
 
-            // 更新桌面卡片
             const valueDisplay = document.getElementById('heartValueDisplay');
             const signatureText = document.getElementById('signatureText');
             const bindRoleName = document.getElementById('bindRoleName');
@@ -4141,23 +4097,19 @@
             if (heartSvg) {
                 heartSvg.setAttribute('fill', color);
             }
-            // 更新CSS变量
             document.documentElement.style.setProperty('--heart-color', color);
             document.documentElement.style.setProperty('--heart-glow-color', color + '33');
             if (heartWrap) {
-                // 更新速度
                 const speed = config.heart.speed || 'normal';
                 heartWrap.className = 'heart-wrap ' + speed;
             }
 
-            // 更新悬浮窗
             const fhValue = document.getElementById('fhValue');
             if (fhValue) {
                 fhValue.textContent = heartValue;
                 fhValue.style.color = color;
             }
 
-            // 更新详情面板（预填数据，打开时刷新）
             const hdAvatar = document.getElementById('hdAvatar');
             const hdName = document.getElementById('hdName');
             const hdValue = document.getElementById('hdValue');
@@ -4291,7 +4243,6 @@
             const el = document.getElementById('floatingHeart');
             if (!el) return;
 
-            // 触摸事件（移动端）
             el.addEventListener('touchstart', (e) => {
                 const touch = e.touches[0];
                 const rect = el.getBoundingClientRect();
@@ -4311,7 +4262,6 @@
                 const newX = touch.clientX - dragData.offsetX;
                 const newY = touch.clientY - dragData.offsetY;
                 
-                // 边界限制
                 const maxX = window.innerWidth - el.offsetWidth;
                 const maxY = window.innerHeight - el.offsetHeight;
                 const clampedX = Math.max(0, Math.min(maxX, newX));
@@ -4328,14 +4278,12 @@
                 if (!dragData.isDragging) return;
                 dragData.isDragging = false;
                 el.style.transition = '';
-                // 如果没移动，触发点击事件
                 if (!dragData.hasMoved) {
                     openHeartDetail();
                 }
                 dragData.hasMoved = false;
             }, { passive: true });
 
-            // 鼠标事件（桌面端调试）
             el.addEventListener('mousedown', (e) => {
                 const rect = el.getBoundingClientRect();
                 dragData.isDragging = true;
@@ -4382,7 +4330,6 @@
         function openHeartDetail() {
             const overlay = document.getElementById('heartDetailOverlay');
             if (!overlay) return;
-            // 刷新数据
             updateHeartDisplay();
             overlay.classList.add('active');
         }
@@ -4393,28 +4340,11 @@
             overlay.classList.remove('active');
         }
 
-        // 绑定关闭按钮
-        document.addEventListener('DOMContentLoaded', () => {
-            const closeBtn = document.getElementById('hdCloseBtn');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', closeHeartDetail);
-            }
-            const overlay = document.getElementById('heartDetailOverlay');
-            if (overlay) {
-                overlay.addEventListener('click', (e) => {
-                    if (e.target === overlay) {
-                        closeHeartDetail();
-                    }
-                });
-            }
-        });
-
         // ============================================================
-        //  心动值初始化（从角色数据同步到全局配置）
+        //  心动值初始化
         // ============================================================
 
         function initHeartData() {
-            // 如果已有绑定角色，从角色数据同步
             if (config.heart.bindRoleId) {
                 const role = roles.find(r => r.id === config.heart.bindRoleId);
                 if (role && role.heartData) {
@@ -4423,14 +4353,12 @@
                     config.heart.recentTrigger = role.heartData.recentTrigger || '初次相遇';
                     config.heart.level = getLevel(config.heart.value);
                 } else if (role) {
-                    // 如果角色没有heartData，创建
                     if (!role.heartData) {
                         role.heartData = { value: 50, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
                         saveAllData();
                     }
                 }
             } else {
-                // 默认绑定第一个角色
                 if (roles.length > 0) {
                     const firstRole = roles[0];
                     if (!firstRole.heartData) {
@@ -4446,7 +4374,6 @@
                 }
             }
 
-            // 确保悬浮窗状态
             if (config.heart.floatingEnabled === undefined) {
                 config.heart.floatingEnabled = true;
                 saveAllData();
@@ -4454,11 +4381,12 @@
 
             updateHeartDisplay();
             
-            // 如果当前在聊天界面，显示悬浮窗
             if (config.heart.floatingEnabled !== false) {
                 setTimeout(showFloatingHeart, 500);
             }
-        } // ============================================================
+        }
+
+        // ============================================================
         //  DOM 引用
         // ============================================================
 
@@ -4500,23 +4428,18 @@
         const resetPermissionBtn = document.getElementById('resetPermissionBtn');
         const permissionStatus = document.getElementById('permissionStatus');
 
-        // ===== 温度滑块 DOM =====
         const tempSlider = document.getElementById('tempSlider');
         const tempDisplay = document.getElementById('tempDisplay');
 
-        // ===== 字号滑块 DOM =====
         const fontSizeSlider = document.getElementById('fontSizeSlider');
         const fontSizeDisplay = document.getElementById('fontSizeDisplay');
 
-        // ===== 字重滑块 DOM =====
         const fontWeightSlider = document.getElementById('fontWeightSlider');
         const fontWeightDisplay = document.getElementById('fontWeightDisplay');
 
-        // ===== 分段生成滑块 DOM =====
         const splitToggleSlider = document.getElementById('splitToggleSlider');
         const splitToggleDisplay = document.getElementById('splitToggleDisplay');
 
-        // ===== 数据管理 DOM =====
         const dataModalOverlay = document.getElementById('dataModalOverlay');
         const dataModalClose = document.getElementById('dataModalClose');
         const dataModalCancel = document.getElementById('dataModalCancel');
@@ -4555,7 +4478,7 @@
         }
 
         // ============================================================
-        //  渲染：联系人列表（含置顶 + 未读红点）
+        //  渲染：联系人列表
         // ============================================================
 
         function renderContacts() {
@@ -4585,7 +4508,6 @@
                 return;
             }
 
-            // 排序：置顶的排前面
             const sortedRoles = [...roles].sort((a, b) => {
                 const aPinned = isContactPinned(a.id);
                 const bPinned = isContactPinned(b.id);
@@ -4611,7 +4533,6 @@
                 const unread = config.unreadCount && config.unreadCount[role.id] ? config.unreadCount[role.id] : 0;
                 const dotHtml = unread > 0 ? `<span class="unread-dot">${unread}</span>` : '';
 
-                // 检查是否绑定心跳
                 const isHeartBound = config.heart.bindRoleId === role.id;
 
                 item.innerHTML = `
@@ -4631,7 +4552,6 @@
                     openChat(true);
                 });
 
-                // 长按置顶/取消置顶
                 let pressTimer = null;
                 item.addEventListener('touchstart', (e) => {
                     pressTimer = setTimeout(() => {
@@ -4653,7 +4573,7 @@
         }
 
         // ============================================================
-        //  渲染：角色管理（设置里）+ 记忆库 + 心跳绑定
+        //  渲染：角色管理
         // ============================================================
 
         function renderRoleManager() {
@@ -4784,7 +4704,6 @@
                         '<i class="fas fa-chevron-down"></i>';
                 });
 
-                // 心跳绑定按钮
                 const heartBindBtn = card.querySelector('.role-heart-bind');
                 heartBindBtn.addEventListener('click', () => {
                     bindHeartRole(role.id);
@@ -4792,13 +4711,11 @@
                     renderContacts();
                 });
 
-                // 置顶按钮
                 const pinBtn = card.querySelector('.role-pin-toggle');
                 pinBtn.addEventListener('click', () => {
                     togglePinContact(role.id);
                 });
 
-                // 记忆折叠切换
                 const memoryHeader = card.querySelector('.memory-header');
                 const memoryBody = card.querySelector('.memory-body');
                 const memoryToggle = card.querySelector('.memory-toggle');
@@ -5068,7 +4985,7 @@
         }
 
         // ============================================================
-        //  已读标记优化：看过即已读
+        //  已读标记优化
         // ============================================================
 
         let readMessages = new Set();
@@ -5172,7 +5089,6 @@
             }, 100);
         }
 
-        // 创建单条消息行
         function createMessageRow(msg, role) {
             const row = document.createElement('div');
             row.className = `message-row ${msg.role === 'user' ? 'self' : ''}`;
@@ -5321,7 +5237,7 @@
         }
 
         // ============================================================
-        //  页面切换（含草稿保存/加载 + 悬浮窗）
+        //  页面切换
         // ============================================================
 
         let isFromContacts = false;
@@ -5354,7 +5270,6 @@
             if (contactsScreen.classList.contains('open')) {
                 renderContacts();
             }
-            // 显示悬浮窗
             if (config.heart.floatingEnabled !== false) {
                 setTimeout(showFloatingHeart, 300);
             }
@@ -5375,7 +5290,6 @@
                 contactsScreen.classList.remove('open');
             }
             isFromContacts = false;
-            // 关闭悬浮窗
             hideFloatingHeart();
         }
 
@@ -5384,7 +5298,6 @@
             chatScreen.classList.remove('open');
             contactsScreen.classList.add('open');
             renderContacts();
-            // 显示悬浮窗
             if (config.heart.floatingEnabled !== false) {
                 setTimeout(showFloatingHeart, 300);
             }
@@ -5477,8 +5390,10 @@
             const el = document.getElementById('typingIndicator');
             if (el) el.remove();
             hideTypingIndicator();
-        } // ============================================================
-        //  DeepSeek API（支持记忆库 + 温度调节 + 气泡拆分）
+        }
+
+        // ============================================================
+        //  DeepSeek API
         // ============================================================
 
         function buildSystemPrompt(role) {
@@ -5567,7 +5482,7 @@
         }
 
         // ============================================================
-        //  发送消息（含气泡拆分，间隔 600ms，受分段开关控制）
+        //  发送消息
         // ============================================================
 
         async function handleSend() {
@@ -6119,7 +6034,9 @@
             }
             config.userAvatar = dataUrl || '';
             saveAllData();
-        } // ============================================================
+        }
+
+        // ============================================================
         //  数据管理（导入/导出）
         // ============================================================
 
@@ -6507,7 +6424,7 @@
         });
 
         // ============================================================
-        //  系统主题监听（自动切换深色/浅色）
+        //  系统主题监听
         // ============================================================
 
         function initThemeListener() {
@@ -6522,19 +6439,17 @@
         }
 
         // ============================================================
-        //  心跳绑定点击事件（桌面卡片上的绑定信息）
+        //  心跳绑定UI
         // ============================================================
 
         function initHeartBindUI() {
             const bindInfo = document.getElementById('bindInfo');
             if (bindInfo) {
                 bindInfo.addEventListener('click', () => {
-                    // 弹出联系人选择列表
                     if (roles.length === 0) {
                         showToast('⚠️ 暂无角色可绑定');
                         return;
                     }
-                    // 简单选择：用 prompt 显示角色列表
                     const roleNames = roles.map((r, i) => `${i+1}. ${r.name}`).join('\n');
                     const choice = prompt(`选择要绑定的角色（输入编号）：\n${roleNames}`);
                     if (choice === null) return;
@@ -6552,7 +6467,7 @@
         }
 
         // ============================================================
-        //  个签点击编辑
+        //  个签编辑
         // ============================================================
 
         function initSignatureEdit() {
@@ -6565,7 +6480,6 @@
             let isEditing = false;
 
             signatureArea.addEventListener('click', (e) => {
-                // 如果点击的是输入框本身，不触发
                 if (e.target === signatureInput) return;
 
                 if (!isEditing) {
@@ -6587,7 +6501,6 @@
             });
 
             signatureInput.addEventListener('blur', () => {
-                // 延迟保存，避免点击其他地方时触发两次
                 setTimeout(() => {
                     if (isEditing) {
                         saveSignature();
@@ -6602,7 +6515,6 @@
                 signatureInput.classList.remove('show');
                 isEditing = false;
 
-                // 保存到当前绑定角色的 heartData
                 const bindRoleId = config.heart.bindRoleId;
                 if (bindRoleId) {
                     const role = roles.find(r => r.id === bindRoleId);
@@ -6622,14 +6534,15 @@
                     updateHeartDisplay();
                 }
             }
-        } // ============================================================
+        }
+
+        // ============================================================
         //  初始化
         // ============================================================
 
         function init() {
             loadAllData();
 
-            // 兼容旧版记忆格式
             roles.forEach(role => {
                 if (Array.isArray(role.memory)) {
                     role.memory = role.memory.map(m => {
@@ -6660,22 +6573,13 @@
             loadFontWeight();
             loadSplitToggle();
 
-            // ===== 初始化心跳数据 =====
             initHeartData();
-
-            // ===== 初始化心跳绑定UI =====
             initHeartBindUI();
-
-            // ===== 初始化个签编辑 =====
             initSignatureEdit();
-
-            // ===== 初始化悬浮窗拖拽 =====
             initFloatingDrag();
 
-            // ===== 更新心跳显示 =====
             updateHeartDisplay();
 
-            // ===== 显示悬浮窗（如果开启） =====
             if (config.heart.floatingEnabled !== false) {
                 setTimeout(showFloatingHeart, 800);
             }
@@ -6721,7 +6625,6 @@
             }
         });
 
-        // 草稿自动保存（输入时保存）
         input.addEventListener('input', () => {
             const role = getCurrentRole();
             if (role) {
@@ -6730,7 +6633,7 @@
         });
 
         // ============================================================
-        //  启动应用
+        //  启动
         // ============================================================
 
         init();
