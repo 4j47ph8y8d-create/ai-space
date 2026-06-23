@@ -52,6 +52,8 @@
             --msg-time-color: #999;
             --font-size-base: 15px;
             --font-weight-base: 400;
+            --pinned-bg: rgba(243, 156, 18, 0.08);
+            --pinned-border: rgba(243, 156, 18, 0.3);
         }
 
         [data-theme="light"] {
@@ -68,6 +70,8 @@
             --input-bg: rgba(237, 237, 237, 0.5);
             --header-bg: rgba(255, 255, 255, 0.95);
             --msg-time-color: #999;
+            --pinned-bg: rgba(243, 156, 18, 0.06);
+            --pinned-border: rgba(243, 156, 18, 0.15);
         }
 
         /* ===== 字号变量 ===== */
@@ -298,6 +302,16 @@
             background: var(--bg-secondary);
         }
 
+        /* 置顶联系人样式：加深背景 + 边框变色，不显示图标 */
+        .contact-item.pinned {
+            background: var(--pinned-bg);
+            border: 1px solid var(--pinned-border);
+            box-shadow: 0 1px 8px rgba(243, 156, 18, 0.08);
+        }
+        .contact-item.pinned:active {
+            background: rgba(243, 156, 18, 0.12);
+        }
+
         .contact-item .contact-avatar {
             width: 44px;
             height: 44px;
@@ -480,19 +494,6 @@
         .message-row.self {
             align-self: flex-end;
             flex-direction: row-reverse;
-        }
-        .message-row.pinned {
-            border-left: 3px solid #f39c12;
-            padding-left: 8px;
-            background: rgba(243, 156, 18, 0.05);
-            border-radius: 8px 0 0 8px;
-        }
-        .message-row.self.pinned {
-            border-left: none;
-            border-right: 3px solid #f39c12;
-            padding-right: 8px;
-            padding-left: 0;
-            border-radius: 0 8px 8px 0;
         }
 
         /* ===== 头像 ===== */
@@ -2520,11 +2521,11 @@
             permission: null,
             temperature: 0.9,
             unreadCount: {},
-            fontSize: 'medium', // small, medium, large, xlarge
-            fontWeight: 'regular', // light, regular, medium, bold
-            splitEnabled: true, // 分段生成开关
-            theme: 'dark', // dark, light, auto
-            pinnedMessages: {}, // 按角色存储置顶消息ID
+            fontSize: 'medium',
+            fontWeight: 'regular',
+            splitEnabled: true,
+            theme: 'dark',
+            pinnedContacts: [], // 改为数组，存储置顶角色的 id
         };
 
         function createDefaultRole(name) {
@@ -2565,7 +2566,20 @@
                 if (!config.fontWeight) config.fontWeight = 'regular';
                 if (config.splitEnabled === undefined) config.splitEnabled = true;
                 if (!config.theme) config.theme = 'dark';
-                if (!config.pinnedMessages) config.pinnedMessages = {};
+                if (!config.pinnedContacts || !Array.isArray(config.pinnedContacts)) config.pinnedContacts = [];
+                // 兼容旧版 pinnedMessages
+                if (savedData.config && savedData.config.pinnedMessages && !Array.isArray(savedData.config.pinnedMessages)) {
+                    // 如果旧版有置顶消息，转换为联系人置顶
+                    const oldPinned = savedData.config.pinnedMessages;
+                    if (typeof oldPinned === 'object') {
+                        const pinnedIds = Object.keys(oldPinned);
+                        pinnedIds.forEach(id => {
+                            if (!config.pinnedContacts.includes(id)) {
+                                config.pinnedContacts.push(id);
+                            }
+                        });
+                    }
+                }
                 roles = savedData.roles;
                 currentRoleId = savedData.currentRoleId || roles[0].id;
                 console.log('✅ 从 localStorage 加载数据成功，角色数:', roles.length);
@@ -2659,7 +2673,6 @@
                     config.unreadCount[roleId] = (config.unreadCount[roleId] || 0) + 1;
                 }
                 saveAllData();
-                // 每增加 6 条消息（用户+AI），触发一次智能总结
                 if (r.messages.length % 6 === 0 && r.messages.length > 0) {
                     triggerSmartSummary(r);
                 }
@@ -2671,6 +2684,30 @@
                 config.unreadCount[roleId] = 0;
                 saveAllData();
             }
+        }
+
+        // ============================================================
+        //  联系人置顶相关函数
+        // ============================================================
+
+        function togglePinContact(roleId) {
+            if (!config.pinnedContacts) config.pinnedContacts = [];
+            const idx = config.pinnedContacts.indexOf(roleId);
+            if (idx !== -1) {
+                config.pinnedContacts.splice(idx, 1);
+                showToast('已取消置顶');
+            } else {
+                config.pinnedContacts.push(roleId);
+                showToast('📌 已置顶联系人');
+            }
+            saveAllData();
+            renderContacts();
+            renderRoleManager();
+        }
+
+        function isContactPinned(roleId) {
+            if (!config.pinnedContacts) return false;
+            return config.pinnedContacts.includes(roleId);
         }
 
         // ============================================================
@@ -2820,7 +2857,7 @@
         }
 
         // ============================================================
-        //  删除 & 重新生成 & 置顶
+        //  删除 & 重新生成
         // ============================================================
 
         function deleteMessageAndMemory(roleId, messageId) {
@@ -2829,12 +2866,6 @@
 
             const msgIndex = role.messages.findIndex(m => m.id === messageId);
             if (msgIndex === -1) return;
-
-            // 如果是置顶消息，取消置顶
-            if (config.pinnedMessages && config.pinnedMessages[roleId] === messageId) {
-                delete config.pinnedMessages[roleId];
-                saveAllData();
-            }
 
             role.messages.splice(msgIndex, 1);
 
@@ -2849,37 +2880,6 @@
             renderMessages();
             renderContacts();
             if (roleManagerContainer) renderRoleManager();
-        }
-
-        // 切换消息置顶
-        function togglePinMessage(roleId, messageId) {
-            if (!config.pinnedMessages) config.pinnedMessages = {};
-            
-            const role = roles.find(r => r.id === roleId);
-            if (!role) return;
-
-            // 如果该角色已有置顶消息且是当前消息，取消置顶
-            if (config.pinnedMessages[roleId] === messageId) {
-                delete config.pinnedMessages[roleId];
-                showToast('已取消置顶');
-            } else {
-                // 否则设置置顶（同时清除该角色之前的置顶）
-                config.pinnedMessages[roleId] = messageId;
-                showToast('📌 已置顶此消息');
-            }
-            saveAllData();
-            renderMessages();
-            renderContacts();
-            if (roleManagerContainer) renderRoleManager();
-        }
-
-        // 获取角色置顶消息
-        function getPinnedMessage(roleId) {
-            if (!config.pinnedMessages || !config.pinnedMessages[roleId]) return null;
-            const role = roles.find(r => r.id === roleId);
-            if (!role) return null;
-            const msg = role.messages.find(m => m.id === config.pinnedMessages[roleId]);
-            return msg || null;
         }
 
         async function regenerateMessage(roleId, messageId) {
@@ -2942,7 +2942,7 @@
                 const reply = await callDeepSeek(userMessage, role);
                 hideTyping();
 
-                const segments = config.splitEnabled ? splitReplyIntoMessages(reply) : [reply];
+                const segments = config.splitEnabled !== false ? splitReplyIntoMessages(reply) : [reply];
                 for (let i = 0; i < segments.length; i++) {
                     const msg = segments[i];
                     const delay = (i === segments.length - 1) ? 0 : 600;
@@ -3586,7 +3586,7 @@
         }
 
         // ============================================================
-        //  渲染：联系人列表（含未读红点）
+        //  渲染：联系人列表（含置顶 + 未读红点，无图标）
         // ============================================================
 
         function renderContacts() {
@@ -3616,10 +3616,22 @@
                 return;
             }
 
+            // 排序：置顶的排前面
+            const sortedRoles = [...roles].sort((a, b) => {
+                const aPinned = isContactPinned(a.id);
+                const bPinned = isContactPinned(b.id);
+                if (aPinned && !bPinned) return -1;
+                if (!aPinned && bPinned) return 1;
+                return 0;
+            });
+
             contactsList.innerHTML = '';
-            roles.forEach(role => {
+            sortedRoles.forEach(role => {
                 const item = document.createElement('div');
                 item.className = 'contact-item';
+                if (isContactPinned(role.id)) {
+                    item.classList.add('pinned');
+                }
 
                 const avatarStyle = role.avatar ?
                     `background-image: url(${role.avatar}); background-size: cover; background-position: center;` :
@@ -3630,14 +3642,10 @@
                 const unread = config.unreadCount && config.unreadCount[role.id] ? config.unreadCount[role.id] : 0;
                 const dotHtml = unread > 0 ? `<span class="unread-dot">${unread}</span>` : '';
 
-                // 检查是否有置顶消息
-                const hasPinned = config.pinnedMessages && config.pinnedMessages[role.id] ? true : false;
-                const pinIcon = hasPinned ? '📌 ' : '';
-
                 item.innerHTML = `
                     <div class="contact-avatar" style="${avatarStyle}">${role.avatar ? '' : getInitials(role.name)}</div>
                     <div class="contact-info">
-                        <div class="contact-name">${pinIcon}${role.name}</div>
+                        <div class="contact-name">${role.name}</div>
                         <div class="contact-preview">${preview}</div>
                     </div>
                     ${dotHtml}
@@ -3651,12 +3659,29 @@
                     openChat(true);
                 });
 
+                // 长按置顶/取消置顶
+                let pressTimer = null;
+                item.addEventListener('touchstart', (e) => {
+                    pressTimer = setTimeout(() => {
+                        togglePinContact(role.id);
+                        pressTimer = null;
+                    }, 600);
+                });
+                item.addEventListener('touchend', () => {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                });
+                item.addEventListener('touchmove', () => {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                });
+
                 contactsList.appendChild(item);
             });
         }
 
         // ============================================================
-        //  渲染：角色管理（设置里）+ 记忆库（含折叠）
+        //  渲染：角色管理（设置里）+ 记忆库（含折叠 + 置顶按钮）
         // ============================================================
 
         function renderRoleManager() {
@@ -3689,8 +3714,8 @@
                     `background-image: url(${role.chatBg}); background-size: cover; background-position: center;` :
                     `background-color: #ededed;`;
 
-                // 记忆折叠状态 - 默认展开
                 const memoryCollapsed = role._memoryCollapsed === undefined ? false : role._memoryCollapsed;
+                const isPinned = isContactPinned(role.id);
 
                 let memoryHtml = '';
                 const memories = Array.isArray(role.memory) ? role.memory : [];
@@ -3709,6 +3734,9 @@
                     <div class="role-card-header">
                         <div class="role-avatar-mini" style="${avatarPreviewStyle}"></div>
                         <input class="role-name-input" type="text" value="${role.name}" data-id="${role.id}" placeholder="输入角色名" />
+                        <button class="role-pin-toggle" data-id="${role.id}" style="font-size:14px;cursor:pointer;background:none;border:none;padding:4px;color:${isPinned ? '#f39c12' : '#999'};" title="${isPinned ? '取消置顶' : '置顶联系人'}">
+                            <i class="fas ${isPinned ? 'fa-star' : 'fa-star'}"></i>
+                        </button>
                         <button class="role-expand" data-id="${role.id}"><i class="fas fa-chevron-down"></i></button>
                         <button class="role-delete" data-id="${role.id}"><i class="fas fa-trash-alt"></i></button>
                         <button class="role-clear-msgs" data-id="${role.id}" style="color:#e74c3c;font-size:14px;cursor:pointer;background:none;border:none;padding:4px;" title="清空该角色聊天记录"><i class="fas fa-eraser"></i></button>
@@ -3745,7 +3773,6 @@
                             <textarea class="role-field" data-id="${role.id}" data-field="extra" rows="2">${role.extra || ''}</textarea>
                         </div>
 
-                        <!-- ===== 记忆库（含折叠） ===== -->
                         <div class="memory-section">
                             <div class="memory-header" data-roleid="${role.id}">
                                 <div class="memory-title"><i class="fas fa-brain"></i> 记忆库 <span style="font-weight:400;font-size:11px;">(${memories.length}条)</span></div>
@@ -3780,6 +3807,12 @@
                         '<i class="fas fa-chevron-down"></i>';
                 });
 
+                // 置顶按钮
+                const pinBtn = card.querySelector('.role-pin-toggle');
+                pinBtn.addEventListener('click', () => {
+                    togglePinContact(role.id);
+                });
+
                 // 记忆折叠切换
                 const memoryHeader = card.querySelector('.memory-header');
                 const memoryBody = card.querySelector('.memory-body');
@@ -3787,7 +3820,6 @@
                 memoryHeader.addEventListener('click', () => {
                     const isCollapsed = memoryBody.classList.toggle('collapsed');
                     memoryToggle.classList.toggle('collapsed', isCollapsed);
-                    // 保存折叠状态到角色数据
                     role._memoryCollapsed = isCollapsed;
                     saveAllData();
                 });
@@ -3966,7 +3998,10 @@
                                 currentRoleId = roles[0]?.id || null;
                             }
                             if (config.unreadCount) delete config.unreadCount[role.id];
-                            if (config.pinnedMessages) delete config.pinnedMessages[role.id];
+                            if (config.pinnedContacts) {
+                                const pinIdx = config.pinnedContacts.indexOf(role.id);
+                                if (pinIdx !== -1) config.pinnedContacts.splice(pinIdx, 1);
+                            }
                             saveAllData();
                             renderRoleManager();
                             renderContacts();
@@ -4083,7 +4118,7 @@
         });
 
         // ============================================================
-        //  渲染：聊天消息（含置顶）
+        //  渲染：聊天消息（无内部置顶）
         // ============================================================
 
         function renderMessages() {
@@ -4093,19 +4128,6 @@
             applyChatBgForRole(role);
 
             container.innerHTML = '';
-
-            // 获取置顶消息
-            const pinnedMsg = getPinnedMessage(role.id);
-
-            // 如果有置顶消息，先显示置顶消息
-            if (pinnedMsg) {
-                const pinnedRow = createMessageRow(pinnedMsg, role, true);
-                container.appendChild(pinnedRow);
-                // 添加分隔线
-                const divider = document.createElement('div');
-                divider.style.cssText = 'height:1px;background:var(--border-color);margin:4px 0 8px 0;width:100%;';
-                container.appendChild(divider);
-            }
 
             const msgs = role.messages || [];
             if (msgs.length === 0) {
@@ -4124,9 +4146,7 @@
                 container.appendChild(w);
             } else {
                 msgs.forEach((msg) => {
-                    // 如果是置顶消息且已经在顶部显示，跳过
-                    if (pinnedMsg && msg.id === pinnedMsg.id) return;
-                    const row = createMessageRow(msg, role, false);
+                    const row = createMessageRow(msg, role);
                     container.appendChild(row);
                 });
             }
@@ -4137,7 +4157,6 @@
             updateChatTitle();
             attachLongPressEvents();
 
-            // 绑定操作按钮事件
             container.querySelectorAll('.regenerate-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -4160,31 +4179,18 @@
                 });
             });
 
-            container.querySelectorAll('.pin-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const msgId = btn.dataset.msgid;
-                    const role = getCurrentRole();
-                    if (role) {
-                        togglePinMessage(role.id, msgId);
-                    }
-                });
-            });
-
             setTimeout(() => {
                 markVisibleMessagesAsRead();
             }, 100);
         }
 
-        // 创建单条消息行
-        function createMessageRow(msg, role, isPinned) {
+        // 创建单条消息行（无置顶相关）
+        function createMessageRow(msg, role) {
             const row = document.createElement('div');
             row.className = `message-row ${msg.role === 'user' ? 'self' : ''}`;
             if (msg.id) row.dataset.msgId = msg.id;
-            if (isPinned) row.classList.add('pinned');
             const avatarClass = msg.role === 'user' ? 'user' : 'bot';
             const nick = msg.role === 'user' ? '我' : role.name;
-            const isLastAssistant = (msg.role === 'assistant' && msg.id === getLastAssistantId(role));
 
             let contentHtml = msg.content;
 
@@ -4208,11 +4214,9 @@
             const timeStr = formatTime(msg.time, config.timeMode || 'HH:MM');
 
             let actionsHtml = '';
-            const isPinnedMsg = config.pinnedMessages && config.pinnedMessages[role.id] === msg.id;
             if (msg.role === 'assistant') {
                 actionsHtml = `
                     <div class="msg-actions">
-                        <button class="action-btn pin-btn ${isPinnedMsg ? 'active' : ''}" data-msgid="${msg.id}" title="${isPinnedMsg ? '取消置顶' : '置顶'}"><i class="fas ${isPinnedMsg ? 'fa-star' : 'fa-star'}"></i></button>
                         <button class="action-btn regenerate-btn" data-msgid="${msg.id}" title="重新生成"><i class="fas fa-sync-alt"></i></button>
                         <button class="action-btn delete-btn" data-msgid="${msg.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
                     </div>
@@ -4220,7 +4224,6 @@
             } else if (msg.role === 'user') {
                 actionsHtml = `
                     <div class="msg-actions">
-                        <button class="action-btn pin-btn ${isPinnedMsg ? 'active' : ''}" data-msgid="${msg.id}" title="${isPinnedMsg ? '取消置顶' : '置顶'}"><i class="fas ${isPinnedMsg ? 'fa-star' : 'fa-star'}"></i></button>
                         <button class="action-btn delete-btn" data-msgid="${msg.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 `;
@@ -4237,16 +4240,6 @@
                 </div>
             `;
             return row;
-        }
-
-        function getLastAssistantId(role) {
-            if (!role || !role.messages) return null;
-            for (let i = role.messages.length - 1; i >= 0; i--) {
-                if (role.messages[i].role === 'assistant') {
-                    return role.messages[i].id;
-                }
-            }
-            return null;
         }
 
         function applyAvatars() {
@@ -4347,19 +4340,15 @@
 
         function openChat(fromContacts = false) {
             isFromContacts = fromContacts;
-            // 保存当前草稿
             const currentRole = getCurrentRole();
             if (currentRole) {
                 saveDraft(currentRole.id, input.value);
             }
-            // 切换到新角色
             const role = getCurrentRole();
             if (role) {
                 clearUnreadForRole(role.id);
                 readMessages = new Set();
-                // 加载草稿
                 input.value = loadDraft(role.id);
-                // 聚焦时选中全部文字方便快速重写
                 setTimeout(() => {
                     input.focus();
                     input.select();
@@ -4380,7 +4369,6 @@
         }
 
         function closeChat() {
-            // 保存当前草稿
             const role = getCurrentRole();
             if (role) {
                 saveDraft(role.id, input.value);
@@ -4615,7 +4603,6 @@
                 const reply = await callDeepSeek(finalMessage, role);
                 hideTyping();
 
-                // 根据分段开关决定是否拆分
                 const segments = config.splitEnabled !== false ? splitReplyIntoMessages(reply) : [reply];
                 for (let i = 0; i < segments.length; i++) {
                     const msg = segments[i];
@@ -4661,7 +4648,6 @@
         longpressMenu.innerHTML = `
             <button class="menu-item" data-action="quote"><i class="fas fa-quote-left"></i> 引用回复</button>
             <button class="menu-item danger" data-action="delete"><i class="fas fa-trash-alt"></i> 删除</button>
-            <button class="menu-item" data-action="pin"><i class="fas fa-star"></i> 置顶/取消置顶</button>
         `;
         document.body.appendChild(longpressMenu);
 
@@ -4701,7 +4687,7 @@
                 let y = touch.clientY || window.innerHeight / 2;
 
                 if (x + 170 > window.innerWidth) x = window.innerWidth - 180;
-                if (y + 120 > window.innerHeight) y = window.innerHeight - 130;
+                if (y + 80 > window.innerHeight) y = window.innerHeight - 90;
                 if (x < 10) x = 10;
                 if (y < 10) y = 10;
 
@@ -4725,12 +4711,6 @@
                         deleteMessageAndMemory(role.id, msg.id);
                         hideLongpressMenu();
                     }
-                };
-
-                const pinItem = menu.querySelector('[data-action="pin"]');
-                pinItem.onclick = () => {
-                    togglePinMessage(role.id, msg.id);
-                    hideLongpressMenu();
                 };
 
                 longpressTimer = null;
@@ -4772,7 +4752,6 @@
             if (confirm(`确定要清空「${role.name}」的所有聊天记录吗？`)) {
                 role.messages = [];
                 clearUnreadForRole(role.id);
-                if (config.pinnedMessages) delete config.pinnedMessages[role.id];
                 saveAllData();
                 renderMessages();
                 renderContacts();
@@ -4786,7 +4765,6 @@
                     role.messages = [];
                     clearUnreadForRole(role.id);
                 });
-                config.pinnedMessages = {};
                 saveAllData();
                 renderMessages();
                 renderContacts();
@@ -5299,7 +5277,9 @@
                             const oldApiKey = config.apiKey;
                             config = { ...config, ...imported.config };
                             config.apiKey = oldApiKey;
-                            if (!config.pinnedMessages) config.pinnedMessages = {};
+                            if (!config.pinnedContacts || !Array.isArray(config.pinnedContacts)) {
+                                config.pinnedContacts = [];
+                            }
                         }
 
                         roles = imported.roles;
@@ -5530,7 +5510,6 @@
                 }
             };
             mediaQuery.addEventListener('change', handleThemeChange);
-            // 存储移除函数以便后续清理
             window.__themeListener = handleThemeChange;
         }
 
@@ -5590,7 +5569,7 @@
             console.log('当前气泡风格:', getBubbleName(config.bubbleStyle || 'default'));
             console.log('当前时间模式:', getTimeModeName(config.timeMode || 'HH:MM'));
             console.log('🧠 智能记忆总结已启用（每6轮对话自动触发）');
-            console.log('📌 置顶、草稿、深色模式、字号调节已全部加载');
+            console.log('📌 联系人置顶已启用（长按联系人置顶/取消置顶）');
         }
 
         sendBtn.removeEventListener('click', handleSend);
