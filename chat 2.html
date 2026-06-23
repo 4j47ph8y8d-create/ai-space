@@ -32,7 +32,54 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
             overflow: hidden;
             position: relative;
+            transition: background 0.3s ease, color 0.3s ease;
         }
+
+        /* ===== 深色/浅色模式变量 ===== */
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #ededed;
+            --bg-card: #ffffff;
+            --bg-bubble-self: rgba(149, 236, 105, 0.92);
+            --bg-bubble-other: rgba(255, 255, 255, 0.92);
+            --text-primary: #1a1a1a;
+            --text-secondary: #999;
+            --text-inverse: #fff;
+            --border-color: rgba(217, 217, 217, 0.5);
+            --shadow-color: rgba(0, 0, 0, 0.06);
+            --input-bg: rgba(237, 237, 237, 0.7);
+            --header-bg: rgba(255, 255, 255, 0.92);
+            --msg-time-color: #999;
+            --font-size-base: 15px;
+            --font-weight-base: 400;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f0f0f0;
+            --bg-secondary: #fafafa;
+            --bg-card: #ffffff;
+            --bg-bubble-self: rgba(149, 236, 105, 0.92);
+            --bg-bubble-other: rgba(255, 255, 255, 0.95);
+            --text-primary: #1a1a1a;
+            --text-secondary: #888;
+            --text-inverse: #1a1a1a;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --shadow-color: rgba(0, 0, 0, 0.04);
+            --input-bg: rgba(237, 237, 237, 0.5);
+            --header-bg: rgba(255, 255, 255, 0.95);
+            --msg-time-color: #999;
+        }
+
+        /* ===== 字号变量 ===== */
+        [data-font-size="small"] { --font-size-base: 13px; }
+        [data-font-size="medium"] { --font-size-base: 15px; }
+        [data-font-size="large"] { --font-size-base: 17px; }
+        [data-font-size="xlarge"] { --font-size-base: 19px; }
+
+        [data-font-weight="light"] { --font-weight-base: 300; }
+        [data-font-weight="regular"] { --font-weight-base: 400; }
+        [data-font-weight="medium"] { --font-weight-base: 500; }
+        [data-font-weight="bold"] { --font-weight-base: 600; }
 
         /* ============================================================
            桌面
@@ -59,6 +106,10 @@
             pointer-events: none;
         }
 
+        [data-theme="light"] .screen-launcher {
+            background: linear-gradient(145deg, #e8ecf1, #d5dbe3, #c5cdd8);
+        }
+
         .status-bar {
             display: flex;
             justify-content: space-between;
@@ -67,6 +118,10 @@
             padding: 4px 0 16px;
             font-weight: 500;
             text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        }
+        [data-theme="light"] .status-bar {
+            color: rgba(0, 0, 0, 0.6);
+            text-shadow: none;
         }
         .status-bar .icons {
             display: flex;
@@ -81,6 +136,9 @@
             margin-bottom: 20px;
             font-weight: 300;
             text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+        [data-theme="light"] .desktop-title {
+            color: rgba(0, 0, 0, 0.3);
         }
 
         .app-grid {
@@ -108,6 +166,9 @@
         .app-icon:active {
             transform: scale(0.88);
             background: rgba(255, 255, 255, 0.08);
+        }
+        [data-theme="light"] .app-icon {
+            color: #1a1a1a;
         }
 
         .app-icon .icon-wrap {
@@ -140,6 +201,10 @@
             line-height: 1.2;
             text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
         }
+        [data-theme="light"] .app-icon .app-name {
+            color: rgba(0, 0, 0, 0.7);
+            text-shadow: none;
+        }
 
         .dock {
             display: flex;
@@ -148,6 +213,9 @@
             padding: 12px 0 4px;
             border-top: 1px solid rgba(255, 255, 255, 0.08);
             margin-top: 30px;
+        }
+        [data-theme="light"] .dock {
+            border-top-color: rgba(0, 0, 0, 0.08);
         }
         .dock .app-icon .icon-wrap {
             width: 52px;
@@ -162,7 +230,7 @@
         .screen-contacts {
             width: 100%;
             height: 100%;
-            background: #f5f5f5;
+            background: var(--bg-secondary);
             display: flex;
             flex-direction: column;
             position: absolute;
@@ -177,10 +245,10 @@
         }
 
         .contacts-header {
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--header-bg);
             backdrop-filter: blur(10px);
             padding: 12px 16px;
-            border-bottom: 1px solid rgba(217, 217, 217, 0.5);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -198,7 +266,7 @@
         .contacts-header .title {
             font-size: 17px;
             font-weight: 600;
-            color: #1a1a1a;
+            color: var(--text-primary);
             flex: 1;
         }
         .contacts-header .actions {
@@ -218,16 +286,16 @@
             align-items: center;
             gap: 14px;
             padding: 14px 18px;
-            background: #fff;
+            background: var(--bg-card);
             margin: 4px 12px;
             border-radius: 12px;
             cursor: pointer;
             transition: 0.15s;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 1px 4px var(--shadow-color);
         }
         .contact-item:active {
             transform: scale(0.97);
-            background: #f0f0f0;
+            background: var(--bg-secondary);
         }
 
         .contact-item .contact-avatar {
@@ -252,11 +320,11 @@
         .contact-item .contact-info .contact-name {
             font-weight: 600;
             font-size: 15px;
-            color: #1a1a1a;
+            color: var(--text-primary);
         }
         .contact-item .contact-info .contact-preview {
             font-size: 13px;
-            color: #999;
+            color: var(--text-secondary);
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -294,11 +362,12 @@
         .empty-contacts {
             text-align: center;
             padding: 60px 20px;
-            color: #999;
+            color: var(--text-secondary);
         }
         .empty-contacts i {
             font-size: 48px;
-            color: #ddd;
+            color: var(--text-secondary);
+            opacity: 0.3;
             display: block;
             margin-bottom: 16px;
         }
@@ -309,7 +378,7 @@
         .screen-chat {
             width: 100%;
             height: 100%;
-            background: #ededed;
+            background: var(--bg-secondary);
             display: flex;
             flex-direction: column;
             position: absolute;
@@ -326,16 +395,16 @@
             position: absolute;
             inset: 0;
             z-index: 0;
-            background: #ededed;
+            background: var(--bg-secondary);
             background-size: cover;
             background-position: center;
         }
 
         .chat-header {
-            background: rgba(255, 255, 255, 0.92);
+            background: var(--header-bg);
             backdrop-filter: blur(10px);
             padding: 12px 16px;
-            border-bottom: 1px solid rgba(217, 217, 217, 0.5);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -355,7 +424,7 @@
         .chat-header .title {
             font-size: 17px;
             font-weight: 600;
-            color: #1a1a1a;
+            color: var(--text-primary);
             flex: 1;
             display: flex;
             align-items: center;
@@ -366,11 +435,11 @@
         .chat-header .title .chat-role-name {
             font-size: 17px;
             font-weight: 600;
-            color: #1a1a1a;
+            color: var(--text-primary);
             transition: color 0.2s;
         }
         .chat-header .title .chat-role-name.typing {
-            color: #999;
+            color: var(--text-secondary);
             font-size: 15px;
             font-weight: 400;
         }
@@ -411,6 +480,19 @@
         .message-row.self {
             align-self: flex-end;
             flex-direction: row-reverse;
+        }
+        .message-row.pinned {
+            border-left: 3px solid #f39c12;
+            padding-left: 8px;
+            background: rgba(243, 156, 18, 0.05);
+            border-radius: 8px 0 0 8px;
+        }
+        .message-row.self.pinned {
+            border-left: none;
+            border-right: 3px solid #f39c12;
+            padding-right: 8px;
+            padding-left: 0;
+            border-radius: 0 8px 8px 0;
         }
 
         /* ===== 头像 ===== */
@@ -463,7 +545,7 @@
         /* ===== 时间戳（气泡外部上方） ===== */
         .msg-time {
             font-size: 10px;
-            color: #999;
+            color: var(--msg-time-color);
             padding: 0 4px 2px 4px;
             opacity: 0.7;
             user-select: none;
@@ -484,17 +566,19 @@
         .bubble {
             padding: 10px 14px;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-base);
             line-height: 1.6;
             word-break: break-word;
-            background: rgba(255, 255, 255, 0.92);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-            color: #1a1a1a;
+            background: var(--bg-bubble-other);
+            box-shadow: 0 1px 4px var(--shadow-color);
+            color: var(--text-primary);
             max-width: 100%;
             flex-shrink: 1;
+            transition: font-size 0.2s ease, font-weight 0.2s ease;
         }
         .message-row.self .bubble {
-            background: rgba(149, 236, 105, 0.92);
+            background: var(--bg-bubble-self);
         }
 
         .bubble img {
@@ -539,6 +623,13 @@
         .msg-actions .action-btn.delete-btn:active {
             color: #e74c3c;
         }
+        .msg-actions .action-btn.pin-btn {
+            color: #f39c12;
+        }
+        .msg-actions .action-btn.pin-btn.active {
+            color: #f39c12;
+            opacity: 1;
+        }
 
         /* ===== 引用样式（在气泡内） ===== */
         .message-row .bubble .quote-block {
@@ -547,8 +638,8 @@
             padding: 6px 10px;
             margin-bottom: 6px;
             border-radius: 4px;
-            font-size: 14px;
-            color: #888;
+            font-size: calc(var(--font-size-base) - 1px);
+            color: var(--text-secondary);
             word-break: break-word;
         }
         .message-row.self .bubble .quote-block {
@@ -556,7 +647,7 @@
             border-left-color: #07c160;
         }
         .message-row .bubble .quote-block .quote-sender {
-            font-size: 12px;
+            font-size: calc(var(--font-size-base) - 3px);
             color: #07c160;
             font-weight: 500;
             margin-bottom: 2px;
@@ -573,11 +664,11 @@
             border-top-color: rgba(0, 0, 0, 0.1);
         }
         .message-row .bubble .reply-content {
-            font-size: 15px;
-            color: #1a1a1a;
+            font-size: var(--font-size-base);
+            color: var(--text-primary);
         }
         .message-row.self .bubble .reply-content {
-            color: #1a1a1a;
+            color: var(--text-primary);
         }
 
         /* ===== 打字指示器 ===== */
@@ -592,13 +683,13 @@
             border-radius: 8px;
             display: flex;
             gap: 5px;
-            background: rgba(255, 255, 255, 0.92);
+            background: var(--bg-bubble-other);
         }
         .typing-dots span {
             display: inline-block;
             width: 8px;
             height: 8px;
-            background: #999;
+            background: var(--text-secondary);
             border-radius: 50%;
             animation: dotBounce 1.4s infinite both;
         }
@@ -632,10 +723,10 @@
 
         /* ===== 输入区域 ===== */
         .chat-input-area {
-            background: rgba(255, 255, 255, 0.92);
+            background: var(--header-bg);
             backdrop-filter: blur(10px);
             padding: 8px 12px;
-            border-top: 1px solid rgba(224, 224, 224, 0.5);
+            border-top: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             gap: 4px;
@@ -661,14 +752,15 @@
             flex: 1;
             border: none;
             outline: none;
-            background: rgba(237, 237, 237, 0.7);
+            background: var(--input-bg);
             padding: 8px 14px;
             border-radius: 8px;
             font-size: 15px;
-            color: #1a1a1a;
+            color: var(--text-primary);
+            transition: background 0.3s ease;
         }
         .chat-input-area input:focus {
-            background: rgba(255, 255, 255, 0.9);
+            background: var(--bg-card);
             box-shadow: 0 0 0 2px rgba(7, 193, 96, 0.2);
         }
         .chat-input-area .send-btn {
@@ -693,10 +785,10 @@
             align-items: center;
             gap: 8px;
             padding: 4px 12px;
-            background: rgba(237, 237, 237, 0.8);
+            background: var(--input-bg);
             border-radius: 8px;
             font-size: 13px;
-            color: #666;
+            color: var(--text-secondary);
             border-left: 3px solid #07c160;
         }
         .quote-bar.active {
@@ -777,7 +869,7 @@
         }
 
         .permission-dialog {
-            background: #fff;
+            background: var(--bg-card);
             border-radius: 20px;
             padding: 28px 24px 20px;
             max-width: 320px;
@@ -793,13 +885,13 @@
         .permission-dialog h3 {
             text-align: center;
             font-size: 18px;
-            color: #1a1a1a;
+            color: var(--text-primary);
             margin-bottom: 6px;
         }
         .permission-dialog p {
             text-align: center;
             font-size: 14px;
-            color: #666;
+            color: var(--text-secondary);
             margin-bottom: 18px;
             line-height: 1.5;
         }
@@ -860,6 +952,10 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.06);
         }
+        [data-theme="light"] .style-picker-panel {
+            background: #f5f5f5;
+            border-color: rgba(0, 0, 0, 0.06);
+        }
 
         .style-picker-panel .panel-header {
             display: flex;
@@ -875,12 +971,18 @@
             font-weight: 500;
             letter-spacing: 1px;
         }
+        [data-theme="light"] .style-picker-panel .panel-header h3 {
+            color: rgba(0, 0, 0, 0.8);
+        }
         .style-picker-panel .panel-header .close-btn {
             font-size: 22px;
             color: rgba(255, 255, 255, 0.3);
             cursor: pointer;
             border: none;
             background: none;
+        }
+        [data-theme="light"] .style-picker-panel .panel-header .close-btn {
+            color: rgba(0, 0, 0, 0.3);
         }
 
         .style-category-title {
@@ -890,6 +992,9 @@
             text-transform: uppercase;
             margin: 16px 0 10px;
             font-weight: 400;
+        }
+        [data-theme="light"] .style-category-title {
+            color: rgba(0, 0, 0, 0.4);
         }
         .style-category-title:first-of-type {
             margin-top: 0;
@@ -909,6 +1014,10 @@
             cursor: pointer;
             transition: 0.15s;
             text-align: center;
+        }
+        [data-theme="light"] .style-option {
+            background: rgba(0, 0, 0, 0.02);
+            border-color: rgba(0, 0, 0, 0.06);
         }
         .style-option:active {
             transform: scale(0.96);
@@ -938,6 +1047,9 @@
             font-size: 11px;
             color: rgba(255, 255, 255, 0.5);
             letter-spacing: 0.5px;
+        }
+        [data-theme="light"] .style-option .style-name-label {
+            color: rgba(0, 0, 0, 0.5);
         }
         .style-option .style-check {
             color: #07c160;
@@ -1114,7 +1226,7 @@
             display: flex;
         }
         .image-picker-menu {
-            background: #ffffff;
+            background: var(--bg-card);
             width: 100%;
             padding: 20px 20px 34px;
             border-radius: 20px 20px 0 0;
@@ -1127,9 +1239,9 @@
         .image-picker-menu .menu-title {
             text-align: center;
             font-size: 14px;
-            color: #999;
+            color: var(--text-secondary);
             padding-bottom: 16px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-color);
             margin-bottom: 16px;
         }
         .image-picker-menu .picker-options {
@@ -1148,11 +1260,11 @@
             padding: 8px 16px;
             border-radius: 12px;
             font-size: 12px;
-            color: #333;
+            color: var(--text-primary);
             transition: 0.15s;
         }
         .image-picker-menu .picker-options button:active {
-            background: #f0f0f0;
+            background: var(--bg-secondary);
             transform: scale(0.94);
         }
         .image-picker-menu .picker-options button i {
@@ -1173,10 +1285,10 @@
             margin-top: 16px;
             padding: 14px;
             border: none;
-            background: #f7f7f7;
+            background: var(--bg-secondary);
             border-radius: 12px;
             font-size: 16px;
-            color: #333;
+            color: var(--text-primary);
             cursor: pointer;
             font-weight: 500;
         }
@@ -1203,7 +1315,7 @@
         }
 
         .settings-drawer {
-            background: #f8f8f8;
+            background: var(--bg-secondary);
             width: 88%;
             max-width: 340px;
             height: 100%;
@@ -1219,7 +1331,7 @@
 
         .settings-drawer .close-drawer {
             font-size: 24px;
-            color: #888;
+            color: var(--text-secondary);
             cursor: pointer;
             float: right;
             background: none;
@@ -1230,7 +1342,8 @@
             font-size: 20px;
             margin-bottom: 12px;
             padding-bottom: 10px;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
         }
 
         .settings-drawer .setting-group {
@@ -1239,14 +1352,14 @@
         .settings-drawer .setting-group label {
             font-weight: 600;
             font-size: 14px;
-            color: #333;
+            color: var(--text-primary);
             display: flex;
             flex-direction: column;
             gap: 4px;
         }
         .settings-drawer .setting-group label .label-hint {
             font-weight: 400;
-            color: #999;
+            color: var(--text-secondary);
             font-size: 12px;
         }
 
@@ -1254,14 +1367,15 @@
         .settings-drawer input[type="text"],
         .settings-drawer select {
             padding: 8px 12px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             font-size: 14px;
-            background: #fff;
+            background: var(--bg-card);
             resize: vertical;
             outline: none;
             width: 100%;
             transition: 0.15s;
+            color: var(--text-primary);
         }
         .settings-drawer textarea:focus,
         .settings-drawer input[type="text"]:focus {
@@ -1271,7 +1385,7 @@
 
         .settings-drawer .module-divider {
             border: none;
-            border-top: 2px dashed #e0e0e0;
+            border-top: 2px dashed var(--border-color);
             margin: 6px 0 14px;
         }
 
@@ -1293,11 +1407,11 @@
 
         /* ===== 温度滑块 ===== */
         .temp-slider-container {
-            background: #fff;
+            background: var(--bg-card);
             border-radius: 12px;
             padding: 12px 14px;
             margin-bottom: 14px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 1px 4px var(--shadow-color);
         }
         .temp-slider-container .temp-header {
             display: flex;
@@ -1308,7 +1422,7 @@
         .temp-slider-container .temp-header .temp-label {
             font-size: 14px;
             font-weight: 600;
-            color: #333;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 6px;
@@ -1323,7 +1437,7 @@
             height: 6px;
             -webkit-appearance: none;
             appearance: none;
-            background: #e0e0e0;
+            background: var(--border-color);
             border-radius: 4px;
             outline: none;
             transition: background 0.2s;
@@ -1350,22 +1464,22 @@
             display: flex;
             justify-content: space-between;
             font-size: 11px;
-            color: #999;
+            color: var(--text-secondary);
             margin-top: 2px;
         }
 
         /* ===== 美化分类 ===== */
         .beauty-section {
-            background: #fff;
+            background: var(--bg-card);
             border-radius: 12px;
             padding: 12px 14px;
             margin-bottom: 14px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 1px 4px var(--shadow-color);
         }
         .beauty-section .beauty-title {
             font-size: 15px;
             font-weight: 600;
-            color: #1a1a1a;
+            color: var(--text-primary);
             margin-bottom: 8px;
             display: flex;
             align-items: center;
@@ -1380,7 +1494,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 10px 0;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border-color);
             cursor: pointer;
             transition: 0.1s;
         }
@@ -1388,7 +1502,7 @@
             border-bottom: none;
         }
         .beauty-item:active {
-            background: #f0f0f0;
+            background: var(--bg-secondary);
             margin: 0 -6px;
             padding-left: 6px;
             padding-right: 6px;
@@ -1400,7 +1514,7 @@
             align-items: center;
             gap: 10px;
             font-size: 14px;
-            color: #333;
+            color: var(--text-primary);
         }
         .beauty-item .left i {
             font-size: 18px;
@@ -1413,21 +1527,21 @@
             align-items: center;
             gap: 8px;
             font-size: 12px;
-            color: #999;
+            color: var(--text-secondary);
         }
         .beauty-item .preview-box {
             width: 40px;
             height: 40px;
             border-radius: 6px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--border-color);
             overflow: hidden;
             flex-shrink: 0;
-            background: #f0f0f0;
+            background: var(--bg-secondary);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 16px;
-            color: #ccc;
+            color: var(--text-secondary);
         }
         .beauty-item .preview-box img {
             width: 100%;
@@ -1444,7 +1558,7 @@
         }
         .role-manager-header h3 {
             font-size: 16px;
-            color: #333;
+            color: var(--text-primary);
         }
         .role-manager-header .add-role-btn {
             background: #07c160;
@@ -1460,11 +1574,11 @@
         }
 
         .role-card {
-            background: #fff;
+            background: var(--bg-card);
             border-radius: 12px;
             padding: 12px 14px;
             margin-bottom: 10px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 1px 4px var(--shadow-color);
         }
         .role-card .role-card-header {
             display: flex;
@@ -1492,16 +1606,16 @@
             background: transparent;
             font-size: 15px;
             font-weight: 600;
-            color: #1a1a1a;
+            color: var(--text-primary);
             outline: none;
             padding: 2px 0;
-            border-bottom: 1px dashed #ddd;
+            border-bottom: 1px dashed var(--border-color);
         }
         .role-card .role-card-header .role-name-input:focus {
             border-bottom-color: #07c160;
         }
         .role-card .role-card-header .role-expand {
-            color: #999;
+            color: var(--text-secondary);
             font-size: 14px;
             cursor: pointer;
             background: none;
@@ -1520,7 +1634,7 @@
         .role-card .role-body {
             margin-top: 10px;
             padding-top: 10px;
-            border-top: 1px solid #f0f0f0;
+            border-top: 1px solid var(--border-color);
             display: none;
         }
         .role-card .role-body.open {
@@ -1533,7 +1647,7 @@
         .role-card .role-body .field-group label {
             font-size: 12px;
             font-weight: 600;
-            color: #888;
+            color: var(--text-secondary);
             display: block;
             margin-bottom: 2px;
         }
@@ -1541,18 +1655,19 @@
         .role-card .role-body .field-group input[type="text"] {
             width: 100%;
             padding: 6px 10px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             font-size: 13px;
             outline: none;
-            background: #fafafa;
+            background: var(--bg-card);
             resize: vertical;
             font-family: inherit;
+            color: var(--text-primary);
         }
         .role-card .role-body .field-group textarea:focus,
         .role-card .role-body .field-group input[type="text"]:focus {
             border-color: #07c160;
-            background: #fff;
+            background: var(--bg-card);
         }
         .role-card .role-body .field-group textarea {
             min-height: 40px;
@@ -1563,7 +1678,7 @@
             align-items: center;
             gap: 12px;
             padding: 6px 0;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border-color);
             margin-bottom: 8px;
             padding-bottom: 10px;
         }
@@ -1575,7 +1690,7 @@
             background-size: cover;
             background-position: center;
             flex-shrink: 0;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
         }
         .role-avatar-upload .upload-btn {
             padding: 4px 14px;
@@ -1611,7 +1726,7 @@
             align-items: center;
             gap: 12px;
             padding: 6px 0;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border-color);
             margin-bottom: 8px;
             padding-bottom: 10px;
         }
@@ -1619,11 +1734,11 @@
             width: 44px;
             height: 44px;
             border-radius: 6px;
-            background: #ededed;
+            background: var(--bg-secondary);
             background-size: cover;
             background-position: center;
             flex-shrink: 0;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
         }
         .role-bg-upload .upload-btn {
             padding: 4px 14px;
@@ -1654,32 +1769,59 @@
             color: #fff;
         }
 
-        /* ===== 记忆库样式 ===== */
+        /* ===== 记忆库样式（含折叠） ===== */
         .memory-section {
-            border-top: 1px solid #f0f0f0;
+            border-top: 1px solid var(--border-color);
             padding-top: 10px;
             margin-top: 8px;
         }
-        .memory-section .memory-title {
+        .memory-section .memory-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            padding: 4px 0;
+        }
+        .memory-section .memory-header .memory-title {
             font-size: 12px;
             font-weight: 600;
-            color: #888;
+            color: var(--text-secondary);
             display: flex;
             align-items: center;
             gap: 6px;
-            margin-bottom: 6px;
         }
-        .memory-section .memory-title i {
+        .memory-section .memory-header .memory-title i {
             color: #a29bfe;
+        }
+        .memory-section .memory-header .memory-toggle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            transition: transform 0.3s ease;
+        }
+        .memory-section .memory-header .memory-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+        .memory-section .memory-body {
+            overflow: hidden;
+            max-height: 2000px;
+            transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
+            opacity: 1;
+            padding-top: 4px;
+        }
+        .memory-section .memory-body.collapsed {
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0;
         }
         .memory-section .memory-item {
             display: flex;
             align-items: flex-start;
             gap: 6px;
             padding: 4px 0;
-            border-bottom: 1px dashed #f0f0f0;
+            border-bottom: 1px dashed var(--border-color);
             font-size: 12px;
-            color: #555;
+            color: var(--text-primary);
             line-height: 1.4;
         }
         .memory-section .memory-item .mem-text {
@@ -1700,7 +1842,7 @@
         }
         .memory-section .memory-empty {
             font-size: 12px;
-            color: #bbb;
+            color: var(--text-secondary);
             padding: 4px 0;
         }
         .memory-section .memory-add {
@@ -1711,15 +1853,16 @@
         .memory-section .memory-add input {
             flex: 1;
             padding: 4px 8px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             font-size: 12px;
             outline: none;
-            background: #fafafa;
+            background: var(--bg-card);
+            color: var(--text-primary);
         }
         .memory-section .memory-add input:focus {
             border-color: #07c160;
-            background: #fff;
+            background: var(--bg-card);
         }
         .memory-section .memory-add button {
             padding: 4px 12px;
@@ -1755,6 +1898,9 @@
             text-align: center;
             max-width: 80%;
         }
+        [data-theme="light"] .custom-toast {
+            background: rgba(40, 40, 40, 0.85);
+        }
 
         /* ===== 数据管理 - 导入导出弹窗 ===== */
         .data-modal-overlay {
@@ -1774,7 +1920,7 @@
         }
 
         .data-modal {
-            background: #fff;
+            background: var(--bg-card);
             border-radius: 20px;
             padding: 24px 20px 20px;
             max-width: 380px;
@@ -1787,26 +1933,23 @@
         .data-modal .modal-title {
             font-size: 18px;
             font-weight: 600;
-            color: #1a1a1a;
+            color: var(--text-primary);
             text-align: center;
             margin-bottom: 4px;
         }
         .data-modal .modal-subtitle {
             font-size: 13px;
-            color: #999;
+            color: var(--text-secondary);
             text-align: center;
             margin-bottom: 16px;
         }
         .data-modal .modal-close {
             float: right;
             font-size: 24px;
-            color: #888;
+            color: var(--text-secondary);
             cursor: pointer;
             background: none;
             border: none;
-        }
-        .data-modal .modal-close:hover {
-            color: #333;
         }
 
         .data-modal .export-option {
@@ -1814,14 +1957,14 @@
             align-items: center;
             gap: 12px;
             padding: 10px 12px;
-            border: 1px solid #e8e8e8;
+            border: 1px solid var(--border-color);
             border-radius: 10px;
             margin-bottom: 8px;
             cursor: pointer;
             transition: 0.15s;
         }
         .data-modal .export-option:active {
-            background: #f5f5f5;
+            background: var(--bg-secondary);
             transform: scale(0.98);
         }
         .data-modal .export-option.selected {
@@ -1837,12 +1980,12 @@
         }
         .data-modal .export-option .opt-label {
             font-size: 14px;
-            color: #333;
+            color: var(--text-primary);
             flex: 1;
         }
         .data-modal .export-option .opt-desc {
             font-size: 11px;
-            color: #999;
+            color: var(--text-secondary);
         }
         .data-modal .export-option .opt-badge {
             font-size: 10px;
@@ -1879,8 +2022,8 @@
             color: #fff;
         }
         .data-modal .modal-actions .btn-cancel {
-            background: #f0f0f0;
-            color: #666;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
         }
         .data-modal .modal-actions .btn-export:disabled {
             opacity: 0.4;
@@ -1897,7 +2040,7 @@
             gap: 8px;
             padding: 4px 0;
             font-size: 13px;
-            color: #555;
+            color: var(--text-primary);
         }
         .data-modal .role-select-list .role-check input[type="checkbox"] {
             accent-color: #07c160;
@@ -2037,7 +2180,7 @@
                     <button class="btn-export" id="dataExportBtn"><i class="fas fa-download"></i> 导出</button>
                     <button class="btn-cancel" id="dataModalCancel">取消</button>
                 </div>
-                <div style="font-size:11px;color:#aaa;text-align:center;margin-top:10px;">
+                <div style="font-size:11px;color:var(--text-secondary);text-align:center;margin-top:10px;">
                     <i class="fas fa-shield-alt"></i> 数据仅保存在本地，不上传任何服务器
                 </div>
             </div>
@@ -2188,6 +2331,49 @@
                     </div>
                 </div>
 
+                <!-- ===== 字号设置 ===== -->
+                <div class="temp-slider-container" style="margin-bottom:14px;">
+                    <div class="temp-header">
+                        <span class="temp-label"><i class="fas fa-font" style="color:#07c160;"></i> 字号大小</span>
+                        <span class="temp-value" id="fontSizeDisplay">中</span>
+                    </div>
+                    <input type="range" id="fontSizeSlider" min="0" max="3" step="1" value="1" />
+                    <div class="temp-hints">
+                        <span>小</span>
+                        <span>中</span>
+                        <span>大</span>
+                        <span>特大</span>
+                    </div>
+                </div>
+
+                <!-- ===== 字重设置 ===== -->
+                <div class="temp-slider-container" style="margin-bottom:14px;">
+                    <div class="temp-header">
+                        <span class="temp-label"><i class="fas fa-bold" style="color:#07c160;"></i> 字体粗细</span>
+                        <span class="temp-value" id="fontWeightDisplay">常规</span>
+                    </div>
+                    <input type="range" id="fontWeightSlider" min="0" max="3" step="1" value="1" />
+                    <div class="temp-hints">
+                        <span>细</span>
+                        <span>常规</span>
+                        <span>中</span>
+                        <span>粗</span>
+                    </div>
+                </div>
+
+                <!-- ===== 分段生成开关 ===== -->
+                <div class="temp-slider-container" style="margin-bottom:14px;">
+                    <div class="temp-header">
+                        <span class="temp-label"><i class="fas fa-cut" style="color:#07c160;"></i> 分段生成</span>
+                        <span class="temp-value" id="splitToggleDisplay">开启</span>
+                    </div>
+                    <input type="range" id="splitToggleSlider" min="0" max="1" step="1" value="1" />
+                    <div class="temp-hints">
+                        <span>关闭</span>
+                        <span>开启</span>
+                    </div>
+                </div>
+
                 <!-- ===== 角色管理 ===== -->
                 <div style="margin-bottom:14px;">
                     <div class="role-manager-header">
@@ -2243,7 +2429,7 @@
 
                 <!-- ===== API 设置 ===== -->
                 <div class="setting-group">
-                    <label>🔑 API Key <small style="font-weight:400;color:#999;">(platform.deepseek.com)</small></label>
+                    <label>🔑 API Key <small style="font-weight:400;color:var(--text-secondary);">(platform.deepseek.com)</small></label>
                     <input type="text" id="apiKeyInput" placeholder="sk-..." />
                 </div>
                 <div class="setting-group">
@@ -2254,43 +2440,43 @@
                     </select>
                 </div>
 
-                <div class="setting-group" style="margin-top:10px; border-top:1px solid #eee; padding-top:14px;">
+                <div class="setting-group" style="margin-top:10px; border-top:1px solid var(--border-color); padding-top:14px;">
                     <div style="display:flex; align-items:center; justify-content:space-between;">
-                        <span style="font-size:14px; color:#333;">
+                        <span style="font-size:14px; color:var(--text-primary);">
                             <i class="fas fa-image" style="color:#07c160;"></i> 相册权限
                         </span>
-                        <span id="permissionStatus" style="font-size:12px; color:#999;">已允许</span>
+                        <span id="permissionStatus" style="font-size:12px; color:var(--text-secondary);">已允许</span>
                     </div>
-                    <button id="resetPermissionBtn" style="width:100%; margin-top:8px; padding:8px; border:1px solid #e0e0e0; border-radius:8px; background:#fff; color:#e74c3c; font-size:13px; cursor:pointer; transition:0.15s;">
+                    <button id="resetPermissionBtn" style="width:100%; margin-top:8px; padding:8px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-card); color:#e74c3c; font-size:13px; cursor:pointer; transition:0.15s;">
                         <i class="fas fa-undo-alt"></i> 重新请求相册权限
                     </button>
-                    <div style="font-size:11px; color:#aaa; margin-top:4px;">点击后重新弹出权限申请，不会影响聊天记录和角色数据</div>
+                    <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">点击后重新弹出权限申请，不会影响聊天记录和角色数据</div>
                 </div>
 
                 <!-- ===== 数据管理（新增） ===== -->
-                <div class="setting-group" style="margin-top:10px; border-top:1px solid #eee; padding-top:14px;">
+                <div class="setting-group" style="margin-top:10px; border-top:1px solid var(--border-color); padding-top:14px;">
                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-                        <span style="font-size:14px; color:#333;">
+                        <span style="font-size:14px; color:var(--text-primary);">
                             <i class="fas fa-database" style="color:#6c5ce7;"></i> 数据管理
                         </span>
-                        <span style="font-size:11px; color:#999;">导入/导出</span>
+                        <span style="font-size:11px; color:var(--text-secondary);">导入/导出</span>
                     </div>
-                    <button id="dataManageBtn" style="width:100%; padding:10px; border:1px solid #e0e0e0; border-radius:8px; background:#fff; color:#333; font-size:13px; cursor:pointer; transition:0.15s; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <button id="dataManageBtn" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-card); color:var(--text-primary); font-size:13px; cursor:pointer; transition:0.15s; display:flex; align-items:center; justify-content:center; gap:8px;">
                         <i class="fas fa-arrow-right"></i> 打开数据管理
                     </button>
-                    <div style="font-size:11px; color:#aaa; margin-top:4px;">备份或恢复所有数据，支持分类导出</div>
+                    <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">备份或恢复所有数据，支持分类导出</div>
                 </div>
 
                 <!-- ===== 清空所有聊天记录 ===== -->
-                <div class="setting-group" style="margin-top:10px; border-top:1px solid #eee; padding-top:14px;">
-                    <button id="clearAllChatsBtn" style="width:100%; padding:10px; border:1px solid #e74c3c; border-radius:8px; background:#fff; color:#e74c3c; font-size:13px; cursor:pointer; transition:0.15s; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <div class="setting-group" style="margin-top:10px; border-top:1px solid var(--border-color); padding-top:14px;">
+                    <button id="clearAllChatsBtn" style="width:100%; padding:10px; border:1px solid #e74c3c; border-radius:8px; background:var(--bg-card); color:#e74c3c; font-size:13px; cursor:pointer; transition:0.15s; display:flex; align-items:center; justify-content:center; gap:8px;">
                         <i class="fas fa-trash-alt"></i> 清空所有角色的聊天记录
                     </button>
-                    <div style="font-size:11px; color:#aaa; margin-top:4px;">此操作将删除所有角色的聊天记录，不可恢复</div>
+                    <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">此操作将删除所有角色的聊天记录，不可恢复</div>
                 </div>
 
                 <button class="save-btn" id="saveSettingsBtn"><i class="fas fa-save"></i> 保存设置</button>
-                <div style="margin-top:10px;font-size:11px;color:#999;text-align:center;line-height:1.5;">
+                <div style="margin-top:10px;font-size:11px;color:var(--text-secondary);text-align:center;line-height:1.5;">
                     <i class="fas fa-database"></i> 所有数据仅保存在本地浏览器
                 </div>
             </div>
@@ -2334,6 +2520,11 @@
             permission: null,
             temperature: 0.9,
             unreadCount: {},
+            fontSize: 'medium', // small, medium, large, xlarge
+            fontWeight: 'regular', // light, regular, medium, bold
+            splitEnabled: true, // 分段生成开关
+            theme: 'dark', // dark, light, auto
+            pinnedMessages: {}, // 按角色存储置顶消息ID
         };
 
         function createDefaultRole(name) {
@@ -2370,6 +2561,11 @@
                 config = savedData.config || { ...DEFAULT_CONFIG };
                 if (!config.unreadCount) config.unreadCount = {};
                 if (!config.timeMode) config.timeMode = 'HH:MM';
+                if (!config.fontSize) config.fontSize = 'medium';
+                if (!config.fontWeight) config.fontWeight = 'regular';
+                if (config.splitEnabled === undefined) config.splitEnabled = true;
+                if (!config.theme) config.theme = 'dark';
+                if (!config.pinnedMessages) config.pinnedMessages = {};
                 roles = savedData.roles;
                 currentRoleId = savedData.currentRoleId || roles[0].id;
                 console.log('✅ 从 localStorage 加载数据成功，角色数:', roles.length);
@@ -2542,21 +2738,17 @@
         // ============================================================
 
         async function triggerSmartSummary(role) {
-            // 如果 API Key 没填，跳过智能总结（保留原有记忆功能）
             if (!config.apiKey) return;
 
-            // 取最近 10 条消息
             const recentMsgs = role.messages.slice(-10);
             if (recentMsgs.length < 4) return;
 
-            // 构建对话文本
             let conversationText = '';
             recentMsgs.forEach(msg => {
                 const sender = msg.role === 'user' ? '用户' : role.name;
                 conversationText += `${sender}：${msg.content}\n`;
             });
 
-            // 获取已有的记忆内容作为上下文（避免重复总结）
             const existingMemories = (role.memory || [])
                 .map(m => m.text || m)
                 .filter(t => t)
@@ -2565,7 +2757,6 @@
             try {
                 const summary = await callMemorySummaryAPI(conversationText, role.name, existingMemories);
                 if (summary && summary.length > 0) {
-                    // 避免重复添加相同的记忆
                     const exists = role.memory.some(m => 
                         (m.text || m).includes(summary) || summary.includes(m.text || m)
                     );
@@ -2575,7 +2766,6 @@
                             sourceMessageId: 'smart_summary_' + Date.now()
                         });
                         saveAllData();
-                        // 显示提示（但不要太频繁，用 Toast）
                         showToast('💭 已更新深层记忆');
                     }
                 }
@@ -2624,14 +2814,13 @@
 
             const data = await resp.json();
             const reply = data.choices?.[0]?.message?.content || '';
-            // 过滤掉空字符串或太短的回复
             const trimmed = reply.trim();
             if (trimmed.length < 3 || trimmed.length > 60) return '';
             return trimmed;
         }
 
         // ============================================================
-        //  删除 & 重新生成
+        //  删除 & 重新生成 & 置顶
         // ============================================================
 
         function deleteMessageAndMemory(roleId, messageId) {
@@ -2640,6 +2829,12 @@
 
             const msgIndex = role.messages.findIndex(m => m.id === messageId);
             if (msgIndex === -1) return;
+
+            // 如果是置顶消息，取消置顶
+            if (config.pinnedMessages && config.pinnedMessages[roleId] === messageId) {
+                delete config.pinnedMessages[roleId];
+                saveAllData();
+            }
 
             role.messages.splice(msgIndex, 1);
 
@@ -2654,6 +2849,37 @@
             renderMessages();
             renderContacts();
             if (roleManagerContainer) renderRoleManager();
+        }
+
+        // 切换消息置顶
+        function togglePinMessage(roleId, messageId) {
+            if (!config.pinnedMessages) config.pinnedMessages = {};
+            
+            const role = roles.find(r => r.id === roleId);
+            if (!role) return;
+
+            // 如果该角色已有置顶消息且是当前消息，取消置顶
+            if (config.pinnedMessages[roleId] === messageId) {
+                delete config.pinnedMessages[roleId];
+                showToast('已取消置顶');
+            } else {
+                // 否则设置置顶（同时清除该角色之前的置顶）
+                config.pinnedMessages[roleId] = messageId;
+                showToast('📌 已置顶此消息');
+            }
+            saveAllData();
+            renderMessages();
+            renderContacts();
+            if (roleManagerContainer) renderRoleManager();
+        }
+
+        // 获取角色置顶消息
+        function getPinnedMessage(roleId) {
+            if (!config.pinnedMessages || !config.pinnedMessages[roleId]) return null;
+            const role = roles.find(r => r.id === roleId);
+            if (!role) return null;
+            const msg = role.messages.find(m => m.id === config.pinnedMessages[roleId]);
+            return msg || null;
         }
 
         async function regenerateMessage(roleId, messageId) {
@@ -2716,7 +2942,7 @@
                 const reply = await callDeepSeek(userMessage, role);
                 hideTyping();
 
-                const segments = splitReplyIntoMessages(reply);
+                const segments = config.splitEnabled ? splitReplyIntoMessages(reply) : [reply];
                 for (let i = 0; i < segments.length; i++) {
                     const msg = segments[i];
                     const delay = (i === segments.length - 1) ? 0 : 600;
@@ -3309,6 +3535,18 @@
         const tempSlider = document.getElementById('tempSlider');
         const tempDisplay = document.getElementById('tempDisplay');
 
+        // ===== 字号滑块 DOM =====
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeDisplay = document.getElementById('fontSizeDisplay');
+
+        // ===== 字重滑块 DOM =====
+        const fontWeightSlider = document.getElementById('fontWeightSlider');
+        const fontWeightDisplay = document.getElementById('fontWeightDisplay');
+
+        // ===== 分段生成滑块 DOM =====
+        const splitToggleSlider = document.getElementById('splitToggleSlider');
+        const splitToggleDisplay = document.getElementById('splitToggleDisplay');
+
         // ===== 数据管理 DOM =====
         const dataModalOverlay = document.getElementById('dataModalOverlay');
         const dataModalClose = document.getElementById('dataModalClose');
@@ -3392,10 +3630,14 @@
                 const unread = config.unreadCount && config.unreadCount[role.id] ? config.unreadCount[role.id] : 0;
                 const dotHtml = unread > 0 ? `<span class="unread-dot">${unread}</span>` : '';
 
+                // 检查是否有置顶消息
+                const hasPinned = config.pinnedMessages && config.pinnedMessages[role.id] ? true : false;
+                const pinIcon = hasPinned ? '📌 ' : '';
+
                 item.innerHTML = `
                     <div class="contact-avatar" style="${avatarStyle}">${role.avatar ? '' : getInitials(role.name)}</div>
                     <div class="contact-info">
-                        <div class="contact-name">${role.name}</div>
+                        <div class="contact-name">${pinIcon}${role.name}</div>
                         <div class="contact-preview">${preview}</div>
                     </div>
                     ${dotHtml}
@@ -3414,7 +3656,7 @@
         }
 
         // ============================================================
-        //  渲染：角色管理（设置里）+ 记忆库
+        //  渲染：角色管理（设置里）+ 记忆库（含折叠）
         // ============================================================
 
         function renderRoleManager() {
@@ -3426,7 +3668,7 @@
 
             if (roles.length === 0) {
                 roleManagerContainer.innerHTML = `
-                    <div style="text-align:center;padding:20px;color:#999;font-size:13px;">
+                    <div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:13px;">
                         还没有角色，点击「新建」创建
                     </div>
                 `;
@@ -3446,6 +3688,9 @@
                 const bgPreviewStyle = role.chatBg ?
                     `background-image: url(${role.chatBg}); background-size: cover; background-position: center;` :
                     `background-color: #ededed;`;
+
+                // 记忆折叠状态 - 默认展开
+                const memoryCollapsed = role._memoryCollapsed === undefined ? false : role._memoryCollapsed;
 
                 let memoryHtml = '';
                 const memories = Array.isArray(role.memory) ? role.memory : [];
@@ -3473,14 +3718,14 @@
                             <div class="preview-circle" id="avatarPreview_${role.id}" style="${avatarPreviewStyle}"></div>
                             <button class="upload-btn" data-id="${role.id}" data-type="avatar">更换头像</button>
                             <button class="remove-btn" data-id="${role.id}" data-type="avatar-remove" ${role.avatar ? '' : 'style="display:none;"'}>移除</button>
-                            <span style="font-size:11px;color:#999;margin-left:auto;">点击头像也可更换</span>
+                            <span style="font-size:11px;color:var(--text-secondary);margin-left:auto;">点击头像也可更换</span>
                         </div>
 
                         <div class="role-bg-upload">
                             <div class="preview-box-small" id="bgPreview_${role.id}" style="${bgPreviewStyle}"></div>
                             <button class="upload-btn" data-id="${role.id}" data-type="bg">更换背景</button>
                             <button class="remove-btn" data-id="${role.id}" data-type="bg-remove" ${role.chatBg ? '' : 'style="display:none;"'}>移除</button>
-                            <span style="font-size:11px;color:#999;margin-left:auto;">单独背景</span>
+                            <span style="font-size:11px;color:var(--text-secondary);margin-left:auto;">单独背景</span>
                         </div>
 
                         <div class="field-group">
@@ -3500,18 +3745,24 @@
                             <textarea class="role-field" data-id="${role.id}" data-field="extra" rows="2">${role.extra || ''}</textarea>
                         </div>
 
+                        <!-- ===== 记忆库（含折叠） ===== -->
                         <div class="memory-section">
-                            <div class="memory-title"><i class="fas fa-brain"></i> 记忆库</div>
-                            <div id="memoryList_${role.id}">
-                                ${memoryHtml}
+                            <div class="memory-header" data-roleid="${role.id}">
+                                <div class="memory-title"><i class="fas fa-brain"></i> 记忆库 <span style="font-weight:400;font-size:11px;">(${memories.length}条)</span></div>
+                                <span class="memory-toggle ${memoryCollapsed ? 'collapsed' : ''}"><i class="fas fa-chevron-down"></i></span>
                             </div>
-                            <div class="memory-add">
-                                <input type="text" id="memoryInput_${role.id}" placeholder="添加新记忆..." />
-                                <button class="mem-add-btn" data-id="${role.id}">添加</button>
+                            <div class="memory-body ${memoryCollapsed ? 'collapsed' : ''}" id="memoryBody_${role.id}">
+                                <div id="memoryList_${role.id}">
+                                    ${memoryHtml}
+                                </div>
+                                <div class="memory-add">
+                                    <input type="text" id="memoryInput_${role.id}" placeholder="添加新记忆..." />
+                                    <button class="mem-add-btn" data-id="${role.id}">添加</button>
+                                </div>
                             </div>
                         </div>
 
-                        <div style="margin-top:6px;font-size:11px;color:#999;">
+                        <div style="margin-top:6px;font-size:11px;color:var(--text-secondary);">
                             消息数：${role.messages ? role.messages.length : 0}
                         </div>
                     </div>
@@ -3527,6 +3778,18 @@
                     expandBtn.innerHTML = isOpen ?
                         '<i class="fas fa-chevron-up"></i>' :
                         '<i class="fas fa-chevron-down"></i>';
+                });
+
+                // 记忆折叠切换
+                const memoryHeader = card.querySelector('.memory-header');
+                const memoryBody = card.querySelector('.memory-body');
+                const memoryToggle = card.querySelector('.memory-toggle');
+                memoryHeader.addEventListener('click', () => {
+                    const isCollapsed = memoryBody.classList.toggle('collapsed');
+                    memoryToggle.classList.toggle('collapsed', isCollapsed);
+                    // 保存折叠状态到角色数据
+                    role._memoryCollapsed = isCollapsed;
+                    saveAllData();
                 });
 
                 const nameInput = card.querySelector('.role-name-input');
@@ -3703,6 +3966,7 @@
                                 currentRoleId = roles[0]?.id || null;
                             }
                             if (config.unreadCount) delete config.unreadCount[role.id];
+                            if (config.pinnedMessages) delete config.pinnedMessages[role.id];
                             saveAllData();
                             renderRoleManager();
                             renderContacts();
@@ -3745,7 +4009,7 @@
                 chatBgLayer.style.backgroundPosition = 'center';
             } else {
                 chatBgLayer.style.backgroundImage = 'none';
-                chatBgLayer.style.backgroundColor = '#ededed';
+                chatBgLayer.style.backgroundColor = 'var(--bg-secondary)';
             }
         }
 
@@ -3819,7 +4083,7 @@
         });
 
         // ============================================================
-        //  渲染：聊天消息（新布局：时间戳在气泡外上方，按钮在气泡外下方）
+        //  渲染：聊天消息（含置顶）
         // ============================================================
 
         function renderMessages() {
@@ -3829,8 +4093,21 @@
             applyChatBgForRole(role);
 
             container.innerHTML = '';
-            const msgs = role.messages || [];
 
+            // 获取置顶消息
+            const pinnedMsg = getPinnedMessage(role.id);
+
+            // 如果有置顶消息，先显示置顶消息
+            if (pinnedMsg) {
+                const pinnedRow = createMessageRow(pinnedMsg, role, true);
+                container.appendChild(pinnedRow);
+                // 添加分隔线
+                const divider = document.createElement('div');
+                divider.style.cssText = 'height:1px;background:var(--border-color);margin:4px 0 8px 0;width:100%;';
+                container.appendChild(divider);
+            }
+
+            const msgs = role.messages || [];
             if (msgs.length === 0) {
                 const w = document.createElement('div');
                 w.className = 'message-row';
@@ -3846,80 +4123,21 @@
                 `;
                 container.appendChild(w);
             } else {
-                let lastAssistantId = null;
-                for (let i = msgs.length - 1; i >= 0; i--) {
-                    if (msgs[i].role === 'assistant') {
-                        lastAssistantId = msgs[i].id;
-                        break;
-                    }
-                }
-
-                const timeMode = config.timeMode || 'HH:MM';
-
                 msgs.forEach((msg) => {
-                    const row = document.createElement('div');
-                    row.className = `message-row ${msg.role === 'user' ? 'self' : ''}`;
-                    if (msg.id) row.dataset.msgId = msg.id;
-                    const avatarClass = msg.role === 'user' ? 'user' : 'bot';
-                    const nick = msg.role === 'user' ? '我' : role.name;
-                    const isLastAssistant = (msg.role === 'assistant' && msg.id === lastAssistantId);
-
-                    let contentHtml = msg.content;
-
-                    if (msg.type === 'text' && msg.content.startsWith('> ')) {
-                        const lines = msg.content.split('\n');
-                        const quoteLine = lines[0].substring(2);
-                        const replyLines = lines.slice(2).join('\n').trim();
-                        const senderName = msg.role === 'user' ? '我' : role.name;
-
-                        contentHtml = `
-                            <div class="quote-block">
-                                <div class="quote-sender">${senderName} 引用：</div>
-                                <div class="quote-content">${quoteLine}</div>
-                            </div>
-                            ${replyLines ? `<hr class="quote-divider" /><div class="reply-content">${replyLines}</div>` : ''}
-                        `;
-                    } else if (msg.type === 'image') {
-                        contentHtml = `<img src="${msg.content}" alt="图片" />`;
-                    }
-
-                    const timeStr = formatTime(msg.time, timeMode);
-
-                    let actionsHtml = '';
-                    if (msg.role === 'assistant') {
-                        actionsHtml = `
-                            <div class="msg-actions">
-                                <button class="action-btn regenerate-btn" data-msgid="${msg.id}" title="重新生成"><i class="fas fa-sync-alt"></i></button>
-                                <button class="action-btn delete-btn" data-msgid="${msg.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
-                            </div>
-                        `;
-                    } else if (msg.role === 'user') {
-                        actionsHtml = `
-                            <div class="msg-actions">
-                                <button class="action-btn delete-btn" data-msgid="${msg.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
-                            </div>
-                        `;
-                    }
-
-                    row.innerHTML = `
-                        <div class="avatar ${avatarClass}"></div>
-                        <div class="bubble-container">
-                            ${timeStr ? `<div class="msg-time">${timeStr}</div>` : ''}
-                            <div class="bubble-row">
-                                <div class="bubble">${contentHtml}</div>
-                                ${actionsHtml}
-                            </div>
-                        </div>
-                    `;
+                    // 如果是置顶消息且已经在顶部显示，跳过
+                    if (pinnedMsg && msg.id === pinnedMsg.id) return;
+                    const row = createMessageRow(msg, role, false);
                     container.appendChild(row);
                 });
             }
             container.scrollTop = container.scrollHeight;
             applyAvatars();
             applyBubbleStyle(config.bubbleStyle || 'default');
+            applyFontSettings();
             updateChatTitle();
             attachLongPressEvents();
 
+            // 绑定操作按钮事件
             container.querySelectorAll('.regenerate-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -3942,9 +4160,93 @@
                 });
             });
 
+            container.querySelectorAll('.pin-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const msgId = btn.dataset.msgid;
+                    const role = getCurrentRole();
+                    if (role) {
+                        togglePinMessage(role.id, msgId);
+                    }
+                });
+            });
+
             setTimeout(() => {
                 markVisibleMessagesAsRead();
             }, 100);
+        }
+
+        // 创建单条消息行
+        function createMessageRow(msg, role, isPinned) {
+            const row = document.createElement('div');
+            row.className = `message-row ${msg.role === 'user' ? 'self' : ''}`;
+            if (msg.id) row.dataset.msgId = msg.id;
+            if (isPinned) row.classList.add('pinned');
+            const avatarClass = msg.role === 'user' ? 'user' : 'bot';
+            const nick = msg.role === 'user' ? '我' : role.name;
+            const isLastAssistant = (msg.role === 'assistant' && msg.id === getLastAssistantId(role));
+
+            let contentHtml = msg.content;
+
+            if (msg.type === 'text' && msg.content.startsWith('> ')) {
+                const lines = msg.content.split('\n');
+                const quoteLine = lines[0].substring(2);
+                const replyLines = lines.slice(2).join('\n').trim();
+                const senderName = msg.role === 'user' ? '我' : role.name;
+
+                contentHtml = `
+                    <div class="quote-block">
+                        <div class="quote-sender">${senderName} 引用：</div>
+                        <div class="quote-content">${quoteLine}</div>
+                    </div>
+                    ${replyLines ? `<hr class="quote-divider" /><div class="reply-content">${replyLines}</div>` : ''}
+                `;
+            } else if (msg.type === 'image') {
+                contentHtml = `<img src="${msg.content}" alt="图片" />`;
+            }
+
+            const timeStr = formatTime(msg.time, config.timeMode || 'HH:MM');
+
+            let actionsHtml = '';
+            const isPinnedMsg = config.pinnedMessages && config.pinnedMessages[role.id] === msg.id;
+            if (msg.role === 'assistant') {
+                actionsHtml = `
+                    <div class="msg-actions">
+                        <button class="action-btn pin-btn ${isPinnedMsg ? 'active' : ''}" data-msgid="${msg.id}" title="${isPinnedMsg ? '取消置顶' : '置顶'}"><i class="fas ${isPinnedMsg ? 'fa-star' : 'fa-star'}"></i></button>
+                        <button class="action-btn regenerate-btn" data-msgid="${msg.id}" title="重新生成"><i class="fas fa-sync-alt"></i></button>
+                        <button class="action-btn delete-btn" data-msgid="${msg.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                `;
+            } else if (msg.role === 'user') {
+                actionsHtml = `
+                    <div class="msg-actions">
+                        <button class="action-btn pin-btn ${isPinnedMsg ? 'active' : ''}" data-msgid="${msg.id}" title="${isPinnedMsg ? '取消置顶' : '置顶'}"><i class="fas ${isPinnedMsg ? 'fa-star' : 'fa-star'}"></i></button>
+                        <button class="action-btn delete-btn" data-msgid="${msg.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                `;
+            }
+
+            row.innerHTML = `
+                <div class="avatar ${avatarClass}"></div>
+                <div class="bubble-container">
+                    ${timeStr ? `<div class="msg-time">${timeStr}</div>` : ''}
+                    <div class="bubble-row">
+                        <div class="bubble">${contentHtml}</div>
+                        ${actionsHtml}
+                    </div>
+                </div>
+            `;
+            return row;
+        }
+
+        function getLastAssistantId(role) {
+            if (!role || !role.messages) return null;
+            for (let i = role.messages.length - 1; i >= 0; i--) {
+                if (role.messages[i].role === 'assistant') {
+                    return role.messages[i].id;
+                }
+            }
+            return null;
         }
 
         function applyAvatars() {
@@ -3989,17 +4291,79 @@
         }
 
         // ============================================================
-        //  页面切换
+        //  字号和字重应用
+        // ============================================================
+
+        function applyFontSettings() {
+            const fontSize = config.fontSize || 'medium';
+            const fontWeight = config.fontWeight || 'regular';
+            document.documentElement.setAttribute('data-font-size', fontSize);
+            document.documentElement.setAttribute('data-font-weight', fontWeight);
+        }
+
+        // ============================================================
+        //  深色/浅色模式
+        // ============================================================
+
+        function applyTheme(theme) {
+            if (theme === 'auto') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        }
+
+        // ============================================================
+        //  草稿缓存
+        // ============================================================
+
+        let draftCache = {};
+
+        function saveDraft(roleId, content) {
+            draftCache[roleId] = content;
+            try {
+                localStorage.setItem('ds_draft_cache', JSON.stringify(draftCache));
+            } catch (_) {}
+        }
+
+        function loadDraft(roleId) {
+            try {
+                const raw = localStorage.getItem('ds_draft_cache');
+                if (raw) {
+                    draftCache = JSON.parse(raw) || {};
+                }
+            } catch (_) {
+                draftCache = {};
+            }
+            return draftCache[roleId] || '';
+        }
+
+        // ============================================================
+        //  页面切换（含草稿保存/加载）
         // ============================================================
 
         let isFromContacts = false;
 
         function openChat(fromContacts = false) {
             isFromContacts = fromContacts;
+            // 保存当前草稿
+            const currentRole = getCurrentRole();
+            if (currentRole) {
+                saveDraft(currentRole.id, input.value);
+            }
+            // 切换到新角色
             const role = getCurrentRole();
             if (role) {
                 clearUnreadForRole(role.id);
                 readMessages = new Set();
+                // 加载草稿
+                input.value = loadDraft(role.id);
+                // 聚焦时选中全部文字方便快速重写
+                setTimeout(() => {
+                    input.focus();
+                    input.select();
+                }, 300);
             }
             launcherScreen.classList.add('hidden');
             if (fromContacts) {
@@ -4010,13 +4374,17 @@
             chatScreen.classList.add('open');
             updateChatTitle();
             renderMessages();
-            setTimeout(() => input.focus(), 400);
             if (contactsScreen.classList.contains('open')) {
                 renderContacts();
             }
         }
 
         function closeChat() {
+            // 保存当前草稿
+            const role = getCurrentRole();
+            if (role) {
+                saveDraft(role.id, input.value);
+            }
             chatScreen.classList.remove('open');
             if (isFromContacts) {
                 contactsScreen.classList.add('open');
@@ -4213,7 +4581,7 @@
         }
 
         // ============================================================
-        //  发送消息（含气泡拆分，间隔 600ms）
+        //  发送消息（含气泡拆分，间隔 600ms，受分段开关控制）
         // ============================================================
 
         async function handleSend() {
@@ -4247,7 +4615,8 @@
                 const reply = await callDeepSeek(finalMessage, role);
                 hideTyping();
 
-                const segments = splitReplyIntoMessages(reply);
+                // 根据分段开关决定是否拆分
+                const segments = config.splitEnabled !== false ? splitReplyIntoMessages(reply) : [reply];
                 for (let i = 0; i < segments.length; i++) {
                     const msg = segments[i];
                     const delay = (i === segments.length - 1) ? 0 : 600;
@@ -4292,6 +4661,7 @@
         longpressMenu.innerHTML = `
             <button class="menu-item" data-action="quote"><i class="fas fa-quote-left"></i> 引用回复</button>
             <button class="menu-item danger" data-action="delete"><i class="fas fa-trash-alt"></i> 删除</button>
+            <button class="menu-item" data-action="pin"><i class="fas fa-star"></i> 置顶/取消置顶</button>
         `;
         document.body.appendChild(longpressMenu);
 
@@ -4331,7 +4701,7 @@
                 let y = touch.clientY || window.innerHeight / 2;
 
                 if (x + 170 > window.innerWidth) x = window.innerWidth - 180;
-                if (y + 80 > window.innerHeight) y = window.innerHeight - 90;
+                if (y + 120 > window.innerHeight) y = window.innerHeight - 130;
                 if (x < 10) x = 10;
                 if (y < 10) y = 10;
 
@@ -4355,6 +4725,12 @@
                         deleteMessageAndMemory(role.id, msg.id);
                         hideLongpressMenu();
                     }
+                };
+
+                const pinItem = menu.querySelector('[data-action="pin"]');
+                pinItem.onclick = () => {
+                    togglePinMessage(role.id, msg.id);
+                    hideLongpressMenu();
                 };
 
                 longpressTimer = null;
@@ -4396,6 +4772,7 @@
             if (confirm(`确定要清空「${role.name}」的所有聊天记录吗？`)) {
                 role.messages = [];
                 clearUnreadForRole(role.id);
+                if (config.pinnedMessages) delete config.pinnedMessages[role.id];
                 saveAllData();
                 renderMessages();
                 renderContacts();
@@ -4409,6 +4786,7 @@
                     role.messages = [];
                     clearUnreadForRole(role.id);
                 });
+                config.pinnedMessages = {};
                 saveAllData();
                 renderMessages();
                 renderContacts();
@@ -4432,6 +4810,82 @@
             const val = parseFloat(config.temperature) || 0.9;
             tempSlider.value = val;
             tempDisplay.textContent = val.toFixed(1);
+        }
+
+        // ============================================================
+        //  字号滑块控制
+        // ============================================================
+
+        const FONT_SIZE_MAP = ['small', 'medium', 'large', 'xlarge'];
+        const FONT_SIZE_LABELS = ['小', '中', '大', '特大'];
+
+        fontSizeSlider.addEventListener('input', function() {
+            const idx = parseInt(this.value);
+            const key = FONT_SIZE_MAP[idx];
+            config.fontSize = key;
+            fontSizeDisplay.textContent = FONT_SIZE_LABELS[idx];
+            applyFontSettings();
+            saveAllData();
+        });
+
+        function loadFontSize() {
+            const key = config.fontSize || 'medium';
+            const idx = FONT_SIZE_MAP.indexOf(key);
+            if (idx !== -1) {
+                fontSizeSlider.value = idx;
+                fontSizeDisplay.textContent = FONT_SIZE_LABELS[idx];
+            } else {
+                fontSizeSlider.value = 1;
+                fontSizeDisplay.textContent = '中';
+            }
+            applyFontSettings();
+        }
+
+        // ============================================================
+        //  字重滑块控制
+        // ============================================================
+
+        const FONT_WEIGHT_MAP = ['light', 'regular', 'medium', 'bold'];
+        const FONT_WEIGHT_LABELS = ['细', '常规', '中', '粗'];
+
+        fontWeightSlider.addEventListener('input', function() {
+            const idx = parseInt(this.value);
+            const key = FONT_WEIGHT_MAP[idx];
+            config.fontWeight = key;
+            fontWeightDisplay.textContent = FONT_WEIGHT_LABELS[idx];
+            applyFontSettings();
+            saveAllData();
+        });
+
+        function loadFontWeight() {
+            const key = config.fontWeight || 'regular';
+            const idx = FONT_WEIGHT_MAP.indexOf(key);
+            if (idx !== -1) {
+                fontWeightSlider.value = idx;
+                fontWeightDisplay.textContent = FONT_WEIGHT_LABELS[idx];
+            } else {
+                fontWeightSlider.value = 1;
+                fontWeightDisplay.textContent = '常规';
+            }
+            applyFontSettings();
+        }
+
+        // ============================================================
+        //  分段生成开关控制
+        // ============================================================
+
+        splitToggleSlider.addEventListener('input', function() {
+            const val = parseInt(this.value);
+            config.splitEnabled = val === 1;
+            splitToggleDisplay.textContent = val === 1 ? '开启' : '关闭';
+            saveAllData();
+            showToast(val === 1 ? '✅ 分段生成已开启' : '❌ 分段生成已关闭');
+        });
+
+        function loadSplitToggle() {
+            const val = config.splitEnabled !== false ? 1 : 0;
+            splitToggleSlider.value = val;
+            splitToggleDisplay.textContent = val === 1 ? '开启' : '关闭';
         }
 
         // ============================================================
@@ -4654,7 +5108,7 @@
                 const role = getCurrentRole();
                 if (!role || !role.chatBg) {
                     chatBgLayer.style.backgroundImage = 'none';
-                    chatBgLayer.style.backgroundColor = '#ededed';
+                    chatBgLayer.style.backgroundColor = 'var(--bg-secondary)';
                 }
                 document.getElementById('chatBgPreviewImg').style.display = 'none';
                 document.getElementById('chatBgPreviewImg').src = '';
@@ -4689,9 +5143,7 @@
             }
             config.userAvatar = dataUrl || '';
             saveAllData();
-        }
-
-        // ============================================================
+        } // ============================================================
         //  数据管理（导入/导出）
         // ============================================================
 
@@ -4847,6 +5299,7 @@
                             const oldApiKey = config.apiKey;
                             config = { ...config, ...imported.config };
                             config.apiKey = oldApiKey;
+                            if (!config.pinnedMessages) config.pinnedMessages = {};
                         }
 
                         roles = imported.roles;
@@ -4932,6 +5385,9 @@
             renderRoleManager();
             updatePermissionStatusUI();
             loadTemperature();
+            loadFontSize();
+            loadFontWeight();
+            loadSplitToggle();
 
             if (config.wallpaper) {
                 document.getElementById('wallpaperPreviewImg').src = config.wallpaper;
@@ -5063,6 +5519,22 @@
         });
 
         // ============================================================
+        //  系统主题监听（自动切换深色/浅色）
+        // ============================================================
+
+        function initThemeListener() {
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            const handleThemeChange = () => {
+                if (config.theme === 'auto') {
+                    applyTheme('auto');
+                }
+            };
+            mediaQuery.addEventListener('change', handleThemeChange);
+            // 存储移除函数以便后续清理
+            window.__themeListener = handleThemeChange;
+        }
+
+        // ============================================================
         //  初始化
         // ============================================================
 
@@ -5087,8 +5559,14 @@
 
             applyIconStyle('glass');
             applyBubbleStyle(config.bubbleStyle || 'default');
+            applyFontSettings();
+            applyTheme(config.theme || 'dark');
+            initThemeListener();
 
             loadTemperature();
+            loadFontSize();
+            loadFontWeight();
+            loadSplitToggle();
 
             updateChatTitle();
 
@@ -5112,6 +5590,7 @@
             console.log('当前气泡风格:', getBubbleName(config.bubbleStyle || 'default'));
             console.log('当前时间模式:', getTimeModeName(config.timeMode || 'HH:MM'));
             console.log('🧠 智能记忆总结已启用（每6轮对话自动触发）');
+            console.log('📌 置顶、草稿、深色模式、字号调节已全部加载');
         }
 
         sendBtn.removeEventListener('click', handleSend);
@@ -5121,6 +5600,14 @@
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 handleSend();
+            }
+        });
+
+        // 草稿自动保存（输入时保存）
+        input.addEventListener('input', () => {
+            const role = getCurrentRole();
+            if (role) {
+                saveDraft(role.id, input.value);
             }
         });
 
