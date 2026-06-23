@@ -356,9 +356,7 @@
             color: rgba(255, 255, 255, 0.25);
             letter-spacing: 1px;
             margin-top: 1px;
-        }
-
-        /* ===== 心动详情面板 ===== */
+        } /* ===== 心动详情面板 ===== */
         .heart-detail-overlay {
             position: fixed;
             inset: 0;
@@ -1505,9 +1503,7 @@
         }
         .bubble-preview .bp-row.self .bp-bubble {
             text-align: right;
-        }
-
-        /* ===== 图片选择器 ===== */
+        } /* ===== 图片选择器 ===== */
         .image-picker-overlay {
             position: absolute;
             inset: 0;
@@ -3188,16 +3184,16 @@
         async function callMemorySummaryAPI(conversation, roleName, existingMemories) {
             const systemPrompt = `你是一个「亲密伴侣/灵魂伴侣」视角的观察者。你的任务是从对话中提取一段简洁的总结（不超过40字），记录用户的真实状态和内心世界。
 
-【记录风格】
-- 像恋人一样细心观察，用温暖的语气
-- 记录用户的情绪、状态、习惯、喜好变化
-- 不要重复已有的记忆（已有记忆：${existingMemories || '无'}）
+        【记录风格】
+        - 像恋人一样细心观察，用温暖的语气
+        - 记录用户的情绪、状态、习惯、喜好变化
+        - 不要重复已有的记忆（已有记忆：${existingMemories || '无'}）
 
-【输出要求】
-- 只输出一句话总结，不超过40个字
-- 不要加任何前缀标签
-- 用中文输出
-- 如果对话中没有值得记录的信息，输出空字符串`;
+        【输出要求】
+        - 只输出一句话总结，不超过40个字
+        - 不要加任何前缀标签
+        - 用中文输出
+        - 如果对话中没有值得记录的信息，输出空字符串`;
 
             const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
                 method: 'POST',
@@ -3228,7 +3224,9 @@
             const trimmed = reply.trim();
             if (trimmed.length < 3 || trimmed.length > 60) return '';
             return trimmed;
-        } // ============================================================
+        }
+
+        // ============================================================
         //  删除 & 重新生成
         // ============================================================
 
@@ -3862,17 +3860,18 @@
                 timeGrid.appendChild(option);
             });
 
-            // ===== 悬浮窗开关 =====
+            // ===== 悬浮窗开关 - 修复版 =====
             const floatingGrid = document.getElementById('floatingSwitchGrid');
             floatingGrid.innerHTML = '';
             const floatingOptions = [
                 { id: 'on', name: '开启悬浮窗' },
                 { id: 'off', name: '关闭悬浮窗' },
             ];
+            const isFloatingOn = config.heart.floatingEnabled !== false;
+
             floatingOptions.forEach(opt => {
                 const option = document.createElement('div');
-                const isActive = (opt.id === 'on' && config.heart.floatingEnabled !== false) ||
-                                 (opt.id === 'off' && config.heart.floatingEnabled === false);
+                const isActive = (opt.id === 'on' && isFloatingOn) || (opt.id === 'off' && !isFloatingOn);
                 option.className = `style-option ${isActive ? 'active' : ''}`;
                 option.dataset.floating = opt.id;
 
@@ -3888,8 +3887,6 @@
                     document.querySelectorAll('#floatingSwitchGrid .style-option').forEach(el => el.classList.remove('active'));
                     option.classList.add('active');
                     const enabled = opt.id === 'on';
-                    config.heart.floatingEnabled = enabled;
-                    saveAllData();
                     toggleFloatingHeart(enabled);
                     showToast(enabled ? '💕 悬浮窗已开启' : '💤 悬浮窗已关闭');
                 });
@@ -3934,7 +3931,9 @@
 
                 colorGrid.appendChild(option);
             });
-        } // ============================================================
+        }
+
+        // ============================================================
         //  心动关键词检测
         // ============================================================
 
@@ -4183,7 +4182,7 @@
         }
 
         // ============================================================
-        //  悬浮窗控制
+        //  悬浮窗控制 - 修复版
         // ============================================================
 
         let floatingVisible = false;
@@ -4191,11 +4190,17 @@
         function toggleFloatingHeart(enabled) {
             const el = document.getElementById('floatingHeart');
             if (!el) return;
+            
+            config.heart.floatingEnabled = enabled;
+            saveAllData();
+            
             floatingVisible = enabled;
             if (enabled) {
                 el.classList.add('visible');
+                el.style.display = 'flex';
             } else {
                 el.classList.remove('visible');
+                el.style.display = 'none';
             }
         }
 
@@ -4209,101 +4214,9 @@
             toggleFloatingHeart(false);
         }
 
-        // ============================================================
-        //  悬浮窗拖拽功能
-        // ============================================================
-
-        let dragData = {
-            isDragging: false,
-            startX: 0,
-            startY: 0,
-            offsetX: 0,
-            offsetY: 0,
-            hasMoved: false,
-        };
-
-        function initFloatingDrag() {
-            const el = document.getElementById('floatingHeart');
-            if (!el) return;
-
-            el.addEventListener('touchstart', (e) => {
-                const touch = e.touches[0];
-                const rect = el.getBoundingClientRect();
-                dragData.isDragging = true;
-                dragData.startX = touch.clientX;
-                dragData.startY = touch.clientY;
-                dragData.offsetX = touch.clientX - rect.left;
-                dragData.offsetY = touch.clientY - rect.top;
-                dragData.hasMoved = false;
-                el.style.transition = 'none';
-            }, { passive: true });
-
-            el.addEventListener('touchmove', (e) => {
-                if (!dragData.isDragging) return;
-                e.preventDefault();
-                const touch = e.touches[0];
-                const newX = touch.clientX - dragData.offsetX;
-                const newY = touch.clientY - dragData.offsetY;
-                
-                const maxX = window.innerWidth - el.offsetWidth;
-                const maxY = window.innerHeight - el.offsetHeight;
-                const clampedX = Math.max(0, Math.min(maxX, newX));
-                const clampedY = Math.max(0, Math.min(maxY, newY));
-                
-                el.style.left = clampedX + 'px';
-                el.style.top = clampedY + 'px';
-                el.style.right = 'auto';
-                el.style.bottom = 'auto';
-                dragData.hasMoved = true;
-            }, { passive: false });
-
-            el.addEventListener('touchend', (e) => {
-                if (!dragData.isDragging) return;
-                dragData.isDragging = false;
-                el.style.transition = '';
-                if (!dragData.hasMoved) {
-                    openHeartDetail();
-                }
-                dragData.hasMoved = false;
-            }, { passive: true });
-
-            el.addEventListener('mousedown', (e) => {
-                const rect = el.getBoundingClientRect();
-                dragData.isDragging = true;
-                dragData.startX = e.clientX;
-                dragData.startY = e.clientY;
-                dragData.offsetX = e.clientX - rect.left;
-                dragData.offsetY = e.clientY - rect.top;
-                dragData.hasMoved = false;
-                el.style.transition = 'none';
-                e.preventDefault();
-            });
-
-            document.addEventListener('mousemove', (e) => {
-                if (!dragData.isDragging) return;
-                const newX = e.clientX - dragData.offsetX;
-                const newY = e.clientY - dragData.offsetY;
-                const maxX = window.innerWidth - el.offsetWidth;
-                const maxY = window.innerHeight - el.offsetHeight;
-                const clampedX = Math.max(0, Math.min(maxX, newX));
-                const clampedY = Math.max(0, Math.min(maxY, newY));
-                el.style.left = clampedX + 'px';
-                el.style.top = clampedY + 'px';
-                el.style.right = 'auto';
-                el.style.bottom = 'auto';
-                dragData.hasMoved = true;
-            });
-
-            document.addEventListener('mouseup', () => {
-                if (dragData.isDragging) {
-                    dragData.isDragging = false;
-                    el.style.transition = '';
-                    if (!dragData.hasMoved) {
-                        openHeartDetail();
-                    }
-                    dragData.hasMoved = false;
-                }
-            });
+        function initFloatingHeart() {
+            const enabled = config.heart.floatingEnabled !== false;
+            toggleFloatingHeart(enabled);
         }
 
         // ============================================================
@@ -4363,10 +4276,7 @@
             }
 
             updateHeartDisplay();
-            
-            if (config.heart.floatingEnabled !== false) {
-                setTimeout(showFloatingHeart, 500);
-            }
+            initFloatingHeart();
         }
 
         // ============================================================
@@ -6595,6 +6505,103 @@
         }
 
         // ============================================================
+        //  悬浮窗拖拽功能
+        // ============================================================
+
+        let dragData = {
+            isDragging: false,
+            startX: 0,
+            startY: 0,
+            offsetX: 0,
+            offsetY: 0,
+            hasMoved: false,
+        };
+
+        function initFloatingDrag() {
+            const el = document.getElementById('floatingHeart');
+            if (!el) return;
+
+            el.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                const rect = el.getBoundingClientRect();
+                dragData.isDragging = true;
+                dragData.startX = touch.clientX;
+                dragData.startY = touch.clientY;
+                dragData.offsetX = touch.clientX - rect.left;
+                dragData.offsetY = touch.clientY - rect.top;
+                dragData.hasMoved = false;
+                el.style.transition = 'none';
+            }, { passive: true });
+
+            el.addEventListener('touchmove', (e) => {
+                if (!dragData.isDragging) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                const newX = touch.clientX - dragData.offsetX;
+                const newY = touch.clientY - dragData.offsetY;
+                
+                const maxX = window.innerWidth - el.offsetWidth;
+                const maxY = window.innerHeight - el.offsetHeight;
+                const clampedX = Math.max(0, Math.min(maxX, newX));
+                const clampedY = Math.max(0, Math.min(maxY, newY));
+                
+                el.style.left = clampedX + 'px';
+                el.style.top = clampedY + 'px';
+                el.style.right = 'auto';
+                el.style.bottom = 'auto';
+                dragData.hasMoved = true;
+            }, { passive: false });
+
+            el.addEventListener('touchend', (e) => {
+                if (!dragData.isDragging) return;
+                dragData.isDragging = false;
+                el.style.transition = '';
+                if (!dragData.hasMoved) {
+                    openHeartDetail();
+                }
+                dragData.hasMoved = false;
+            }, { passive: true });
+
+            el.addEventListener('mousedown', (e) => {
+                const rect = el.getBoundingClientRect();
+                dragData.isDragging = true;
+                dragData.startX = e.clientX;
+                dragData.startY = e.clientY;
+                dragData.offsetX = e.clientX - rect.left;
+                dragData.offsetY = e.clientY - rect.top;
+                dragData.hasMoved = false;
+                el.style.transition = 'none';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!dragData.isDragging) return;
+                const newX = e.clientX - dragData.offsetX;
+                const newY = e.clientY - dragData.offsetY;
+                const maxX = window.innerWidth - el.offsetWidth;
+                const maxY = window.innerHeight - el.offsetHeight;
+                const clampedX = Math.max(0, Math.min(maxX, newX));
+                const clampedY = Math.max(0, Math.min(maxY, newY));
+                el.style.left = clampedX + 'px';
+                el.style.top = clampedY + 'px';
+                el.style.right = 'auto';
+                el.style.bottom = 'auto';
+                dragData.hasMoved = true;
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (dragData.isDragging) {
+                    dragData.isDragging = false;
+                    el.style.transition = '';
+                    if (!dragData.hasMoved) {
+                        openHeartDetail();
+                    }
+                    dragData.hasMoved = false;
+                }
+            });
+        }
+
+        // ============================================================
         //  事件绑定
         // ============================================================
 
@@ -6613,6 +6620,11 @@
             if (role) {
                 saveDraft(role.id, input.value);
             }
+        });
+
+        document.getElementById('hdCloseBtn').addEventListener('click', closeHeartDetail);
+        document.getElementById('heartDetailOverlay').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeHeartDetail();
         });
 
         // ============================================================
