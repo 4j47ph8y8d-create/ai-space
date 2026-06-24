@@ -1457,6 +1457,7 @@
             border-radius: 4px;
         }
 
+        /* 分类卡片 */
         .meme-category-list {
             display: flex;
             flex-direction: column;
@@ -1531,6 +1532,7 @@
             padding: 4px;
         }
 
+        /* 分类颜色方案 */
         .meme-category-item[data-catid="cat_happy"] { border-left-color: #fdcb6e; }
         .meme-category-item[data-catid="cat_sad"] { border-left-color: #74b9ff; }
         .meme-category-item[data-catid="cat_miss"] { border-left-color: #fd79a8; }
@@ -1543,6 +1545,7 @@
         .meme-category-item[data-catid="cat_like"] { border-left-color: #ff6b81; }
         .meme-category-item[data-catid="uncategorized"] { border-left-color: #b2bec3; }
 
+        /* 表情包列表视图 */
         .meme-list-view {
             display: flex;
             flex-direction: column;
@@ -1586,6 +1589,7 @@
             color: #e74c3c;
         }
 
+        /* 表情包网格 */
         .meme-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -1662,6 +1666,7 @@
             margin-bottom: 12px;
         }
 
+        /* 表情包选择器弹窗 */
         .meme-picker-overlay {
             position: fixed;
             inset: 0;
@@ -3337,6 +3342,26 @@
                 </select>
             </div>
 
+            <!-- ===== 存储用量监控 ===== -->
+            <div class="temp-slider-container" style="margin-bottom:14px;border-left:3px solid #a29bfe;">
+                <div class="temp-header">
+                    <span class="temp-label" style="font-size:14px;"><i class="fas fa-database" style="color:#6c5ce7;"></i> 存储用量</span>
+                    <span class="temp-value" id="storageStatus" style="font-size:14px;">计算中...</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin:4px 0 2px;">
+                    <span id="storageMemeCount">表情包：0 张</span>
+                    <span id="storageSize">已用：0 KB</span>
+                    <span id="storageRemain">剩余：0 KB</span>
+                </div>
+                <!-- 进度条 -->
+                <div style="width:100%;height:6px;background:var(--border-color);border-radius:4px;overflow:hidden;margin-top:4px;">
+                    <div id="storageProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#a29bfe,#6c5ce7);border-radius:4px;transition:width 0.5s ease;"></div>
+                </div>
+                <div style="font-size:10px;color:var(--text-secondary);margin-top:3px;opacity:0.6;">
+                    📦 IndexedDB 存储上限约 50MB
+                </div>
+            </div>
+
             <div class="setting-group" style="margin-top:10px; border-top:1px solid var(--border-color); padding-top:14px;">
                 <div style="display:flex; align-items:center; justify-content:space-between;">
                     <span style="font-size:14px; color:var(--text-primary);">
@@ -3462,7 +3487,7 @@
     };
 
     // ============================================================
-    //  表情包数据管理
+    //  表情包数据管理 - IndexedDB 版本（存储上限 50MB+）
     // ============================================================
 
     const DEFAULT_CATEGORIES = [
@@ -3483,39 +3508,225 @@
     let memePickerOpen = false;
     let memePickerCurrentCategory = null;
 
-    function loadMemeData() {
-        try {
-            const raw = localStorage.getItem('ds_meme_data');
-            if (raw) {
-                const data = JSON.parse(raw);
-                memeCategories = data.categories || [...DEFAULT_CATEGORIES];
-                memes = data.memes || [];
-                if (!memeCategories.find(c => c.id === 'uncategorized')) {
-                    memeCategories.push({ id: 'uncategorized', name: '未分类', icon: '📁' });
+    // ----- IndexedDB 工具函数 -----
+    function openMemeDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('MemeDB', 2);
+            request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains('memes')) {
+                    const store = db.createObjectStore('memes', { keyPath: 'id' });
+                    store.createIndex('categoryId', 'categoryId', { unique: false });
                 }
-                return;
+                if (!db.objectStoreNames.contains('categories')) {
+                    const catStore = db.createObjectStore('categories', { keyPath: 'id' });
+                }
+                console.log('📦 IndexedDB 升级/创建完成');
+            };
+            request.onsuccess = (e) => resolve(e.target.result);
+            request.onerror = (e) => reject(e.target.error);
+        });
+    }
+
+    // ----- 保存表情包到 IndexedDB -----
+    async function saveMemeData() {
+        try {
+            const db = await openMemeDB();
+            
+            // 保存分类
+            const catTx = db.transaction('categories', 'readwrite');
+            const catStore = catTx.objectStore('categories');
+            catStore.clear();
+            memeCategories.forEach(c => catStore.put(c));
+            await new Promise((resolve) => catTx.oncomplete = resolve);
+            
+            // 保存表情包
+            const memeTx = db.transaction('memes', 'readwrite');
+            const memeStore = memeTx.objectStore('memes');
+            memeStore.clear();
+            memes.forEach(m => memeStore.put(m));
+            await new Promise((resolve) => memeTx.oncomplete = resolve);
+            
+            db.close();
+            console.log('💾 表情包数据已保存到 IndexedDB，共', memes.length, '个表情包，', memeCategories.length, '个分类');
+            updateStorageDisplay();
+            return true;
+        } catch (e) {
+            console.error('❌ 保存到 IndexedDB 失败:', e);
+            showToast('⚠️ 保存失败: ' + e.message);
+            return false;
+        }
+    }
+
+    // ----- 从 IndexedDB 加载表情包 -----
+    async function loadMemeData() {
+        try {
+            const db = await openMemeDB();
+            
+            // 加载分类
+            let loadedCategories = [];
+            try {
+                const catTx = db.transaction('categories', 'readonly');
+                const catStore = catTx.objectStore('categories');
+                loadedCategories = await new Promise((resolve) => {
+                    const result = [];
+                    const cursor = catStore.openCursor();
+                    cursor.onsuccess = (e) => {
+                        const c = e.target.result;
+                        if (c) { result.push(c.value); c.continue(); }
+                        else resolve(result);
+                    };
+                    cursor.onerror = () => resolve([]);
+                });
+            } catch (e) { console.log('加载分类失败，使用默认分类'); }
+            
+            // 加载表情包
+            let loadedMemes = [];
+            try {
+                const memeTx = db.transaction('memes', 'readonly');
+                const memeStore = memeTx.objectStore('memes');
+                loadedMemes = await new Promise((resolve) => {
+                    const result = [];
+                    const cursor = memeStore.openCursor();
+                    cursor.onsuccess = (e) => {
+                        const c = e.target.result;
+                        if (c) { result.push(c.value); c.continue(); }
+                        else resolve(result);
+                    };
+                    cursor.onerror = () => resolve([]);
+                });
+            } catch (e) { console.log('加载表情包失败'); }
+            
+            db.close();
+            
+            if (loadedCategories.length > 0) {
+                memeCategories = loadedCategories;
+            } else {
+                memeCategories = [...DEFAULT_CATEGORIES];
+                memeCategories.push({ id: 'uncategorized', name: '未分类', icon: '📁' });
             }
-        } catch (_) {}
-        memeCategories = [...DEFAULT_CATEGORIES];
-        memeCategories.push({ id: 'uncategorized', name: '未分类', icon: '📁' });
-        memes = [];
-        saveMemeData();
+            
+            memes = loadedMemes;
+            
+            // 确保未分类存在
+            if (!memeCategories.find(c => c.id === 'uncategorized')) {
+                memeCategories.push({ id: 'uncategorized', name: '未分类', icon: '📁' });
+            }
+            
+            // 修复引用
+            memes.forEach(m => {
+                if (!memeCategories.find(c => c.id === m.categoryId)) {
+                    m.categoryId = 'uncategorized';
+                }
+            });
+            
+            console.log('✅ 从 IndexedDB 加载成功，共', memes.length, '个表情包，', memeCategories.length, '个分类');
+            updateStorageDisplay();
+            return true;
+        } catch (e) {
+            console.error('❌ 从 IndexedDB 加载失败:', e);
+            memeCategories = [...DEFAULT_CATEGORIES];
+            memeCategories.push({ id: 'uncategorized', name: '未分类', icon: '📁' });
+            memes = [];
+            return false;
+        }
     }
 
-    function saveMemeData() {
-        localStorage.setItem('ds_meme_data', JSON.stringify({
-            categories: memeCategories,
-            memes: memes,
-        }));
+    // ----- 计算存储用量 -----
+    async function getStorageUsage() {
+        try {
+            const db = await openMemeDB();
+            let totalSize = 0;
+            let memeCount = 0;
+            let catCount = 0;
+            
+            // 计算表情包大小
+            const memeTx = db.transaction('memes', 'readonly');
+            const memeStore = memeTx.objectStore('memes');
+            await new Promise((resolve) => {
+                const cursor = memeStore.openCursor();
+                cursor.onsuccess = (e) => {
+                    const c = e.target.result;
+                    if (c) {
+                        const str = JSON.stringify(c.value);
+                        totalSize += str.length;
+                        memeCount++;
+                        c.continue();
+                    } else resolve();
+                };
+                cursor.onerror = () => resolve();
+            });
+            
+            // 计算分类大小
+            const catTx = db.transaction('categories', 'readonly');
+            const catStore = catTx.objectStore('categories');
+            await new Promise((resolve) => {
+                const cursor = catStore.openCursor();
+                cursor.onsuccess = (e) => {
+                    const c = e.target.result;
+                    if (c) {
+                        const str = JSON.stringify(c.value);
+                        totalSize += str.length;
+                        catCount++;
+                        c.continue();
+                    } else resolve();
+                };
+                cursor.onerror = () => resolve();
+            });
+            
+            db.close();
+            const sizeKB = Math.round(totalSize / 1024);
+            // IndexedDB 通常上限 50MB+，我们保守估算
+            const totalKB = 50 * 1024;
+            const remainKB = Math.max(0, totalKB - sizeKB);
+            
+            return { sizeKB, remainKB, totalKB, memeCount, catCount };
+        } catch (e) {
+            console.error('获取存储用量失败:', e);
+            return { sizeKB: 0, remainKB: 50 * 1024, totalKB: 50 * 1024, memeCount: 0, catCount: 0 };
+        }
     }
 
-    function getCategoryName(categoryId) {
-        const cat = memeCategories.find(c => c.id === categoryId);
-        return cat ? cat.name : '未分类';
-    }
-
-    function getMemesByCategory(categoryId) {
-        return memes.filter(m => m.categoryId === categoryId);
+    // ----- 更新存储显示 -----
+    async function updateStorageDisplay() {
+        try {
+            const usage = await getStorageUsage();
+            const statusEl = document.getElementById('storageStatus');
+            const countEl = document.getElementById('storageMemeCount');
+            const sizeEl = document.getElementById('storageSize');
+            const remainEl = document.getElementById('storageRemain');
+            const progressEl = document.getElementById('storageProgressBar');
+            
+            if (statusEl) {
+                const pct = Math.round((usage.sizeKB / usage.totalKB) * 100);
+                if (pct > 80) {
+                    statusEl.textContent = '⚠️ 空间紧张 (' + pct + '%)';
+                    statusEl.style.color = '#ff6b6b';
+                } else if (pct > 60) {
+                    statusEl.textContent = '⚡ 使用中 (' + pct + '%)';
+                    statusEl.style.color = '#fdcb6e';
+                } else {
+                    statusEl.textContent = '✅ 空间充足 (' + pct + '%)';
+                    statusEl.style.color = '#07c160';
+                }
+            }
+            if (countEl) countEl.textContent = '表情包：' + usage.memeCount + ' 张';
+            if (sizeEl) sizeEl.textContent = '已用：' + usage.sizeKB + ' KB';
+            if (remainEl) remainEl.textContent = '剩余：' + usage.remainKB + ' KB';
+            if (progressEl) {
+                const pct = Math.min(100, Math.round((usage.sizeKB / usage.totalKB) * 100));
+                progressEl.style.width = pct + '%';
+                if (pct > 80) {
+                    progressEl.style.background = 'linear-gradient(90deg, #ff6b6b, #ee5a24)';
+                } else if (pct > 60) {
+                    progressEl.style.background = 'linear-gradient(90deg, #fdcb6e, #f0932b)';
+                } else {
+                    progressEl.style.background = 'linear-gradient(90deg, #a29bfe, #6c5ce7)';
+                }
+            }
+        } catch (e) {
+            console.log('存储显示更新失败:', e);
+        }
     }
 
     function generateId() {
@@ -3649,11 +3860,13 @@
             if (!role.heartData.value) role.heartData.value = 65;
         });
 
-        loadMemeData();
+        // 异步加载表情包（IndexedDB）
+        loadMemeData().then(() => {
+            console.log('📚 表情包加载完成，共', memes.length, '个');
+            updateStorageDisplay();
+        });
 
         console.log('📋 当前角色列表:', roles.map(r => r.name));
-        console.log('📚 表情包分类数:', memeCategories.length);
-        console.log('🖼️ 表情包总数:', memes.length);
     }
 
     function saveAllData() {
@@ -6334,18 +6547,19 @@
     function exitDeleteMode() {
         memeDeleteMode = false;
         memeSelectedForDelete = [];
-        // 移除所有表情包的选中状态
         document.querySelectorAll('.meme-item.selected').forEach(el => {
             el.classList.remove('selected');
         });
         document.querySelectorAll('.meme-checkbox.checked').forEach(el => {
             el.classList.remove('checked');
         });
-        // 更新删除按钮文字（如果有）
         const deleteBtn = document.getElementById('memeDeleteBtn');
         if (deleteBtn) {
             deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
             deleteBtn.style.color = '#e74c3c';
+            deleteBtn.style.background = 'transparent';
+            deleteBtn.style.borderRadius = '0';
+            deleteBtn.style.padding = '4px';
         }
     }
 
@@ -6408,7 +6622,6 @@
 
         memeBodyScroll.innerHTML = html;
 
-        // 返回按钮
         const backBtn = document.getElementById('memeBackBtn');
         if (backBtn) {
             backBtn.addEventListener('click', function() {
@@ -6416,7 +6629,6 @@
             });
         }
 
-        // 添加表情包按钮
         const addBtn = document.getElementById('memeAddBtn');
         if (addBtn) {
             addBtn.addEventListener('click', function() {
@@ -6433,15 +6645,12 @@
             });
         }
 
-        // 删除按钮 - 点击进入删除模式 / 执行删除
         const deleteBtn = document.getElementById('memeDeleteBtn');
         if (deleteBtn) {
             deleteBtn.addEventListener('click', function() {
                 if (!memeDeleteMode) {
-                    // 进入删除模式
                     enterDeleteMode(categoryId);
                 } else {
-                    // 已经在删除模式，执行删除
                     if (memeSelectedForDelete.length === 0) {
                         showToast('📌 请至少选择一个表情包');
                         return;
@@ -6457,7 +6666,6 @@
             });
         }
 
-        // 表情包点击：如果处于删除模式则切换选中，否则修改名称
         memeBodyScroll.querySelectorAll('.meme-item').forEach(item => {
             item.addEventListener('click', function() {
                 const memeId = this.dataset.memeid;
@@ -6478,10 +6686,6 @@
             });
         });
     }
-
-    // ============================================================
-    //  进入删除模式（由垃圾桶按钮触发）
-    // ============================================================
 
     function enterDeleteMode(categoryId) {
         memeDeleteMode = true;
@@ -6574,7 +6778,6 @@
             });
         }
 
-        // 删除按钮 - 执行删除
         const deleteBtn = document.getElementById('memeDeleteBtn');
         if (deleteBtn) {
             deleteBtn.addEventListener('click', function() {
@@ -6645,9 +6848,10 @@
                         createdAt: new Date().toISOString()
                     };
                     memes.push(newMeme);
-                    saveMemeData();
-                    renderMemeList(categoryId || memeCurrentCategoryId);
-                    showToast(`✅ 已添加表情包「${name.trim()}」`);
+                    saveMemeData().then(() => {
+                        renderMemeList(categoryId || memeCurrentCategoryId);
+                        showToast(`✅ 已添加表情包「${name.trim()}」`);
+                    });
                 }
             };
             reader.readAsDataURL(file);
@@ -6655,7 +6859,7 @@
         input.click();
     }
 
-    memeExportBtn.addEventListener('click', () => {
+    memeExportBtn.addEventListener('click', async () => {
         const data = {
             version: '1.0',
             exportTime: new Date().toISOString(),
@@ -6678,11 +6882,11 @@
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.json';
-        input.onchange = (e) => {
+        input.onchange = async (e) => {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = (ev) => {
+            reader.onload = async (ev) => {
                 try {
                     const data = JSON.parse(ev.target.result);
                     if (!data.memes || !Array.isArray(data.memes)) {
@@ -6699,7 +6903,7 @@
                     if (!memeCategories.find(c => c.id === 'uncategorized')) {
                         memeCategories.push({ id: 'uncategorized', name: '未分类', icon: '📁' });
                     }
-                    saveMemeData();
+                    await saveMemeData();
                     renderMemeScreen();
                     showToast(`✅ 成功导入 ${memes.length} 个表情包`);
                 } catch (err) {
@@ -7898,6 +8102,9 @@
             document.getElementById('userAvatarStatus').textContent = '默认';
         }
 
+        // 更新存储显示
+        updateStorageDisplay();
+
         settingsOverlay.classList.add('active');
     }
 
@@ -8251,8 +8458,11 @@
     //  初始化
     // ============================================================
 
-    function init() {
+    async function init() {
         loadAllData();
+
+        // 等待表情包加载完成
+        await loadMemeData();
 
         roles.forEach(role => {
             if (Array.isArray(role.memory)) {
@@ -8293,6 +8503,7 @@
         initFloatingDrag();
 
         updateHeartDisplay();
+        updateStorageDisplay();
 
         if (config.heart.floatingEnabled !== false) {
             setTimeout(showFloatingHeart, 800);
@@ -8317,6 +8528,9 @@
             }, 800);
         }
 
+        // 每 30 秒刷新存储显示
+        setInterval(updateStorageDisplay, 30000);
+
         console.log('🚀 多角色梦女空间已启动！');
         console.log('当前角色数量:', roles.length);
         console.log('当前角色:', roles.map(r => r.name));
@@ -8331,6 +8545,7 @@
         console.log('🖼️ 表情包总数:', memes.length);
         console.log('🤖 AI 发表情包:', config.aiMemeEnabled !== false ? '开启' : '关闭');
         console.log('🗑️ 表情包删除模式：点击右上角垃圾桶进入批量删除模式');
+        console.log('📦 表情包存储已升级到 IndexedDB（上限 50MB+）');
     }
 
     init();
