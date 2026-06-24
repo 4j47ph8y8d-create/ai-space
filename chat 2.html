@@ -343,7 +343,9 @@
             animation: none;
             transform: scale(1.15);
             transition: transform 0.2s ease;
-        } /* ===== 悬浮窗 ===== */
+        }
+
+        /* ===== 悬浮窗 ===== */
         .floating-heart {
             position: fixed;
             bottom: 120px;
@@ -588,9 +590,7 @@
             height: 52px;
             border-radius: 12px;
             font-size: 22px;
-        }
-
-        /* ============================================================
+        } /* ============================================================
            联系人界面
            ============================================================ */
         .screen-contacts {
@@ -743,7 +743,9 @@
             opacity: 0.3;
             display: block;
             margin-bottom: 16px;
-        } /* ============================================================
+        }
+
+        /* ============================================================
            聊天界面
            ============================================================ */
         .screen-chat {
@@ -1194,7 +1196,9 @@
         }
         .longpress-menu .menu-item.danger i {
             color: #e74c3c;
-        } /* ============================================================
+        }
+
+        /* ============================================================
            记忆库独立组件样式
            ============================================================ */
         .screen-memory {
@@ -1384,9 +1388,7 @@
         }
         .memory-add-bar .add-mem-btn:active {
             transform: scale(0.95);
-        }
-
-        /* ===== 权限弹窗 ===== */
+        } /* ===== 权限弹窗 ===== */
         .permission-overlay {
             position: absolute;
             inset: 0;
@@ -1592,7 +1594,9 @@
         }
         .style-option.active .style-check {
             display: inline;
-        } /* 图标风格预览样式 */
+        }
+
+        /* 图标风格预览样式 */
         .style-demo-glass .demo-icon {
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(8px);
@@ -2291,7 +2295,9 @@
         .role-bg-upload .remove-btn:active {
             background: #e74c3c;
             color: #fff;
-        } .custom-toast {
+        }
+
+        .custom-toast {
             position: absolute;
             bottom: 120px;
             left: 50%;
@@ -3496,9 +3502,7 @@
                 addMessageToRole(role.id, 'assistant', `💔 ${e.message}`);
                 renderMessages();
             }
-        }
-
-        // ============================================================
+        } // ============================================================
         //  图标风格系统
         // ============================================================
 
@@ -3902,9 +3906,7 @@
             } catch (_) {
                 return timeStr;
             }
-        }
-
-        // ============================================================
+        } // ============================================================
         //  个性化弹窗渲染
         // ============================================================
 
@@ -4797,9 +4799,7 @@
 
                 contactsList.appendChild(item);
             });
-        }
-
-        // ============================================================
+        } // ============================================================
         //  渲染：角色管理（设置内嵌版，已移除记忆库）
         // ============================================================
 
@@ -5607,10 +5607,9 @@
         backFromMemory.addEventListener('click', closeMemory);
 
         // ============================================================
-        //  桌面图标点击（新增记忆库）+ 修复 openStylePicker
+        //  桌面图标点击 + 修复 openStylePicker 和 closeStylePickerPanel
         // ============================================================
 
-        // 修复：定义 openStylePicker 函数
         function openStylePicker() {
             try {
                 renderStylePicker();
@@ -5634,8 +5633,22 @@
             if (overlay) {
                 overlay.classList.remove('active');
                 overlay.style.display = 'none';
+                console.log('✅ 个性化弹窗已关闭');
             }
         }
+
+        // 绑定关闭按钮事件
+        closeStylePicker.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeStylePickerPanel();
+        });
+
+        stylePickerOverlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeStylePickerPanel();
+            }
+        });
 
         document.querySelectorAll('.app-icon[data-app]').forEach(btn => {
             btn.addEventListener('click', () => {
