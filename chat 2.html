@@ -80,7 +80,8 @@
 
         /* ===== 字号变量 ===== */
         [data-font-size="small"] { --font-size-base: 13px; }
-px; }
+        [data-font-size="medium"] { --font-size-base: 15px; }
+        [data-font-size="large"] { --font-size-base: 17px; }
         [data-font-size="xlarge"] { --font-size-base: 19px; }
 
         [data-font-weight="light"] { --font-weight-base: 300; }
@@ -3031,6 +3032,7 @@ px; }
                 spikeActive: false,
                 spikeTimer: null,
                 recoveryTimer: null,
+                peakValue: 65,
             },
         };
 
@@ -3088,6 +3090,7 @@ px; }
                 if (!config.heart.level) config.heart.level = '平静';
                 if (!config.heart.restingValue) config.heart.restingValue = 65;
                 if (!config.heart.value) config.heart.value = 65;
+                if (!config.heart.peakValue) config.heart.peakValue = 65;
                 roles = savedData.roles;
                 roles.forEach(role => {
                     if (!role.heartData) {
@@ -4129,7 +4132,7 @@ px; }
         }
 
         // ============================================================
-        //  心跳关键词检测（改为触发心率飙升，连续叠加）
+        //  心跳关键词检测（触发心率飙升，连续叠加）
         // ============================================================
 
         const HEART_KEYWORDS = [
@@ -4213,7 +4216,6 @@ px; }
             let spikeAmount = Math.min(25, baseSpike + Math.floor(weight / 2));
             
             let peakValue;
-            let isFirstSpike = false;
             
             if (config.heart.spikeActive) {
                 // 已经在飙升状态：叠加增量（减半，避免一次加太多）
@@ -4224,16 +4226,17 @@ px; }
                 // 首次飙升：从静息值开始
                 peakValue = Math.min(99, resting + spikeAmount);
                 config.heart.spikeActive = true;
-                isFirstSpike = true;
             }
 
             role.heartData.value = peakValue;
+            role.heartData.peakValue = peakValue; // 记录峰值用于抖动
             
             const triggerText = `「${keyword}」💓 +${spikeAmount}`;
             role.heartData.recentTrigger = triggerText;
 
             if (config.heart.bindRoleId === role.id) {
                 config.heart.value = peakValue;
+                config.heart.peakValue = peakValue;
                 config.heart.level = getLevel(peakValue);
                 config.heart.recentTrigger = triggerText;
                 
@@ -4252,7 +4255,7 @@ px; }
                     }, 1500);
                 }
                 
-                // 恢复定时器：1-2分钟后恢复
+                // 恢复定时器：1-2分钟后开始恢复（渐进式下降）
                 const recoveryDelay = 60000 + Math.random() * 60000;
                 config.heart.recoveryTimer = setTimeout(() => {
                     recoverHeartRate(role);
@@ -4270,41 +4273,76 @@ px; }
             updateHeartDisplay();
         }
 
+        // ============================================================
+        //  恢复心率 - 渐进式下降（修复版）
+        // ============================================================
+
         function recoverHeartRate(role) {
             if (!role) return;
             
             const resting = role.heartData?.restingValue || 65;
             const currentValue = role.heartData?.value || 65;
             
-            // 如果当前值已经很接近静息值，直接重置状态
-            if (Math.abs(currentValue - resting) < 3) {
+            // 如果已经接近静息值（误差小于5），直接完成恢复
+            if (Math.abs(currentValue - resting) < 5) {
+                role.heartData.value = resting;
+                role.heartData.peakValue = resting;
                 if (config.heart.bindRoleId === role.id) {
+                    config.heart.value = resting;
+                    config.heart.peakValue = resting;
+                    config.heart.level = getLevel(resting);
                     config.heart.spikeActive = false;
+                    config.heart.recentTrigger = '心跳恢复平静 💕';
+                    if (config.heart.recoveryTimer) {
+                        clearTimeout(config.heart.recoveryTimer);
+                        config.heart.recoveryTimer = null;
+                    }
                 }
+                saveAllData();
+                updateHeartDisplay();
+                showToast('💕 心跳已恢复平静');
                 return;
             }
             
-            // 逐步恢复：回到静息值 ± 随机波动
-            const newValue = resting + Math.floor(Math.random() * 6) - 3;
-            const finalValue = Math.max(55, Math.min(75, newValue));
+            // 渐进式下降：每次降 5-8%
+            const dropAmount = 3 + Math.floor(Math.random() * 6);
+            const newValue = Math.max(resting, currentValue - dropAmount);
             
-            role.heartData.value = finalValue;
+            role.heartData.value = newValue;
+            role.heartData.peakValue = newValue;
             
             if (config.heart.bindRoleId === role.id) {
-                config.heart.value = finalValue;
-                config.heart.level = getLevel(finalValue);
-                config.heart.spikeActive = false;
-                config.heart.recentTrigger = '心跳恢复平静 💕';
-                if (config.heart.recoveryTimer) {
-                    clearTimeout(config.heart.recoveryTimer);
-                    config.heart.recoveryTimer = null;
+                config.heart.value = newValue;
+                config.heart.peakValue = newValue;
+                config.heart.level = getLevel(newValue);
+                
+                // 如果还没降到静息值，继续设置定时器
+                if (newValue > resting + 3) {
+                    if (config.heart.recoveryTimer) {
+                        clearTimeout(config.heart.recoveryTimer);
+                    }
+                    config.heart.recoveryTimer = setTimeout(() => {
+                        recoverHeartRate(role);
+                    }, 5000 + Math.random() * 5000); // 5-10秒后再降一次
+                } else {
+                    // 完全恢复
+                    config.heart.spikeActive = false;
+                    config.heart.recentTrigger = '心跳恢复平静 💕';
+                    if (config.heart.recoveryTimer) {
+                        clearTimeout(config.heart.recoveryTimer);
+                        config.heart.recoveryTimer = null;
+                    }
+                    showToast('💕 心跳已恢复平静');
                 }
             }
             
             saveAllData();
             updateHeartDisplay();
-            showToast('💕 心跳已恢复平静');
         }
+
+        // ============================================================
+        //  心跳自然波动 - 修复版（飙升期间也保持跳动）
+        // ============================================================
 
         let heartBeatInterval = null;
 
@@ -4320,12 +4358,26 @@ px; }
                 const role = roles.find(r => r.id === bindRoleId);
                 if (!role) return;
                 
-                // 如果处于飙升状态，不进行自然波动
-                if (config.heart.spikeActive) return;
+                // 如果处于飙升状态，做小幅抖动（模拟真实心跳的不规则跳动）
+                if (config.heart.spikeActive) {
+                    const currentValue = role.heartData?.value || 65;
+                    const peak = role.heartData?.peakValue || currentValue;
+                    // 在峰值附近 ±3 抖动，但不超过99
+                    const jitter = Math.floor(Math.random() * 6) - 3;
+                    const finalValue = Math.max(peak - 5, Math.min(Math.min(99, peak + 5), currentValue + jitter));
+                    
+                    role.heartData.value = finalValue;
+                    if (config.heart.bindRoleId === role.id) {
+                        config.heart.value = finalValue;
+                    }
+                    saveAllData();
+                    updateHeartDisplay();
+                    return;
+                }
                 
+                // 非飙升状态：缓慢向静息值靠拢
                 const resting = role.heartData?.restingValue || 65;
                 const currentValue = role.heartData?.value || resting;
-                
                 const diff = resting - currentValue;
                 if (Math.abs(diff) > 2) {
                     const step = diff * 0.05;
@@ -4333,14 +4385,16 @@ px; }
                     const finalValue = Math.max(55, Math.min(75, Math.round(newValue)));
                     
                     role.heartData.value = finalValue;
+                    role.heartData.peakValue = finalValue;
                     if (config.heart.bindRoleId === role.id) {
                         config.heart.value = finalValue;
+                        config.heart.peakValue = finalValue;
                         config.heart.level = getLevel(finalValue);
                     }
                     saveAllData();
                     updateHeartDisplay();
                 }
-            }, 30000);
+            }, 30000); // 每30秒波动一次
         }
 
         // ============================================================
@@ -4355,13 +4409,14 @@ px; }
             }
 
             if (!role.heartData) {
-                role.heartData = { value: 65, restingValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
+                role.heartData = { value: 65, restingValue: 65, peakValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
                 saveAllData();
             }
 
             config.heart.bindRoleId = roleId;
             config.heart.value = role.heartData.value || 65;
             config.heart.restingValue = role.heartData.restingValue || 65;
+            config.heart.peakValue = role.heartData.peakValue || 65;
             config.heart.signature = role.heartData.signature || '今天也很想你 💕';
             config.heart.recentTrigger = role.heartData.recentTrigger || '初次相遇';
             config.heart.level = getLevel(config.heart.value);
@@ -4584,12 +4639,13 @@ px; }
                 if (role && role.heartData) {
                     config.heart.value = role.heartData.value || 65;
                     config.heart.restingValue = role.heartData.restingValue || 65;
+                    config.heart.peakValue = role.heartData.peakValue || 65;
                     config.heart.signature = role.heartData.signature || '今天也很想你 💕';
                     config.heart.recentTrigger = role.heartData.recentTrigger || '初次相遇';
                     config.heart.level = getLevel(config.heart.value);
                 } else if (role) {
                     if (!role.heartData) {
-                        role.heartData = { value: 65, restingValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
+                        role.heartData = { value: 65, restingValue: 65, peakValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
                         saveAllData();
                     }
                 }
@@ -4597,12 +4653,13 @@ px; }
                 if (roles.length > 0) {
                     const firstRole = roles[0];
                     if (!firstRole.heartData) {
-                        firstRole.heartData = { value: 65, restingValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
+                        firstRole.heartData = { value: 65, restingValue: 65, peakValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
                         saveAllData();
                     }
                     config.heart.bindRoleId = firstRole.id;
                     config.heart.value = firstRole.heartData.value || 65;
                     config.heart.restingValue = firstRole.heartData.restingValue || 65;
+                    config.heart.peakValue = firstRole.heartData.peakValue || 65;
                     config.heart.signature = firstRole.heartData.signature || '今天也很想你 💕';
                     config.heart.recentTrigger = firstRole.heartData.recentTrigger || '初次相遇';
                     config.heart.level = getLevel(config.heart.value);
@@ -5399,7 +5456,7 @@ px; }
         }
 
         // ============================================================
-        //  页面切换
+        //  页面切换（修复悬浮窗关闭问题）
         // ============================================================
 
         let isFromContacts = false;
@@ -5433,6 +5490,7 @@ px; }
             if (contactsScreen.classList.contains('open')) {
                 renderContacts();
             }
+            // 修复：打开聊天时显示悬浮窗（如果配置允许）
             if (config.heart.floatingEnabled !== false) {
                 setTimeout(showFloatingHeart, 300);
             }
@@ -5453,7 +5511,8 @@ px; }
                 contactsScreen.classList.remove('open');
             }
             isFromContacts = false;
-            hideFloatingHeart();
+            // 修复：关闭聊天时不再关闭悬浮窗
+            // hideFloatingHeart();  // 已注释，悬浮窗保持独立
         }
 
         function openContacts() {
@@ -6557,7 +6616,7 @@ px; }
                                 return m;
                             });
                             if (!role.heartData) {
-                                role.heartData = { value: 65, restingValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
+                                role.heartData = { value: 65, restingValue: 65, peakValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
                             }
                         });
 
@@ -6870,7 +6929,7 @@ px; }
                     const role = roles.find(r => r.id === bindRoleId);
                     if (role) {
                         if (!role.heartData) {
-                            role.heartData = { value: 65, restingValue: 65, signature: newText, recentTrigger: '初次相遇' };
+                            role.heartData = { value: 65, restingValue: 65, peakValue: 65, signature: newText, recentTrigger: '初次相遇' };
                         }
                         role.heartData.signature = newText;
                         config.heart.signature = newText;
@@ -6901,10 +6960,11 @@ px; }
                     });
                 }
                 if (!role.heartData) {
-                    role.heartData = { value: 65, restingValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
+                    role.heartData = { value: 65, restingValue: 65, peakValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
                 }
                 if (!role.heartData.restingValue) role.heartData.restingValue = 65;
                 if (!role.heartData.value) role.heartData.value = 65;
+                if (!role.heartData.peakValue) role.heartData.peakValue = 65;
             });
 
             if (config.wallpaper) applyWallpaper(config.wallpaper);
