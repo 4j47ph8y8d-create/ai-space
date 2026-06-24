@@ -80,8 +80,7 @@
 
         /* ===== 字号变量 ===== */
         [data-font-size="small"] { --font-size-base: 13px; }
-        [data-font-size="medium"] { --font-size-base: 15px; }
-        [data-font-size="large"] { --font-size-base: 17px; }
+px; }
         [data-font-size="xlarge"] { --font-size-base: 19px; }
 
         [data-font-weight="light"] { --font-weight-base: 300; }
@@ -4130,7 +4129,7 @@
         }
 
         // ============================================================
-        //  心跳关键词检测（改为触发心率飙升，而非累加）
+        //  心跳关键词检测（改为触发心率飙升，连续叠加）
         // ============================================================
 
         const HEART_KEYWORDS = [
@@ -4197,20 +4196,35 @@
             }
         }
 
+        // ============================================================
+        //  心跳飙升 - 修复版（连续叠加，不锁死）
+        // ============================================================
+
         function triggerHeartSpike(role, weight, keyword, level) {
             if (!role.heartData) {
                 role.heartData = { value: 65, restingValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
             }
 
-            const baseSpike = 15 + Math.floor(Math.random() * 10);
-            const spikeAmount = Math.min(30, baseSpike + Math.floor(weight / 2));
-            
             const resting = role.heartData.restingValue || 65;
-            let peakValue = Math.min(99, resting + spikeAmount);
-            
             const currentValue = role.heartData.value || resting;
-            if (currentValue > resting + 5) {
-                peakValue = Math.min(99, currentValue + Math.floor(spikeAmount * 0.6));
+            
+            // 基础飙升量：15-25 + 关键词权重
+            const baseSpike = 15 + Math.floor(Math.random() * 10);
+            let spikeAmount = Math.min(25, baseSpike + Math.floor(weight / 2));
+            
+            let peakValue;
+            let isFirstSpike = false;
+            
+            if (config.heart.spikeActive) {
+                // 已经在飙升状态：叠加增量（减半，避免一次加太多）
+                const extra = Math.min(12, Math.floor(spikeAmount * 0.6));
+                peakValue = Math.min(99, currentValue + extra);
+                spikeAmount = Math.round(peakValue - currentValue);
+            } else {
+                // 首次飙升：从静息值开始
+                peakValue = Math.min(99, resting + spikeAmount);
+                config.heart.spikeActive = true;
+                isFirstSpike = true;
             }
 
             role.heartData.value = peakValue;
@@ -4222,13 +4236,14 @@
                 config.heart.value = peakValue;
                 config.heart.level = getLevel(peakValue);
                 config.heart.recentTrigger = triggerText;
-                config.heart.spikeActive = true;
                 
+                // 清除之前的恢复定时器（每次触发都重置计时）
                 if (config.heart.recoveryTimer) {
                     clearTimeout(config.heart.recoveryTimer);
                     config.heart.recoveryTimer = null;
                 }
                 
+                // 心跳动画
                 const heartWrap = document.getElementById('heartWrap');
                 if (heartWrap) {
                     heartWrap.classList.add('spike');
@@ -4237,6 +4252,7 @@
                     }, 1500);
                 }
                 
+                // 恢复定时器：1-2分钟后恢复
                 const recoveryDelay = 60000 + Math.random() * 60000;
                 config.heart.recoveryTimer = setTimeout(() => {
                     recoverHeartRate(role);
@@ -4245,7 +4261,7 @@
 
             saveAllData();
             
-            if (weight >= 8) {
+            if (spikeAmount >= 8) {
                 showToast(`💓 心跳飙升 +${spikeAmount}！「${keyword}」`);
             } else {
                 showToast(`💗 心跳加速 +${spikeAmount}`);
@@ -4260,6 +4276,7 @@
             const resting = role.heartData?.restingValue || 65;
             const currentValue = role.heartData?.value || 65;
             
+            // 如果当前值已经很接近静息值，直接重置状态
             if (Math.abs(currentValue - resting) < 3) {
                 if (config.heart.bindRoleId === role.id) {
                     config.heart.spikeActive = false;
@@ -4267,6 +4284,7 @@
                 return;
             }
             
+            // 逐步恢复：回到静息值 ± 随机波动
             const newValue = resting + Math.floor(Math.random() * 6) - 3;
             const finalValue = Math.max(55, Math.min(75, newValue));
             
@@ -4302,6 +4320,7 @@
                 const role = roles.find(r => r.id === bindRoleId);
                 if (!role) return;
                 
+                // 如果处于飙升状态，不进行自然波动
                 if (config.heart.spikeActive) return;
                 
                 const resting = role.heartData?.restingValue || 65;
