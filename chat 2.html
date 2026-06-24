@@ -2291,120 +2291,7 @@
         .role-bg-upload .remove-btn:active {
             background: #e74c3c;
             color: #fff;
-        } /* ===== 记忆库样式（设置内嵌版 - 保留兼容） ===== */
-        .memory-section {
-            border-top: 1px solid var(--border-color);
-            padding-top: 10px;
-            margin-top: 8px;
-        }
-        .memory-section .memory-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            user-select: none;
-            padding: 4px 0;
-        }
-        .memory-section .memory-header .memory-title {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .memory-section .memory-header .memory-title i {
-            color: #a29bfe;
-        }
-        .memory-section .memory-header .memory-toggle {
-            font-size: 14px;
-            color: var(--text-secondary);
-            transition: transform 0.3s ease;
-        }
-        .memory-section .memory-header .memory-toggle.collapsed {
-            transform: rotate(-90deg);
-        }
-        .memory-section .memory-body {
-            overflow: hidden;
-            max-height: 2000px;
-            transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
-            opacity: 1;
-            padding-top: 4px;
-        }
-        .memory-section .memory-body.collapsed {
-            max-height: 0;
-            opacity: 0;
-            padding-top: 0;
-        }
-        .memory-section .memory-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 6px;
-            padding: 4px 0;
-            border-bottom: 1px dashed var(--border-color);
-            font-size: 12px;
-            color: var(--text-primary);
-            line-height: 1.4;
-        }
-        .memory-section .memory-item .mem-text {
-            flex: 1;
-            word-break: break-word;
-        }
-        .memory-section .memory-item .mem-delete {
-            color: #e74c3c;
-            cursor: pointer;
-            font-size: 12px;
-            padding: 0 4px;
-            flex-shrink: 0;
-            background: none;
-            border: none;
-        }
-        .memory-section .memory-item .mem-delete:active {
-            transform: scale(0.9);
-        }
-        .memory-section .memory-empty {
-            font-size: 12px;
-            color: var(--text-secondary);
-            padding: 4px 0;
-        }
-        .memory-section .memory-add {
-            display: flex;
-            gap: 6px;
-            margin-top: 6px;
-        }
-        .memory-section .memory-add input {
-            flex: 1;
-            padding: 4px 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 12px;
-            outline: none;
-            background: var(--bg-card);
-            color: var(--text-primary);
-        }
-        .memory-section .memory-add input:focus {
-            border-color: #07c160;
-            background: var(--bg-card);
-        }
-        .memory-section .memory-add button {
-            padding: 4px 12px;
-            border: none;
-            border-radius: 6px;
-            background: #a29bfe;
-            color: #fff;
-            font-size: 12px;
-            cursor: pointer;
-            transition: 0.15s;
-        }
-        .memory-section .memory-add button:active {
-            transform: scale(0.95);
-        }
-
-        .role-card .role-body .field-group:last-child {
-            margin-bottom: 0;
-        }
-
-        .custom-toast {
+        } .custom-toast {
             position: absolute;
             bottom: 120px;
             left: 50%;
@@ -4171,11 +4058,28 @@
                     </div>
                 `;
 
-                option.addEventListener('click', () => {
+                option.addEventListener('click', function(e) {
+                    e.stopPropagation();
                     document.querySelectorAll('#floatingSwitchGrid .style-option').forEach(el => el.classList.remove('active'));
-                    option.classList.add('active');
+                    this.classList.add('active');
                     const enabled = opt.id === 'on';
-                    toggleFloatingHeart(enabled);
+                    // 直接操作悬浮窗，不触发完整的 toggleFloatingHeart 以避免重绘冲突
+                    const el = document.getElementById('floatingHeart');
+                    if (el) {
+                        config.heart.floatingEnabled = enabled;
+                        saveAllData();
+                        if (enabled) {
+                            el.classList.add('visible');
+                            el.style.display = 'flex';
+                            el.style.opacity = '1';
+                            el.style.pointerEvents = 'auto';
+                        } else {
+                            el.classList.remove('visible');
+                            el.style.display = 'none';
+                            el.style.opacity = '0';
+                            el.style.pointerEvents = 'none';
+                        }
+                    }
                     showToast(enabled ? '💕 悬浮窗已开启' : '💤 悬浮窗已关闭');
                 });
 
@@ -4256,11 +4160,9 @@
         }
 
         function getRestingValue(role) {
-            // 每个角色有自己的静息心率，在65-75之间随机
             if (role && role.heartData && role.heartData.restingValue) {
                 return role.heartData.restingValue;
             }
-            // 默认静息值
             return 65;
         }
 
@@ -4287,7 +4189,6 @@
             }
 
             if (maxWeight > 0) {
-                // 触发心率飙升
                 triggerHeartSpike(role, maxWeight, matchedKeyword, matchedLevel);
             }
         }
@@ -4297,17 +4198,14 @@
                 role.heartData = { value: 65, restingValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
             }
 
-            // 计算飙升幅度：基础飙升 + 关键词权重
-            const baseSpike = 15 + Math.floor(Math.random() * 10); // 15-25
+            const baseSpike = 15 + Math.floor(Math.random() * 10);
             const spikeAmount = Math.min(30, baseSpike + Math.floor(weight / 2));
             
             const resting = role.heartData.restingValue || 65;
             let peakValue = Math.min(99, resting + spikeAmount);
             
-            // 如果当前已经有飙升，在现有基础上再叠加
             const currentValue = role.heartData.value || resting;
             if (currentValue > resting + 5) {
-                // 已经在飙升状态，叠加但不超过99
                 peakValue = Math.min(99, currentValue + Math.floor(spikeAmount * 0.6));
             }
 
@@ -4316,20 +4214,17 @@
             const triggerText = `「${keyword}」💓 +${spikeAmount}`;
             role.heartData.recentTrigger = triggerText;
 
-            // 如果是绑定的角色，更新全局心跳
             if (config.heart.bindRoleId === role.id) {
                 config.heart.value = peakValue;
                 config.heart.level = getLevel(peakValue);
                 config.heart.recentTrigger = triggerText;
                 config.heart.spikeActive = true;
                 
-                // 清除之前的恢复定时器
                 if (config.heart.recoveryTimer) {
                     clearTimeout(config.heart.recoveryTimer);
                     config.heart.recoveryTimer = null;
                 }
                 
-                // 显示飙升动画
                 const heartWrap = document.getElementById('heartWrap');
                 if (heartWrap) {
                     heartWrap.classList.add('spike');
@@ -4338,8 +4233,7 @@
                     }, 1500);
                 }
                 
-                // 设置1-2分钟后恢复静息值
-                const recoveryDelay = 60000 + Math.random() * 60000; // 60-120秒
+                const recoveryDelay = 60000 + Math.random() * 60000;
                 config.heart.recoveryTimer = setTimeout(() => {
                     recoverHeartRate(role);
                 }, recoveryDelay);
@@ -4362,7 +4256,6 @@
             const resting = role.heartData?.restingValue || 65;
             const currentValue = role.heartData?.value || 65;
             
-            // 如果当前值已经接近静息值，不需要恢复
             if (Math.abs(currentValue - resting) < 3) {
                 if (config.heart.bindRoleId === role.id) {
                     config.heart.spikeActive = false;
@@ -4370,8 +4263,7 @@
                 return;
             }
             
-            // 逐步恢复：直接回到静息值，但加一点随机波动让它更自然
-            const newValue = resting + Math.floor(Math.random() * 6) - 3; // resting ±3
+            const newValue = resting + Math.floor(Math.random() * 6) - 3;
             const finalValue = Math.max(55, Math.min(75, newValue));
             
             role.heartData.value = finalValue;
@@ -4392,7 +4284,6 @@
             showToast('💕 心跳已恢复平静');
         }
 
-        // 在聊天过程中，如果用户没有触发关键词，心跳会缓慢自然波动
         let heartBeatInterval = null;
 
         function startHeartBeatFluctuation() {
@@ -4407,16 +4298,13 @@
                 const role = roles.find(r => r.id === bindRoleId);
                 if (!role) return;
                 
-                // 如果处于飙升状态，不波动
                 if (config.heart.spikeActive) return;
                 
                 const resting = role.heartData?.restingValue || 65;
                 const currentValue = role.heartData?.value || resting;
                 
-                // 缓慢向静息值靠拢，加一点随机波动
                 const diff = resting - currentValue;
                 if (Math.abs(diff) > 2) {
-                    // 缓慢回归
                     const step = diff * 0.05;
                     const newValue = currentValue + step + (Math.random() * 2 - 1);
                     const finalValue = Math.max(55, Math.min(75, Math.round(newValue)));
@@ -4429,7 +4317,7 @@
                     saveAllData();
                     updateHeartDisplay();
                 }
-            }, 30000); // 每30秒波动一次
+            }, 30000);
         }
 
         // ============================================================
@@ -4780,7 +4668,6 @@
         const roleSelectList = document.getElementById('roleSelectList');
         const dataModalOptions = document.getElementById('dataModalOptions');
 
-        // 记忆库独立组件DOM引用
         const memoryRoleSelector = document.getElementById('memoryRoleSelector');
         const memoryBodyScroll = document.getElementById('memoryBodyScroll');
         const memoryAddInput = document.getElementById('memoryAddInput');
@@ -4911,16 +4798,10 @@
         }
 
         // ============================================================
-        //  渲染：角色管理（设置内嵌版，保留原有记忆库功能）
+        //  渲染：角色管理（设置内嵌版，已移除记忆库）
         // ============================================================
 
         function renderRoleManager() {
-            roles.forEach(role => {
-                if (!Array.isArray(role.memory)) {
-                    role.memory = [];
-                }
-            });
-
             if (roles.length === 0) {
                 roleManagerContainer.innerHTML = `
                     <div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:13px;">
@@ -4944,23 +4825,9 @@
                     `background-image: url(${role.chatBg}); background-size: cover; background-position: center;` :
                     `background-color: #ededed;`;
 
-                const memoryCollapsed = role._memoryCollapsed === undefined ? false : role._memoryCollapsed;
                 const isPinned = isContactPinned(role.id);
                 const isHeartBound = config.heart.bindRoleId === role.id;
                 const heartValue = role.heartData ? role.heartData.value : 65;
-
-                let memoryHtml = '';
-                const memories = Array.isArray(role.memory) ? role.memory : [];
-                if (memories.length === 0) {
-                    memoryHtml = `<div class="memory-empty">暂无记忆</div>`;
-                } else {
-                    memoryHtml = memories.map((mem, idx) => `
-                        <div class="memory-item">
-                            <span class="mem-text">${mem.text || mem}</span>
-                            <button class="mem-delete" data-id="${role.id}" data-memidx="${idx}"><i class="fas fa-times"></i></button>
-                        </div>
-                    `).join('');
-                }
 
                 card.innerHTML = `
                     <div class="role-card-header">
@@ -5008,22 +4875,6 @@
                             <textarea class="role-field" data-id="${role.id}" data-field="extra" rows="2">${role.extra || ''}</textarea>
                         </div>
 
-                        <div class="memory-section">
-                            <div class="memory-header" data-roleid="${role.id}">
-                                <div class="memory-title"><i class="fas fa-brain"></i> 记忆库 <span style="font-weight:400;font-size:11px;">(${memories.length}条)</span></div>
-                                <span class="memory-toggle ${memoryCollapsed ? 'collapsed' : ''}"><i class="fas fa-chevron-down"></i></span>
-                            </div>
-                            <div class="memory-body ${memoryCollapsed ? 'collapsed' : ''}" id="memoryBody_${role.id}">
-                                <div id="memoryList_${role.id}">
-                                    ${memoryHtml}
-                                </div>
-                                <div class="memory-add">
-                                    <input type="text" id="memoryInput_${role.id}" placeholder="添加新记忆..." />
-                                    <button class="mem-add-btn" data-id="${role.id}">添加</button>
-                                </div>
-                            </div>
-                        </div>
-
                         <div style="margin-top:6px;font-size:11px;color:var(--text-secondary);">
                             消息数：${role.messages ? role.messages.length : 0} ｜ 心跳：${heartValue}%
                         </div>
@@ -5052,16 +4903,6 @@
                 const pinBtn = card.querySelector('.role-pin-toggle');
                 pinBtn.addEventListener('click', () => {
                     togglePinContact(role.id);
-                });
-
-                const memoryHeader = card.querySelector('.memory-header');
-                const memoryBody = card.querySelector('.memory-body');
-                const memoryToggle = card.querySelector('.memory-toggle');
-                memoryHeader.addEventListener('click', () => {
-                    const isCollapsed = memoryBody.classList.toggle('collapsed');
-                    memoryToggle.classList.toggle('collapsed', isCollapsed);
-                    role._memoryCollapsed = isCollapsed;
-                    saveAllData();
                 });
 
                 const nameInput = card.querySelector('.role-name-input');
@@ -5168,49 +5009,6 @@
                         applyChatBgForRole(role);
                     }
                     showToast('✅ 已移除聊天背景');
-                });
-
-                const deleteMemBtns = card.querySelectorAll('.mem-delete');
-                deleteMemBtns.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const idx = parseInt(btn.dataset.memidx);
-                        const id = btn.dataset.id;
-                        const r = roles.find(r => r.id === id);
-                        if (r && Array.isArray(r.memory) && r.memory.length > idx) {
-                            r.memory.splice(idx, 1);
-                            saveAllData();
-                            renderRoleManager();
-                            renderContacts();
-                            renderMemoryScreen();
-                            showToast('🗑️ 已删除记忆');
-                        }
-                    });
-                });
-
-                const memInput = card.querySelector(`#memoryInput_${role.id}`);
-                const memAddBtn = card.querySelector('.mem-add-btn');
-                memAddBtn.addEventListener('click', () => {
-                    const text = memInput.value.trim();
-                    if (!text) {
-                        showToast('⚠️ 请输入记忆内容');
-                        return;
-                    }
-                    if (!Array.isArray(role.memory)) {
-                        role.memory = [];
-                    }
-                    role.memory.push({ text: text });
-                    memInput.value = '';
-                    saveAllData();
-                    renderRoleManager();
-                    renderContacts();
-                    renderMemoryScreen();
-                    showToast('🧠 已添加记忆');
-                });
-
-                memInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        memAddBtn.click();
-                    }
                 });
 
                 const clearMsgsBtn = card.querySelector('.role-clear-msgs');
@@ -5674,7 +5472,6 @@
         }
 
         function renderMemoryScreen() {
-            // 填充角色选择器
             const selector = memoryRoleSelector;
             selector.innerHTML = '';
             roles.forEach(role => {
@@ -5684,7 +5481,6 @@
                 selector.appendChild(opt);
             });
 
-            // 默认选中当前角色或第一个
             if (memoryCurrentRoleId && roles.find(r => r.id === memoryCurrentRoleId)) {
                 selector.value = memoryCurrentRoleId;
             } else if (roles.length > 0) {
@@ -5692,7 +5488,6 @@
                 selector.value = memoryCurrentRoleId;
             }
 
-            // 渲染记忆列表
             renderMemoryList();
         }
 
@@ -5739,15 +5534,6 @@
             } else {
                 memories.forEach((mem, index) => {
                     const text = mem.text || mem;
-                    const source = mem.sourceMessageId || '';
-                    let sourceLabel = '';
-                    if (source && source.startsWith('smart_summary_')) {
-                        sourceLabel = '🧠 深层记忆';
-                    } else if (source) {
-                        sourceLabel = '📝 自动提取';
-                    } else {
-                        sourceLabel = '✏️ 手动添加';
-                    }
                     html += `
                         <div class="memory-item-card">
                             <div class="mem-text">${text}</div>
@@ -5759,7 +5545,6 @@
 
             memoryBodyScroll.innerHTML = html;
 
-            // 绑定删除事件
             memoryBodyScroll.querySelectorAll('.mem-delete-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const roleId = btn.dataset.roleid;
@@ -5778,10 +5563,6 @@
                 });
             });
         }
-
-        // ============================================================
-        //  记忆库添加功能（独立组件）
-        // ============================================================
 
         memoryAddBtn.addEventListener('click', () => {
             const roleId = memoryRoleSelector.value;
