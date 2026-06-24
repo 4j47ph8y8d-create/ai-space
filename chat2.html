@@ -35,7 +35,6 @@
             transition: background 0.3s ease, color 0.3s ease;
         }
 
-        /* ===== 深色/浅色模式变量 ===== */
         :root {
             --bg-primary: #1a1a1a;
             --bg-secondary: #ededed;
@@ -78,7 +77,6 @@
             --pinned-border: rgba(243, 156, 18, 0.15);
         }
 
-        /* ===== 字号变量 ===== */
         [data-font-size="small"] { --font-size-base: 13px; }
         [data-font-size="medium"] { --font-size-base: 15px; }
         [data-font-size="large"] { --font-size-base: 17px; }
@@ -89,9 +87,6 @@
         [data-font-weight="medium"] { --font-weight-base: 500; }
         [data-font-weight="bold"] { --font-weight-base: 600; }
 
-        /* ============================================================
-           桌面
-           ============================================================ */
         .screen-launcher {
             width: 100%;
             height: 100%;
@@ -149,7 +144,6 @@
             color: rgba(0, 0, 0, 0.3);
         }
 
-        /* ===== 心跳卡片（桌面） ===== */
         .heart-card {
             width: 92%;
             max-width: 280px;
@@ -282,7 +276,6 @@
             font-weight: 500;
         }
 
-        /* 心跳加速动画状态 */
         .heart-card .heart-wrap.spike svg {
             animation: heartbeatSpike 0.5s ease-in-out 3;
         }
@@ -345,7 +338,6 @@
             transition: transform 0.2s ease;
         }
 
-        /* ===== 悬浮窗 ===== */
         .floating-heart {
             position: fixed;
             bottom: 120px;
@@ -394,7 +386,6 @@
             margin-top: 1px;
         }
 
-        /* ===== 心动详情面板 ===== */
         .heart-detail-overlay {
             position: fixed;
             inset: 0;
@@ -505,7 +496,6 @@
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        /* ===== 应用网格 ===== */
         .app-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -2245,7 +2235,9 @@
         }
         .image-picker-menu .cancel-btn:active {
             background: #e8e8e8;
-        } /* ============================================================
+        }
+
+        /* ============================================================
            设置抽屉
            ============================================================ */
         .settings-overlay {
@@ -3365,7 +3357,7 @@
                 <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">点击后重新弹出权限申请，不会影响聊天记录和角色数据</div>
             </div>
 
-            <!-- ===== 数据管理（新增） ===== -->
+            <!-- ===== 数据管理 ===== -->
             <div class="setting-group" style="margin-top:10px; border-top:1px solid var(--border-color); padding-top:14px;">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
                     <span style="font-size:14px; color:var(--text-primary);">
@@ -4432,9 +4424,7 @@
         } catch (_) {
             return timeStr;
         }
-    }
-
-    // ============================================================
+    } // ============================================================
     //  个性化弹窗渲染（含 AI 表情包开关）
     // ============================================================
 
@@ -4686,7 +4676,9 @@
 
             aiMemeGrid.appendChild(option);
         });
-    } // ============================================================
+    }
+
+    // ============================================================
     //  心跳关键词检测（触发心率飙升，连续叠加）
     // ============================================================
 
@@ -5302,9 +5294,7 @@
             permissionStatus.textContent = '⏳ 未设置';
             permissionStatus.style.color = '#999';
         }
-    }
-
-    // ============================================================
+    } // ============================================================
     //  渲染：联系人列表
     // ============================================================
 
@@ -5394,7 +5384,9 @@
 
             contactsList.appendChild(item);
         });
-    } // ============================================================
+    }
+
+    // ============================================================
     //  渲染：角色管理
     // ============================================================
 
@@ -6185,7 +6177,7 @@
     backFromMemory.addEventListener('click', closeMemory);
 
     // ============================================================
-    //  表情包管理
+    //  表情包管理（修改版：单击修改名称，点击垃圾桶进入删除模式）
     // ============================================================
 
     function openMeme() {
@@ -6239,49 +6231,54 @@
         memeBodyScroll.innerHTML = html;
 
         memeBodyScroll.querySelectorAll('.meme-cat-enter-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                const catId = btn.dataset.catid;
-                renderMemeList(catId);
+                const catId = this.dataset.catid;
+                if (catId) {
+                    renderMemeList(catId);
+                }
             });
         });
 
         memeBodyScroll.querySelectorAll('.meme-category-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const catId = item.dataset.catid;
-                renderMemeList(catId);
+            item.addEventListener('click', function(e) {
+                if (e.target.closest('.meme-cat-enter-btn')) return;
+                const catId = this.dataset.catid;
+                if (catId) {
+                    renderMemeList(catId);
+                }
             });
 
             let pressTimer = null;
-            item.addEventListener('touchstart', () => {
+            item.addEventListener('touchstart', function(e) {
                 pressTimer = setTimeout(() => {
-                    const catId = item.dataset.catid;
-                    const catName = item.dataset.catname;
+                    const catId = this.dataset.catid;
+                    const catName = this.dataset.catname;
                     showCategoryOptions(catId, catName);
                     pressTimer = null;
                 }, 600);
             });
-            item.addEventListener('touchend', () => {
+            item.addEventListener('touchend', function() {
                 clearTimeout(pressTimer);
                 pressTimer = null;
             });
-            item.addEventListener('touchmove', () => {
+            item.addEventListener('touchmove', function() {
                 clearTimeout(pressTimer);
                 pressTimer = null;
             });
-            item.addEventListener('mousedown', () => {
+            item.addEventListener('mousedown', function(e) {
                 pressTimer = setTimeout(() => {
-                    const catId = item.dataset.catid;
-                    const catName = item.dataset.catname;
+                    const catId = this.dataset.catid;
+                    const catName = this.dataset.catname;
                     showCategoryOptions(catId, catName);
                     pressTimer = null;
                 }, 600);
             });
-            item.addEventListener('mouseup', () => {
+            item.addEventListener('mouseup', function() {
                 clearTimeout(pressTimer);
                 pressTimer = null;
             });
-            item.addEventListener('mouseleave', () => {
+            item.addEventListener('mouseleave', function() {
                 clearTimeout(pressTimer);
                 pressTimer = null;
             });
@@ -6289,7 +6286,8 @@
 
         const addBtn = document.getElementById('memeAddCategoryBtn');
         if (addBtn) {
-            addBtn.addEventListener('click', () => {
+            addBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
                 const name = prompt('请输入新分类名称：');
                 if (name && name.trim()) {
                     const newCat = {
@@ -6356,11 +6354,21 @@
     }
 
     function renderMemeList(categoryId) {
+        if (!categoryId) {
+            showToast('⚠️ 分类不存在');
+            renderCategoryList();
+            return;
+        }
         memeCurrentCategoryId = categoryId;
         exitDeleteMode();
 
         const cat = memeCategories.find(c => c.id === categoryId);
-        const catName = cat ? cat.name : '未知分类';
+        if (!cat) {
+            showToast('⚠️ 分类不存在');
+            renderCategoryList();
+            return;
+        }
+        const catName = cat.name || '未知分类';
         const title = document.getElementById('memeTitle');
         title.textContent = `📚 ${catName}`;
 
@@ -6405,12 +6413,14 @@
 
         const backBtn = document.getElementById('memeBackBtn');
         if (backBtn) {
-            backBtn.addEventListener('click', renderCategoryList);
+            backBtn.addEventListener('click', function() {
+                renderCategoryList();
+            });
         }
 
         const addBtn = document.getElementById('memeAddBtn');
         if (addBtn) {
-            addBtn.addEventListener('click', () => {
+            addBtn.addEventListener('click', function() {
                 if (config.permission === 'denied') {
                     showToast('🚫 相册权限已被拒绝，请在设置中重新请求');
                     return;
@@ -6424,8 +6434,26 @@
             });
         }
 
-        // ===== 表情包点击：单击进入删除模式（点击垃圾桶按钮触发） =====
-        // 删除模式由垃圾桶按钮控制，此处只做选中切换
+        // 表情包点击：如果处于删除模式则切换选中，否则修改名称
+        memeBodyScroll.querySelectorAll('.meme-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const memeId = this.dataset.memeid;
+                const meme = memes.find(m => m.id === memeId);
+                if (!meme) return;
+
+                if (memeDeleteMode) {
+                    toggleMemeSelection(memeId, this);
+                } else {
+                    const newName = prompt('修改表情包名称：', meme.name);
+                    if (newName !== null && newName.trim()) {
+                        meme.name = newName.trim();
+                        saveMemeData();
+                        renderMemeList(categoryId);
+                        showToast('✅ 名称已更新');
+                    }
+                }
+            });
+        });
     }
 
     // ============================================================
@@ -6497,7 +6525,7 @@
 
         const backBtn = document.getElementById('memeBackBtn');
         if (backBtn) {
-            backBtn.addEventListener('click', () => {
+            backBtn.addEventListener('click', function() {
                 exitDeleteMode();
                 renderCategoryList();
             });
@@ -6505,7 +6533,7 @@
 
         const addBtn = document.getElementById('memeAddBtn');
         if (addBtn) {
-            addBtn.addEventListener('click', () => {
+            addBtn.addEventListener('click', function() {
                 if (config.permission === 'denied') {
                     showToast('🚫 相册权限已被拒绝，请在设置中重新请求');
                     return;
@@ -6557,9 +6585,16 @@
     if (memeDeleteExecuteBtn) {
         memeDeleteExecuteBtn.addEventListener('click', function() {
             if (!memeDeleteMode) {
-                showToast('📌 请先点击垃圾桶进入删除模式');
+                // 点击垃圾桶进入删除模式
+                const catId = memeCurrentCategoryId;
+                if (catId) {
+                    enterDeleteMode(catId);
+                } else {
+                    showToast('⚠️ 请先进入一个分类');
+                }
                 return;
             }
+            // 已经在删除模式，执行删除
             if (memeSelectedForDelete.length === 0) {
                 showToast('📌 请至少选择一个表情包');
                 return;
@@ -6666,9 +6701,7 @@
         input.click();
     });
 
-    backFromMeme.addEventListener('click', closeMeme);
-
-    // ============================================================
+    backFromMeme.addEventListener('click', closeMeme); // ============================================================
     //  表情包选择器
     // ============================================================
 
