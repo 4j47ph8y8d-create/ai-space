@@ -1391,6 +1391,420 @@
         }
         .memory-add-bar .add-mem-btn:active {
             transform: scale(0.95);
+        }
+
+        /* ============================================================
+           表情包样式 - 微信风格
+           ============================================================ */
+        .screen-meme {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 15;
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .screen-meme.open {
+            transform: translateX(0);
+        }
+
+        .meme-header-bar {
+            background: var(--header-bg);
+            backdrop-filter: blur(10px);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            min-height: 52px;
+        }
+        .meme-header-bar .back-btn {
+            font-size: 20px;
+            color: #576b95;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 4px;
+        }
+        .meme-header-bar .title {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+        .meme-header-bar .meme-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .meme-header-bar .meme-actions .meme-action-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #576b95;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .meme-header-bar .meme-actions .meme-action-btn:active {
+            opacity: 0.6;
+        }
+
+        .meme-body-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px 20px;
+        }
+        .meme-body-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .meme-body-scroll::-webkit-scrollbar-thumb {
+            background: rgba(192, 192, 192, 0.5);
+            border-radius: 4px;
+        }
+
+        /* 分类卡片 */
+        .meme-category-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .meme-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 4px 12px;
+        }
+        .meme-list-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .meme-add-category-btn {
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            border: none;
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(108, 92, 231, 0.3);
+            transition: 0.15s;
+        }
+        .meme-add-category-btn:active {
+            transform: scale(0.95);
+        }
+
+        .meme-category-item {
+            background: var(--bg-card);
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            cursor: pointer;
+            transition: 0.15s;
+            border-left: 4px solid #a29bfe;
+            position: relative;
+        }
+        .meme-category-item:active {
+            transform: scale(0.97);
+        }
+        .meme-category-item .meme-cat-icon {
+            font-size: 24px;
+            width: 36px;
+            text-align: center;
+        }
+        .meme-category-item .meme-cat-name {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        .meme-category-item .meme-cat-count {
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+        .meme-category-item .meme-cat-enter-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        /* 分类颜色方案 */
+        .meme-category-item[data-catid="cat_happy"] { border-left-color: #fdcb6e; }
+        .meme-category-item[data-catid="cat_sad"] { border-left-color: #74b9ff; }
+        .meme-category-item[data-catid="cat_miss"] { border-left-color: #fd79a8; }
+        .meme-category-item[data-catid="cat_angry"] { border-left-color: #e17055; }
+        .meme-category-item[data-catid="cat_coquetry"] { border-left-color: #a29bfe; }
+        .meme-category-item[data-catid="cat_speechless"] { border-left-color: #b2bec3; }
+        .meme-category-item[data-catid="cat_surprised"] { border-left-color: #fdcb6e; }
+        .meme-category-item[data-catid="cat_shy"] { border-left-color: #fd79a8; }
+        .meme-category-item[data-catid="cat_wronged"] { border-left-color: #74b9ff; }
+        .meme-category-item[data-catid="cat_like"] { border-left-color: #ff6b81; }
+        .meme-category-item[data-catid="uncategorized"] { border-left-color: #b2bec3; }
+
+        /* 表情包列表视图 */
+        .meme-list-view {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .meme-list-view .meme-list-header {
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .meme-back-btn {
+            background: none;
+            border: none;
+            color: #576b95;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .meme-back-btn:active {
+            opacity: 0.6;
+        }
+        .meme-list-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .meme-list-actions button {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+            color: var(--text-secondary);
+            transition: 0.15s;
+        }
+        .meme-list-actions button:active {
+            transform: scale(0.9);
+        }
+        .meme-delete-mode-btn.active {
+            color: #e74c3c;
+        }
+
+        /* 表情包网格 */
+        .meme-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 4px 0;
+        }
+        .meme-item {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            cursor: pointer;
+            transition: 0.15s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .meme-item:active {
+            transform: scale(0.95);
+        }
+        .meme-item.selected {
+            border: 2px solid #e74c3c;
+            background: rgba(231, 76, 60, 0.05);
+        }
+        .meme-item .meme-thumb {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            border-radius: 8px;
+            background: var(--bg-secondary);
+        }
+        .meme-item .meme-item-name {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+        .meme-item .meme-checkbox {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #fff;
+            transition: 0.15s;
+        }
+        .meme-item .meme-checkbox.checked {
+            background: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .meme-empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            grid-column: 1 / -1;
+        }
+        .meme-empty-state i {
+            font-size: 40px;
+            opacity: 0.2;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        /* 表情包选择器弹窗 */
+        .meme-picker-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: flex-end;
+        }
+        .meme-picker-overlay.active {
+            display: flex;
+        }
+
+        .meme-picker-panel {
+            background: var(--bg-card);
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-height: 60vh;
+            padding: 16px 16px 30px;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.15);
+        }
+        .meme-picker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 12px;
+        }
+        .meme-picker-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .meme-picker-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0 4px;
+        }
+
+        .meme-picker-body {
+            max-height: 45vh;
+            overflow-y: auto;
+        }
+        .meme-picker-body::-webkit-scrollbar {
+            width: 3px;
+        }
+        .meme-picker-body::-webkit-scrollbar-thumb {
+            background: rgba(192, 192, 192, 0.5);
+            border-radius: 4px;
+        }
+
+        .meme-picker-cat {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.15s;
+            border-left: 3px solid #a29bfe;
+            margin-bottom: 6px;
+        }
+        .meme-picker-cat:active {
+            background: var(--bg-secondary);
+        }
+        .meme-picker-cat .meme-picker-cat-icon { font-size: 20px; }
+        .meme-picker-cat .meme-picker-cat-name { flex: 1; font-size: 14px; color: var(--text-primary); }
+        .meme-picker-cat .meme-picker-cat-count { font-size: 12px; color: var(--text-secondary); }
+
+        .meme-picker-back {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 4px 12px;
+            color: #576b95;
+            font-size: 14px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 12px;
+        }
+        .meme-picker-back:active {
+            opacity: 0.6;
+        }
+
+        .meme-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .meme-picker-item {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 8px;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .meme-picker-item:active {
+            transform: scale(0.93);
+        }
+        .meme-picker-item .meme-picker-thumb {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            border-radius: 6px;
+            background: var(--bg-card);
+        }
+        .meme-picker-item .meme-picker-item-name {
+            font-size: 10px;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
         } /* ============================================================
            权限弹窗
            ============================================================ */
@@ -2476,7 +2890,8 @@
             .permission-overlay,
             .style-picker-overlay,
             .data-modal-overlay,
-            .screen-memory {
+            .screen-memory,
+            .screen-meme {
                 border-radius: 0;
             }
             body {
@@ -2495,14 +2910,16 @@
         .contacts-list::-webkit-scrollbar,
         .style-picker-panel::-webkit-scrollbar,
         .data-modal::-webkit-scrollbar,
-        .memory-body-scroll::-webkit-scrollbar {
+        .memory-body-scroll::-webkit-scrollbar,
+        .meme-body-scroll::-webkit-scrollbar {
             width: 3px;
         }
         .settings-drawer::-webkit-scrollbar-thumb,
         .contacts-list::-webkit-scrollbar-thumb,
         .style-picker-panel::-webkit-scrollbar-thumb,
         .data-modal::-webkit-scrollbar-thumb,
-        .memory-body-scroll::-webkit-scrollbar-thumb {
+        .memory-body-scroll::-webkit-scrollbar-thumb,
+        .meme-body-scroll::-webkit-scrollbar-thumb {
             background: #ccc;
             border-radius: 4px;
         }
