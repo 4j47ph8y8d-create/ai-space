@@ -1457,7 +1457,6 @@
             border-radius: 4px;
         }
 
-        /* 分类卡片 */
         .meme-category-list {
             display: flex;
             flex-direction: column;
@@ -1532,7 +1531,6 @@
             padding: 4px;
         }
 
-        /* 分类颜色方案 */
         .meme-category-item[data-catid="cat_happy"] { border-left-color: #fdcb6e; }
         .meme-category-item[data-catid="cat_sad"] { border-left-color: #74b9ff; }
         .meme-category-item[data-catid="cat_miss"] { border-left-color: #fd79a8; }
@@ -1545,7 +1543,6 @@
         .meme-category-item[data-catid="cat_like"] { border-left-color: #ff6b81; }
         .meme-category-item[data-catid="uncategorized"] { border-left-color: #b2bec3; }
 
-        /* 表情包列表视图 */
         .meme-list-view {
             display: flex;
             flex-direction: column;
@@ -1589,7 +1586,6 @@
             color: #e74c3c;
         }
 
-        /* 表情包网格 */
         .meme-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -1666,7 +1662,6 @@
             margin-bottom: 12px;
         }
 
-        /* 表情包选择器弹窗 */
         .meme-picker-overlay {
             position: fixed;
             inset: 0;
@@ -3176,9 +3171,7 @@
             <div class="meme-actions">
                 <button class="meme-action-btn" id="memeExportBtn" title="导出表情包"><i class="fas fa-download"></i></button>
                 <button class="meme-action-btn" id="memeImportBtn" title="导入表情包"><i class="fas fa-upload"></i></button>
-                <button class="meme-action-btn meme-delete-execute-btn" id="memeDeleteExecuteBtn" title="删除选中的表情包" style="display:none;color:#e74c3c;">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
+                <!-- 删除按钮已移到列表内部，此处不再需要 -->
             </div>
         </div>
         <div class="meme-body-scroll" id="memeBodyScroll"></div>
@@ -5258,7 +5251,6 @@
     const memeBodyScroll = document.getElementById('memeBodyScroll');
     const memeExportBtn = document.getElementById('memeExportBtn');
     const memeImportBtn = document.getElementById('memeImportBtn');
-    const memeDeleteExecuteBtn = document.getElementById('memeDeleteExecuteBtn');
     const memePickerOverlay = document.getElementById('memePickerOverlay');
     const memePickerBody = document.getElementById('memePickerBody');
     const memePickerClose = document.getElementById('memePickerClose');
@@ -6342,15 +6334,19 @@
     function exitDeleteMode() {
         memeDeleteMode = false;
         memeSelectedForDelete = [];
-        if (memeDeleteExecuteBtn) {
-            memeDeleteExecuteBtn.style.display = 'none';
-        }
+        // 移除所有表情包的选中状态
         document.querySelectorAll('.meme-item.selected').forEach(el => {
             el.classList.remove('selected');
         });
         document.querySelectorAll('.meme-checkbox.checked').forEach(el => {
             el.classList.remove('checked');
         });
+        // 更新删除按钮文字（如果有）
+        const deleteBtn = document.getElementById('memeDeleteBtn');
+        if (deleteBtn) {
+            deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            deleteBtn.style.color = '#e74c3c';
+        }
     }
 
     function renderMemeList(categoryId) {
@@ -6381,6 +6377,7 @@
                     <span class="meme-list-title">${catName}（${catMemes.length}张）</span>
                     <div class="meme-list-actions">
                         <button class="meme-add-btn" id="memeAddBtn"><i class="fas fa-plus"></i></button>
+                        <button class="meme-delete-btn" id="memeDeleteBtn" style="color:#e74c3c;"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 </div>
                 <div class="meme-grid" id="memeGrid">
@@ -6411,6 +6408,7 @@
 
         memeBodyScroll.innerHTML = html;
 
+        // 返回按钮
         const backBtn = document.getElementById('memeBackBtn');
         if (backBtn) {
             backBtn.addEventListener('click', function() {
@@ -6418,6 +6416,7 @@
             });
         }
 
+        // 添加表情包按钮
         const addBtn = document.getElementById('memeAddBtn');
         if (addBtn) {
             addBtn.addEventListener('click', function() {
@@ -6431,6 +6430,30 @@
                 }
                 showPermissionDialog('memeAdd');
                 pendingPickerAction = { type: 'memeAdd', categoryId: categoryId };
+            });
+        }
+
+        // 删除按钮 - 点击进入删除模式 / 执行删除
+        const deleteBtn = document.getElementById('memeDeleteBtn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                if (!memeDeleteMode) {
+                    // 进入删除模式
+                    enterDeleteMode(categoryId);
+                } else {
+                    // 已经在删除模式，执行删除
+                    if (memeSelectedForDelete.length === 0) {
+                        showToast('📌 请至少选择一个表情包');
+                        return;
+                    }
+                    if (confirm(`确定要删除选中的 ${memeSelectedForDelete.length} 个表情包吗？`)) {
+                        memes = memes.filter(m => !memeSelectedForDelete.includes(m.id));
+                        saveMemeData();
+                        showToast(`🗑️ 已删除 ${memeSelectedForDelete.length} 个表情包`);
+                        exitDeleteMode();
+                        renderMemeList(categoryId);
+                    }
+                }
             });
         }
 
@@ -6463,12 +6486,15 @@
     function enterDeleteMode(categoryId) {
         memeDeleteMode = true;
         memeSelectedForDelete = [];
-        if (memeDeleteExecuteBtn) {
-            memeDeleteExecuteBtn.style.display = 'flex';
-            memeDeleteExecuteBtn.style.color = '#e74c3c';
-            memeDeleteExecuteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+        const deleteBtn = document.getElementById('memeDeleteBtn');
+        if (deleteBtn) {
+            deleteBtn.innerHTML = '<i class="fas fa-check"></i> 删除';
+            deleteBtn.style.color = '#e74c3c';
+            deleteBtn.style.background = 'rgba(231, 76, 60, 0.1)';
+            deleteBtn.style.borderRadius = '4px';
+            deleteBtn.style.padding = '4px 8px';
         }
-        showToast('📌 点击表情包选中/取消选中，点击 🗑️ 删除');
+        showToast('📌 点击表情包选中/取消选中，点击「删除」按钮执行删除');
         renderMemeListWithDeleteMode(categoryId);
     }
 
@@ -6488,6 +6514,7 @@
                     <span class="meme-list-title">${catName}（${catMemes.length}张）</span>
                     <div class="meme-list-actions">
                         <button class="meme-add-btn" id="memeAddBtn"><i class="fas fa-plus"></i></button>
+                        <button class="meme-delete-btn" id="memeDeleteBtn" style="color:#e74c3c;background:rgba(231,76,60,0.1);border-radius:4px;padding:4px 8px;"><i class="fas fa-check"></i> 删除</button>
                     </div>
                 </div>
                 <div class="meme-grid" id="memeGrid">
@@ -6516,7 +6543,7 @@
         html += `
                 </div>
                 <div style="text-align:center;padding:10px 0;font-size:12px;color:var(--text-secondary);">
-                    💡 点击表情包选中/取消选中，点击 🗑️ 删除选中
+                    💡 点击表情包选中/取消选中，点击「删除」按钮执行删除
                 </div>
             </div>
         `;
@@ -6547,18 +6574,30 @@
             });
         }
 
+        // 删除按钮 - 执行删除
+        const deleteBtn = document.getElementById('memeDeleteBtn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                if (memeSelectedForDelete.length === 0) {
+                    showToast('📌 请至少选择一个表情包');
+                    return;
+                }
+                if (confirm(`确定要删除选中的 ${memeSelectedForDelete.length} 个表情包吗？`)) {
+                    memes = memes.filter(m => !memeSelectedForDelete.includes(m.id));
+                    saveMemeData();
+                    showToast(`🗑️ 已删除 ${memeSelectedForDelete.length} 个表情包`);
+                    exitDeleteMode();
+                    renderMemeList(categoryId);
+                }
+            });
+        }
+
         memeBodyScroll.querySelectorAll('.meme-item').forEach(item => {
             item.addEventListener('click', function() {
                 const memeId = this.dataset.memeid;
                 toggleMemeSelection(memeId, this);
             });
         });
-
-        if (memeDeleteExecuteBtn) {
-            memeDeleteExecuteBtn.style.display = 'flex';
-            memeDeleteExecuteBtn.style.color = '#e74c3c';
-            memeDeleteExecuteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
-        }
     }
 
     function toggleMemeSelection(memeId, element) {
@@ -6575,38 +6614,10 @@
             if (checkbox) checkbox.classList.add('checked');
         }
         if (memeSelectedForDelete.length > 0) {
-            showToast(`已选中 ${memeSelectedForDelete.length} 个表情包，点击 🗑️ 删除`);
+            showToast(`已选中 ${memeSelectedForDelete.length} 个表情包，点击「删除」执行`);
         } else {
             showToast('📌 点击选择要删除的表情包');
         }
-    }
-
-    // ===== 删除执行按钮 =====
-    if (memeDeleteExecuteBtn) {
-        memeDeleteExecuteBtn.addEventListener('click', function() {
-            if (!memeDeleteMode) {
-                // 点击垃圾桶进入删除模式
-                const catId = memeCurrentCategoryId;
-                if (catId) {
-                    enterDeleteMode(catId);
-                } else {
-                    showToast('⚠️ 请先进入一个分类');
-                }
-                return;
-            }
-            // 已经在删除模式，执行删除
-            if (memeSelectedForDelete.length === 0) {
-                showToast('📌 请至少选择一个表情包');
-                return;
-            }
-            if (confirm(`确定要删除选中的 ${memeSelectedForDelete.length} 个表情包吗？`)) {
-                memes = memes.filter(m => !memeSelectedForDelete.includes(m.id));
-                saveMemeData();
-                showToast(`🗑️ 已删除 ${memeSelectedForDelete.length} 个表情包`);
-                exitDeleteMode();
-                renderMemeList(memeCurrentCategoryId);
-            }
-        });
     }
 
     function openMemeAddDialog(categoryId) {
