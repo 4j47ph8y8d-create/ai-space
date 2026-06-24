@@ -1831,7 +1831,686 @@
         }
         .image-picker-menu .cancel-btn:active {
             background: #e8e8e8;
-        } <!-- ============================================================
+        } /* ============================================================
+           设置抽屉
+           ============================================================ */
+        .settings-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(3px);
+            z-index: 60;
+            display: none;
+            justify-content: flex-end;
+            border-radius: 32px;
+            overflow: hidden;
+        }
+        .settings-overlay.active {
+            display: flex;
+        }
+
+        .settings-drawer {
+            background: var(--bg-secondary);
+            width: 88%;
+            max-width: 340px;
+            height: 100%;
+            padding: 24px 18px 30px;
+            overflow-y: auto;
+            box-shadow: -4px 0 25px rgba(0, 0, 0, 0.15);
+            animation: slideInRight 0.25s ease;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0.3; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .settings-drawer .close-drawer {
+            font-size: 24px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            float: right;
+            background: none;
+            border: none;
+        }
+
+        .settings-drawer h2 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .settings-drawer .setting-group {
+            margin-bottom: 14px;
+        }
+        .settings-drawer .setting-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .settings-drawer .setting-group label .label-hint {
+            font-weight: 400;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .settings-drawer textarea,
+        .settings-drawer input[type="text"],
+        .settings-drawer select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--bg-card);
+            resize: vertical;
+            outline: none;
+            width: 100%;
+            transition: 0.15s;
+            color: var(--text-primary);
+        }
+        .settings-drawer textarea:focus,
+        .settings-drawer input[type="text"]:focus {
+            border-color: #07c160;
+            box-shadow: 0 0 0 3px rgba(7, 193, 96, 0.12);
+        }
+
+        .settings-drawer .module-divider {
+            border: none;
+            border-top: 2px dashed var(--border-color);
+            margin: 6px 0 14px;
+        }
+
+        .settings-drawer .save-btn {
+            background: #07c160;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 8px;
+        }
+        .settings-drawer .save-btn:active {
+            transform: scale(0.98);
+        }
+
+        .temp-slider-container {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 1px 4px var(--shadow-color);
+        }
+        .temp-slider-container .temp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .temp-slider-container .temp-header .temp-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .temp-slider-container .temp-header .temp-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #07c160;
+        }
+        .temp-slider-container input[type="range"] {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--border-color);
+            border-radius: 4px;
+            outline: none;
+            transition: background 0.2s;
+        }
+        .temp-slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #07c160;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(7, 193, 96, 0.3);
+        }
+        .temp-slider-container input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #07c160;
+            cursor: pointer;
+            border: none;
+        }
+        .temp-slider-container .temp-hints {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .beauty-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 1px 4px var(--shadow-color);
+        }
+        .beauty-section .beauty-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .beauty-section .beauty-title i {
+            color: #07c160;
+        }
+
+        .beauty-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .beauty-item:last-child {
+            border-bottom: none;
+        }
+        .beauty-item:active {
+            background: var(--bg-secondary);
+            margin: 0 -6px;
+            padding-left: 6px;
+            padding-right: 6px;
+            border-radius: 8px;
+        }
+
+        .beauty-item .left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        .beauty-item .left i {
+            font-size: 18px;
+            color: #07c160;
+            width: 24px;
+            text-align: center;
+        }
+        .beauty-item .right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .beauty-item .preview-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            flex-shrink: 0;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+        .beauty-item .preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* ===== 角色管理 ===== */
+        .role-manager-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .role-manager-header h3 {
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+        .role-manager-header .add-role-btn {
+            background: #07c160;
+            color: #fff;
+            border: none;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .role-manager-header .add-role-btn:active {
+            transform: scale(0.95);
+        }
+
+        .role-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 4px var(--shadow-color);
+        }
+        .role-card .role-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .role-card .role-card-header .role-avatar-mini {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background-color: #07c160;
+            background-size: cover;
+            background-position: center;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .role-card .role-card-header .role-avatar-mini:active {
+            transform: scale(0.92);
+        }
+        .role-card .role-card-header .role-name-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            outline: none;
+            padding: 2px 0;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        .role-card .role-card-header .role-name-input:focus {
+            border-bottom-color: #07c160;
+        }
+        .role-card .role-card-header .role-expand {
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px;
+        }
+        .role-card .role-card-header .role-delete {
+            color: #e74c3c;
+            font-size: 14px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px;
+        }
+
+        .role-card .role-body {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            display: none;
+        }
+        .role-card .role-body.open {
+            display: block;
+        }
+
+        .role-card .role-body .field-group {
+            margin-bottom: 8px;
+        }
+        .role-card .role-body .field-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: 2px;
+        }
+        .role-card .role-body .field-group textarea,
+        .role-card .role-body .field-group input[type="text"] {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+            background: var(--bg-card);
+            resize: vertical;
+            font-family: inherit;
+            color: var(--text-primary);
+        }
+        .role-card .role-body .field-group textarea:focus,
+        .role-card .role-body .field-group input[type="text"]:focus {
+            border-color: #07c160;
+            background: var(--bg-card);
+        }
+        .role-card .role-body .field-group textarea {
+            min-height: 40px;
+        }
+
+        .role-avatar-upload {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 8px;
+            padding-bottom: 10px;
+        }
+        .role-avatar-upload .preview-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            background-color: #07c160;
+            background-size: cover;
+            background-position: center;
+            flex-shrink: 0;
+            border: 2px solid var(--border-color);
+        }
+        .role-avatar-upload .upload-btn {
+            padding: 4px 14px;
+            border: 1px solid #07c160;
+            border-radius: 16px;
+            background: transparent;
+            color: #07c160;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .role-avatar-upload .upload-btn:active {
+            background: #07c160;
+            color: #fff;
+        }
+        .role-avatar-upload .remove-btn {
+            padding: 4px 14px;
+            border: 1px solid #e74c3c;
+            border-radius: 16px;
+            background: transparent;
+            color: #e74c3c;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .role-avatar-upload .remove-btn:active {
+            background: #e74c3c;
+            color: #fff;
+        }
+
+        .role-bg-upload {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 8px;
+            padding-bottom: 10px;
+        }
+        .role-bg-upload .preview-box-small {
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            background-size: cover;
+            background-position: center;
+            flex-shrink: 0;
+            border: 2px solid var(--border-color);
+        }
+        .role-bg-upload .upload-btn {
+            padding: 4px 14px;
+            border: 1px solid #07c160;
+            border-radius: 16px;
+            background: transparent;
+            color: #07c160;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .role-bg-upload .upload-btn:active {
+            background: #07c160;
+            color: #fff;
+        }
+        .role-bg-upload .remove-btn {
+            padding: 4px 14px;
+            border: 1px solid #e74c3c;
+            border-radius: 16px;
+            background: transparent;
+            color: #e74c3c;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .role-bg-upload .remove-btn:active {
+            background: #e74c3c;
+            color: #fff;
+        }
+
+        .custom-toast {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            z-index: 200;
+            animation: fadeInUp 0.3s ease;
+            text-align: center;
+            max-width: 80%;
+        }
+        [data-theme="light"] .custom-toast {
+            background: rgba(40, 40, 40, 0.85);
+        }
+
+        .data-modal-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 95;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(6px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            border-radius: 32px;
+            overflow: hidden;
+        }
+        .data-modal-overlay.active {
+            display: flex;
+        }
+
+        .data-modal {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 24px 20px 20px;
+            max-width: 380px;
+            width: 94%;
+            max-height: 90%;
+            overflow-y: auto;
+            animation: fadeInUp 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .data-modal .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        .data-modal .modal-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .data-modal .modal-close {
+            float: right;
+            font-size: 24px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .data-modal .export-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .data-modal .export-option:active {
+            background: var(--bg-secondary);
+            transform: scale(0.98);
+        }
+        .data-modal .export-option.selected {
+            border-color: #07c160;
+            background: #f0faf0;
+        }
+        .data-modal .export-option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #07c160;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .data-modal .export-option .opt-label {
+            font-size: 14px;
+            color: var(--text-primary);
+            flex: 1;
+        }
+        .data-modal .export-option .opt-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .data-modal .export-option .opt-badge {
+            font-size: 10px;
+            background: #07c160;
+            color: #fff;
+            padding: 1px 8px;
+            border-radius: 10px;
+        }
+
+        .data-modal .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .data-modal .modal-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .data-modal .modal-actions button:active {
+            transform: scale(0.97);
+        }
+        .data-modal .modal-actions .btn-export {
+            background: #07c160;
+            color: #fff;
+        }
+        .data-modal .modal-actions .btn-import {
+            background: #6c5ce7;
+            color: #fff;
+        }
+        .data-modal .modal-actions .btn-cancel {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+        }
+        .data-modal .modal-actions .btn-export:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .data-modal .role-select-list {
+            margin: 8px 0 12px;
+            padding-left: 34px;
+        }
+        .data-modal .role-select-list .role-check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+        .data-modal .role-select-list .role-check input[type="checkbox"] {
+            accent-color: #07c160;
+            cursor: pointer;
+        }
+
+        @media (max-width: 460px) {
+            .phone-frame {
+                border-radius: 0;
+                height: 100vh;
+                max-height: 100vh;
+            }
+            .settings-overlay,
+            .image-picker-overlay,
+            .permission-overlay,
+            .style-picker-overlay,
+            .data-modal-overlay,
+            .screen-memory {
+                border-radius: 0;
+            }
+            body {
+                padding: 0;
+            }
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(192, 192, 192, 0.5);
+            border-radius: 4px;
+        }
+        .settings-drawer::-webkit-scrollbar,
+        .contacts-list::-webkit-scrollbar,
+        .style-picker-panel::-webkit-scrollbar,
+        .data-modal::-webkit-scrollbar,
+        .memory-body-scroll::-webkit-scrollbar {
+            width: 3px;
+        }
+        .settings-drawer::-webkit-scrollbar-thumb,
+        .contacts-list::-webkit-scrollbar-thumb,
+        .style-picker-panel::-webkit-scrollbar-thumb,
+        .data-modal::-webkit-scrollbar-thumb,
+        .memory-body-scroll::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body> <div class="phone-frame" id="app">
+
+        <!-- ============================================================
         权限弹窗
         ============================================================ -->
         <div class="permission-overlay" id="permissionOverlay">
