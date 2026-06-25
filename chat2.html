@@ -370,7 +370,6 @@
             font-size: 20px;
             color: #fff;
             flex-shrink: 0;
-            cursor: pointer;
         }
         .group-list-item .group-info { flex: 1; min-width: 0; }
         .group-list-item .group-info .group-name {
@@ -3365,7 +3364,8 @@
             addMessageToRole(role.id, 'assistant', '💔 ' + e.message);
             renderMessages();
         }
-    } var STYLES = [
+    }
+    var STYLES = [
         { id: 'glass', name: '毛玻璃' },
         { id: 'gradient', name: '圆润渐变' },
         { id: 'monochrome', name: '极简黑白' },
@@ -4701,15 +4701,6 @@
     }
     function renderMemoryScreenWithTabs() {
         var body = document.getElementById('memoryBodyScroll');
-        var selector = document.getElementById('memoryRoleSelector');
-        selector.innerHTML = '';
-        roles.forEach(function(role) {
-            var opt = document.createElement('option');
-            opt.value = role.id;
-            opt.textContent = role.name;
-            if (role.id === currentRoleId) opt.selected = true;
-            selector.appendChild(opt);
-        });
         var html = '\n            <div style="display:flex;gap:0;border-radius:8px;overflow:hidden;margin-bottom:12px;border:1px solid var(--border-color);">\n                <button class="memory-tab-btn ' + (memoryTab === 'personal' ? 'active' : '') + '" data-tab="personal" style="flex:1;padding:8px 4px;text-align:center;font-size:13px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:0.15s;background:var(--bg-card);border:none;' + (memoryTab === 'personal' ? 'background:#a29bfe;color:#fff;' : '') + '">\n                    📖 单人记忆\n                </button>\n                <button class="memory-tab-btn ' + (memoryTab === 'group' ? 'active' : '') + '" data-tab="group" style="flex:1;padding:8px 4px;text-align:center;font-size:13px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:0.15s;background:var(--bg-card);border:none;' + (memoryTab === 'group' ? 'background:#00b894;color:#fff;' : '') + '">\n                    👥 群聊记忆\n                </button>\n            </div>\n        ';
         if (memoryTab === 'personal') {
             html += renderPersonalMemoryContent();
@@ -5058,18 +5049,8 @@
             var memberStr = memberNames.join('、');
             var unread = getGroupUnreadCount(group.id);
             var unreadHtml = unread > 0 ? '<span class="group-unread">' + unread + '</span>' : '';
-            var avatarHtml = '<div class="group-avatar" data-groupid="' + group.id + '"><i class="fas fa-users"></i></div>';
-            item.innerHTML = '\n                ' + avatarHtml + '\n                <div class="group-info">\n                    <div class="group-name">' + group.name + '</div>\n                    <div class="group-preview">' + preview + '</div>\n                    <div class="group-members-preview">' + memberStr + '</div>\n                </div>\n                ' + unreadHtml + '\n            ';
-            var avatarEl = item.querySelector('.group-avatar');
-            avatarEl.addEventListener('click', function(e) {
-                e.stopPropagation();
-                var gid = this.dataset.groupid;
-                if (gid) openGroupMembers(gid);
-            });
-            item.addEventListener('click', function(e) {
-                if (e.target.closest('.group-avatar')) return;
-                openGroupChat(group.id);
-            });
+            item.innerHTML = '\n                <div class="group-avatar"><i class="fas fa-users"></i></div>\n                <div class="group-info">\n                    <div class="group-name">' + group.name + '</div>\n                    <div class="group-preview">' + preview + '</div>\n                    <div class="group-members-preview">' + memberStr + '</div>\n                </div>\n                ' + unreadHtml + '\n            ';
+            item.addEventListener('click', function() { openGroupChat(group.id); });
             var pressTimer = null;
             item.addEventListener('touchstart', function(e) {
                 pressTimer = setTimeout(function() {
@@ -5514,10 +5495,7 @@
     }
     var groupConversationActive = false;
     async function callGroupChatAI(groupId, userMessage, role) {
-        if (!config.apiKey) {
-            showToast('⚠️ 请先设置 API Key（点击桌面「设置」）');
-            return null;
-        }
+        if (!config.apiKey) throw new Error('请先设置 API Key');
         var group = getGroupChat(groupId);
         if (!group) throw new Error('群聊不存在');
         var systemPrompt = buildGroupSystemPrompt(group, role);
@@ -5532,7 +5510,6 @@
         var memoryText = roleMemories.map(function(m) { return m.text; }).join('；');
         var contextMessage = '当前用户说：' + userMessage + '\n';
         contextMessage += '你是群聊中的「' + role.name + '」，请根据你的人设和当前对话内容，决定是否回复。\n';
-        contextMessage += '⚠️ 如果用户@了你或者主动和你说话，你必须回复，不能沉默。\n';
         contextMessage += '如果你决定回复，请直接输出回复内容。如果你决定不回复，请只输出「SILENT」三个字母。\n';
         contextMessage += '【你的记忆】' + (memoryText || '暂无') + '\n';
         contextMessage += '【重要】不要输出任何动作描写、表情描写或环境描写。只说对话内容。';
@@ -5560,16 +5537,7 @@
         var data = await resp.json();
         var reply = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
         var trimmed = reply.trim();
-        if (trimmed === 'SILENT' || trimmed === 'silent' || trimmed === '沉默') {
-            var silentFallbacks = [
-                '我在呢～ 你们聊到哪了？💕',
-                '哈哈，我刚刚在听你们说～',
-                '我也在呀，别把我忘了 😊',
-                '好呀好呀，继续聊～',
-                '我来啦！刚才在忙呢 💬'
-            ];
-            return silentFallbacks[Math.floor(Math.random() * silentFallbacks.length)];
-        }
+        if (trimmed === 'SILENT' || trimmed === 'silent' || trimmed === '沉默') return null;
         var finalReply = trimmed;
         if (config.aiMemeEnabled !== false && memes.length > 0) {
             if (trimmed.indexOf('[表情包：') === -1) {
@@ -5586,7 +5554,8 @@
             }
         }
         return finalReply;
-    } function buildGroupSystemPrompt(group, role) {
+    }
+    function buildGroupSystemPrompt(group, role) {
         var parts = [];
         var memberNames = group.members.map(function(id) { var r = roles.find(function(ro) { return ro.id === id; }); return r ? r.name : '未知'; });
         parts.push('【群聊信息】\n群聊名称：' + group.name + '\n群成员：' + memberNames.join('、') + '\n你的身份：' + role.name);
@@ -5598,10 +5567,9 @@
         if (publicMemories.length > 0) parts.push('【群聊公共记忆】' + publicMemories.map(function(m) { return m.text; }).join('；'));
         var roleMemories = getGroupRoleMemories(group.id, role.id);
         if (roleMemories.length > 0) parts.push('【你的群聊记忆】' + roleMemories.map(function(m) { return m.text; }).join('；'));
-        parts.push('\n            【核心指令】\n            1. 你是群聊中的一员，名字是「' + role.name + '」，请完全代入这个角色。\n            2. 你正在和群里的其他成员聊天，包括用户（群主）。\n            3. 你的回复要符合你的人设和说话风格，不要做出不符合你性格的发言。\n            4. 你可以@其他成员（用 @名字 格式）。\n            5. 你可以引用其他成员说的话。\n            6. ⚠️ **重要**：如果用户主动发了消息，或者在消息中@了你，或者群里冷场了，你'''必须'''回复，不能沉默。\n            7. ⚠️ **重要**：即使你决定沉默，系统也会强制你发言，所以请直接说出符合你人设的话。\n            8. 只输出对话内容，不要输出任何动作、表情或环境描写。\n            9. 保持自然，像真人微信聊天一样分段回复。\n            10. 你的回复应该符合你的人设性格，不要OOC（Out Of Character）。\n        ');
+        parts.push('\n            【核心指令】\n            1. 你是群聊中的一员，名字是「' + role.name + '」，请完全代入这个角色。\n            2. 你正在和群里的其他成员聊天，包括用户（群主）。\n            3. 你的回复要符合你的人设和说话风格。\n            4. 你可以@其他成员（用 @名字 格式）。\n            5. 你可以引用其他成员说的话。\n            6. 你可以选择沉默，只输出 SILENT 表示不发言。\n            7. 只输出对话内容，不要输出任何动作、表情或环境描写。\n            8. 保持自然，像真人微信聊天一样。\n        ');
         return parts.join('\n\n');
-    }
-    async function handleGroupSend() {
+    } async function handleGroupSend() {
         var input = document.getElementById('groupMessageInput');
         var text = input.value.trim();
         if (!text) return;
@@ -5685,7 +5653,7 @@
                             roundReplies++;
                             renderGroupMessages();
                             renderGroupList();
-                            await new Promise(function(resolve) { setTimeout(resolve, 1200); });
+                            await new Promise(function(resolve) { setTimeout(resolve, 1500); });
                         }
                     } catch (e) {
                         console.error('角色 ' + role.name + ' 发言失败:', e.message);
@@ -5699,40 +5667,13 @@
                 }
                 if (allDone) break;
             }
-            if (totalReplies === 0 && validMembers.length > 0) {
-                var firstRole = roles.find(function(r) { return r.id === validMembers[0]; });
-                if (firstRole) {
-                    try {
-                        var forcedReply = await callGroupChatAI(currentGroupId, text, firstRole);
-                        if (forcedReply) {
-                            addMessageToGroup(currentGroupId, firstRole.id, firstRole.name, forcedReply, 'text');
-                            renderGroupMessages();
-                            renderGroupList();
-                        } else {
-                            var emergencyReplies = [
-                                '我来打破沉默吧～ 你们在聊什么呢？',
-                                '等等我呀，我刚刚在忙 💕',
-                                '别冷场嘛，我也来加入 💬',
-                                '刚看到消息，我来啦～',
-                                '好呀好呀，我也在！',
-                                '大家聊得好开心，我也来啦 ✨'
-                            ];
-                            var randomReply = emergencyReplies[Math.floor(Math.random() * emergencyReplies.length)];
-                            addMessageToGroup(currentGroupId, firstRole.id, firstRole.name, randomReply, 'text');
-                            renderGroupMessages();
-                            renderGroupList();
-                        }
-                    } catch (e) {
-                        var emergencyReplies = [
-                            '我来啦～ 刚才在忙 💕',
-                            '别冷场，我来接话 💬',
-                            '我也在呢，继续聊吧 ✨'
-                        ];
-                        var randomReply = emergencyReplies[Math.floor(Math.random() * emergencyReplies.length)];
-                        addMessageToGroup(currentGroupId, firstRole.id, firstRole.name, randomReply, 'text');
-                        renderGroupMessages();
-                        renderGroupList();
-                    }
+            var finalGroup = getGroupChat(currentGroupId);
+            if (finalGroup && finalGroup.messages.length > 0) {
+                var lastMsg = finalGroup.messages[finalGroup.messages.length - 1];
+                if (lastMsg.roleId === 'user' && finalGroup.messages.length === 1) {
+                    addMessageToGroup(currentGroupId, 'system', '系统', '大家似乎都很安静呢… 💭', 'text');
+                    renderGroupMessages();
+                    renderGroupList();
                 }
             }
         } catch (e) {
@@ -6849,8 +6790,7 @@
         memeScreen.classList.remove('open');
         launcherScreen.classList.remove('hidden');
     }
-    function renderMemeScreen() { renderCategoryList(); }
-    function renderCategoryList() {
+    function renderMemeScreen() { renderCategoryList(); } function renderCategoryList() {
         var title = document.getElementById('memeTitle');
         title.textContent = '📚 表情包';
         memeCurrentCategoryId = null;
@@ -6991,7 +6931,8 @@
                 }
             });
         });
-    } function enterDeleteMode(categoryId) {
+    }
+    function enterDeleteMode(categoryId) {
         memeDeleteMode = true;
         memeSelectedForDelete = [];
         var deleteBtn = document.getElementById('memeDeleteBtn');
@@ -7118,8 +7059,7 @@
         };
         input.click();
     });
-    backFromMeme.addEventListener('click', closeMeme);
-    function openMemePicker(callback) {
+    backFromMeme.addEventListener('click', closeMeme); function openMemePicker(callback) {
         memePickerCallback = callback;
         memePickerOverlay.classList.add('active');
         renderMemePickerCategories();
