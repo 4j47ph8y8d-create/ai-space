@@ -5602,7 +5602,7 @@ var launcherScreen = document.getElementById('launcherScreen');
         if (publicMemories.length > 0) parts.push('【群聊公共记忆】' + publicMemories.map(function(m) { return m.text; }).join('；'));
         var roleMemories = getGroupRoleMemories(group.id, role.id);
         if (roleMemories.length > 0) parts.push('【你的群聊记忆】' + roleMemories.map(function(m) { return m.text; }).join('；'));
-        parts.push('\n            【核心指令】\n            1. 你是群聊中的一员，名字是「' + role.name + '」，请完全代入这个角色。\n            2. 你正在和群里的其他成员聊天，包括用户（群主）。\n            3. 你的回复要符合你的人设和说话风格，不要做出不符合你性格的发言。\n            4. 你可以@其他成员（用 @名字 格式）。\n            5. 你可以引用其他成员说的话。\n            6. 如果用户主动发了消息，或者在消息中@了你，或者群里冷场了，你'''必须'''回复，不能沉默。\n            7. 即使你决定沉默，系统也会强制你发言，所以请直接说出符合你人设的话。\n            8. 只输出对话内容，不要输出任何动作、表情或环境描写。\n            9. 保持自然，像真人微信聊天一样分段回复。\n            10. 你的回复应该符合你的人设性格，不要OOC（Out Of Character）。\n        ');
+        parts.push('\n            【核心指令】\n            1. 你是群聊中的一员，名字是「' + role.name + '」，请完全代入这个角色。\n            2. 你正在和群里的其他成员聊天，包括用户（群主）。\n            3. 你的回复要符合你的人设和说话风格，不要做出不符合你性格的发言。\n            4. 你可以@其他成员（用 @名字 格式）。\n            5. 你可以引用其他成员说的话。\n            6. 如果用户主动发了消息，或者在消息中@了你，或者群里冷场了，你必须回复，不能沉默。\n            7. 即使你决定沉默，系统也会强制你发言，所以请直接说出符合你人设的话。\n            8. 只输出对话内容，不要输出任何动作、表情或环境描写。\n            9. 保持自然，像真人微信聊天一样分段回复。\n            10. 你的回复应该符合你的人设性格，不要OOC（Out Of Character）。\n        ');
         return parts.join('\n\n');
     }
     async function handleGroupSend() {
