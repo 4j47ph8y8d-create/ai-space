@@ -1808,7 +1808,7 @@
             from { transform: translateY(100%); }
             to { transform: translateY(0); }
         } /* ============================================================
-           日记界面样式（新增）
+           日记界面样式（新增）- 紧凑段落格式
            ============================================================ */
         .screen-diary {
             width: 100%;
@@ -2032,7 +2032,7 @@
             border-radius: 4px;
         }
 
-        /* ===== 日记卡片 ===== */
+        /* ===== 日记卡片 - 紧凑段落 ===== */
         .diary-card {
             background: #fdf8ed;
             border-radius: 14px;
@@ -2085,77 +2085,21 @@
             gap: 3px;
         }
 
-        /* ===== 日记内容 - 紧凑，换行即分段 ===== */
+        /* ===== 日记内容 - 紧凑段落格式 ===== */
         .diary-card .diary-content {
             font-size: 16.5px;
             line-height: 1.75;
             color: #3a3028;
-            white-space: pre-wrap;
-            word-break: break-word;
             font-family: "Ma Shan Zheng", "ZCOOL KuaiLe", cursive;
             letter-spacing: 0.3px;
         }
 
-        .diary-card .diary-content .diary-line {
-            display: inline;
-            position: relative;
-            padding: 0 2px;
-            border-radius: 3px;
-            transition: background 0.15s;
-            cursor: text;
+        .diary-card .diary-content .diary-paragraph {
             line-height: 1.75;
+            margin-bottom: 0;
         }
-
-        .diary-card .diary-content .diary-line:hover {
-            background: rgba(212, 165, 116, 0.06);
-        }
-        .diary-card .diary-content .diary-line.editing {
-            background: rgba(212, 165, 116, 0.1);
-            outline: 1px dashed #d4a574;
-        }
-
-        .diary-card .diary-content .diary-line .line-text {
-            display: inline;
-        }
-        .diary-card .diary-content .diary-line .line-edit-input {
-            display: none;
-            border: none;
-            background: rgba(255, 248, 240, 0.8);
-            font-family: "Ma Shan Zheng", "ZCOOL KuaiLe", cursive;
-            font-size: 16.5px;
-            color: #3a3028;
-            padding: 0 2px;
-            border-radius: 3px;
-            outline: none;
-            border-bottom: 2px solid #d4a574;
-            line-height: 1.75;
-            width: 90%;
-        }
-        .diary-card .diary-content .diary-line.editing .line-text {
-            display: none;
-        }
-        .diary-card .diary-content .diary-line.editing .line-edit-input {
-            display: inline;
-        }
-
-        .diary-card .diary-content .diary-line .line-delete-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: #e74c3c;
-            font-size: 12px;
-            cursor: pointer;
-            opacity: 0.3;
-            transition: 0.15s;
-            padding: 0 2px;
-            line-height: 1.75;
-            vertical-align: middle;
-        }
-        .diary-card .diary-content .diary-line:hover .line-delete-btn {
-            display: inline;
-        }
-        .diary-card .diary-content .diary-line .line-delete-btn:hover {
-            opacity: 1;
+        .diary-card .diary-content .diary-paragraph + .diary-paragraph {
+            margin-top: 4px;
         }
 
         .diary-card .diary-footer {
@@ -2186,17 +2130,6 @@
             border-radius: 4px;
             transition: 0.15s;
             font-family: inherit;
-        }
-        .diary-card .diary-footer .diary-actions-btns .save-edit-btn {
-            color: #d4a574;
-            background: rgba(212, 165, 116, 0.08);
-            display: none;
-        }
-        .diary-card .diary-footer .diary-actions-btns .save-edit-btn.show {
-            display: inline-flex;
-        }
-        .diary-card .diary-footer .diary-actions-btns .save-edit-btn:active {
-            transform: scale(0.95);
         }
         .diary-card .diary-footer .diary-actions-btns .delete-diary-btn {
             color: #e74c3c;
@@ -4057,6 +3990,7 @@
         diaries: [],
         diaryAutoGenerateEnabled: true,
         lastDiaryCheckDate: null,
+        diaryCalendarCollapsed: false,
     };
 
     // ============================================================
@@ -4363,6 +4297,7 @@
             if (!config.diaries || !Array.isArray(config.diaries)) config.diaries = [];
             if (config.diaryAutoGenerateEnabled === undefined) config.diaryAutoGenerateEnabled = true;
             if (!config.lastDiaryCheckDate) config.lastDiaryCheckDate = null;
+            if (config.diaryCalendarCollapsed === undefined) config.diaryCalendarCollapsed = false;
             
             roles = savedData.roles;
             roles.forEach(role => {
@@ -5894,7 +5829,7 @@
     }
 
     // ============================================================
-    //  日记功能 - AI 生成日记
+    //  日记功能 - AI 生成日记（优化版：有深度思考，非流水账）
     // ============================================================
 
     async function callDiaryAPI(role) {
@@ -5902,7 +5837,6 @@
             throw new Error('请先设置 API Key（点击桌面「设置」图标）');
         }
 
-        // 提取最近聊天记录（最多20条）
         const recentMsgs = (role.messages || []).slice(-20);
         let conversationText = '';
         recentMsgs.forEach(msg => {
@@ -5914,34 +5848,41 @@
             conversationText = '今天还没有聊天，但想你了。';
         }
 
-        // 提取记忆库
         const memories = (role.memory || [])
             .map(m => m.text || m)
             .filter(t => t)
             .join('；');
 
-        // 获取心跳数据
         const heartPeak = role.heartData?.peakValue || 65;
 
         const systemPrompt = `你正在以「${role.name}」的第一人称写一篇私密日记。
-        
+
         【角色设定】
         人设：${role.persona || '一个温柔体贴的人'}
         背景：${role.background || '生活在充满爱的世界里'}
         说话风格：${role.style || '温柔细腻，像深夜独白'}
         补充项：${role.extra || ''}
 
-        【日记要求】
+        【写作要求 - 非常重要】
         1. 用「我」的第一人称写，完全代入角色
-        2. 风格：温柔、细腻、像深夜独白，符合角色人设
-        3. 内容要结合近期的聊天记录和记忆库中的信息
-        4. 自然地融入对「你」的思念和情感
-        5. 字数控制在150-200字之间
-        6. 不要出现"AI"或"机器人"字样
-        7. 用换行分段，不要用空行
+        2. 这不是流水账！要有深度思考和内心感受
+        3. 每一段都要包含至少一个「内心感受」或「思考」
+        4. 可以包含：对某句话的联想、某个瞬间的触动、对过去的回忆、对未来的期待
+        5. 要把聊天记录中的内容「消化」后再写出来，而不是复述
+        6. 风格：像深夜一个人静静写下的心里话，有呼吸感
+
+        【结构参考】
+        - 开头：今天发生了什么（一句话带过，不要详细叙述）
+        - 中间：重点写这件事触发了什么感受/回忆/思考
+        - 结尾：一句对「你」的私语或期待
+
+        【禁止】
+        - 不要写成「今天发生了A，然后B，然后C」的流水账
+        - 不要出现"AI"或"机器人"字样
+        - 不要用"首先、其次、最后"这类词
 
         【格式】
-        直接输出日记正文，不要加标题、日期或其他标记。`;
+        直接输出日记正文，用换行分段，每段3-5行，不要用空行。`;
 
         const userPrompt = `根据以下信息写一篇日记：
         
@@ -5953,7 +5894,7 @@
         
         今日心跳峰值：${heartPeak}%
         
-        请写出符合角色人设的日记。`;
+        请写出一篇有深度、有内心感受的日记。`;
 
         const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
             method: 'POST',
@@ -5967,8 +5908,8 @@
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userPrompt }
                 ],
-                temperature: 0.85,
-                max_tokens: 400,
+                temperature: 0.9,
+                max_tokens: 500,
             }),
         });
 
@@ -5983,9 +5924,7 @@
         const reply = data.choices?.[0]?.message?.content;
         if (!reply) throw new Error('未获取到回复');
         return reply.trim();
-    }
-
-    async function generateDiary(roleId, showToastMsg = true) {
+    } async function generateDiary(roleId, showToastMsg = true) {
         const role = roles.find(r => r.id === roleId);
         if (!role) {
             if (showToastMsg) showToast('⚠️ 请先选择一个角色');
@@ -6119,12 +6058,11 @@
     diaryNotifClose.addEventListener('click', hideDiaryNotification);
 
     // ============================================================
-    //  日记功能 - 渲染
+    //  日记功能 - 渲染（紧凑段落格式）
     // ============================================================
 
     let selectedDiaryDate = new Date();
     let currentDiaryViewDate = new Date();
-    let editingDiaryLineIndex = null;
     let selectedDiaryRoleId = null;
 
     function renderDiaryRoleSelector() {
@@ -6198,6 +6136,7 @@
         });
     }
 
+    // ===== 日记正文渲染 - 紧凑段落格式（核心修复） =====
     function renderDiaryView(roleId) {
         if (!diaryBody) return;
         const selectedKey = getDiaryDateKey(selectedDiaryDate);
@@ -6216,22 +6155,24 @@
             return;
         }
 
-        editingDiaryLineIndex = null;
-
-        const lines = diary.content.split('\n').filter(line => line.trim() !== '');
-
+        // 按段落分割（用 \n\n 分割段落）
+        const paragraphs = diary.content.split('\n\n').filter(p => p.trim() !== '');
+        
         let contentHtml = '';
-        lines.forEach((line, index) => {
-            const escapedLine = line.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            contentHtml += `
-                <span class="diary-line" data-index="${index}">
-                    <span class="line-text">${escapedLine}</span>
-                    <input class="line-edit-input" type="text" value="${escapedLine}" />
-                    <button class="line-delete-btn" data-index="${index}"><i class="fas fa-times"></i></button>
-                    <br />
-                </span>
-            `;
+        paragraphs.forEach((paragraph, pIdx) => {
+            // 段落内的行用 <br> 连接
+            const lines = paragraph.split('\n').filter(line => line.trim() !== '');
+            const paragraphHtml = lines.join('<br />');
+            const classAttr = pIdx > 0 ? ' class="diary-paragraph"' : ' class="diary-paragraph"';
+            contentHtml += `<div${classAttr}>${paragraphHtml}</div>`;
         });
+
+        // 如果没有分段，则按行用 <br> 连接
+        if (paragraphs.length === 0) {
+            const lines = diary.content.split('\n').filter(line => line.trim() !== '');
+            contentHtml = lines.join('<br />');
+            contentHtml = `<div class="diary-paragraph">${contentHtml}</div>`;
+        }
 
         diaryBody.innerHTML = `
             <div class="diary-card">
@@ -6250,38 +6191,34 @@
                         <i class="fas fa-heart"></i> 心动峰值 ${diary.heartPeak || 65}%
                     </span>
                     <div class="diary-actions-btns">
-                        <button class="save-edit-btn" id="diarySaveEditBtn"><i class="fas fa-save"></i> 保存</button>
                         <button class="delete-diary-btn" id="diaryDeleteBtn"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 </div>
             </div>
         `;
 
-        diaryBody.querySelectorAll('.diary-line').forEach(el => {
-            const index = parseInt(el.dataset.index);
-            el.addEventListener('click', (e) => {
-                if (e.target.closest('.line-delete-btn')) return;
-                enterDiaryEditMode(index);
-            });
-        });
-
-        diaryBody.querySelectorAll('.line-delete-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const index = parseInt(btn.dataset.index);
-                if (confirm('确定要删除这句话吗？')) {
-                    deleteDiaryLine(index, diary);
+        // 点击日记内容编辑（整体编辑）
+        const contentArea = document.getElementById('diaryContent');
+        if (contentArea) {
+            contentArea.style.cursor = 'pointer';
+            contentArea.addEventListener('click', function(e) {
+                if (e.target.closest('button')) return;
+                const currentContent = diary.content;
+                const newContent = prompt('编辑日记内容（用空行分段，每行自然换行）：', currentContent);
+                if (newContent !== null && newContent.trim() !== '') {
+                    diary.content = newContent.trim();
+                    const diaryRef = getDiaryForDate(diary.roleId, diary.dateKey);
+                    if (diaryRef) {
+                        diaryRef.content = diary.content;
+                        saveAllData();
+                    }
+                    renderDiaryView(roleId);
+                    showToast('✅ 日记已更新');
                 }
-            });
-        });
-
-        const saveBtn = document.getElementById('diarySaveEditBtn');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', () => {
-                saveDiaryEdits(diary);
             });
         }
 
+        // 删除按钮
         const deleteBtn = document.getElementById('diaryDeleteBtn');
         if (deleteBtn) {
             deleteBtn.addEventListener('click', () => {
@@ -6335,92 +6272,11 @@
                 diaryToggleIcon.classList.add('rotated');
             }
         }
-    } // ============================================================
-    //  日记功能 - 编辑/删除
+    }
+
     // ============================================================
-
-    function enterDiaryEditMode(index) {
-        exitDiaryEditMode();
-
-        editingDiaryLineIndex = index;
-        const lineEl = document.querySelector(`.diary-line[data-index="${index}"]`);
-        if (lineEl) {
-            lineEl.classList.add('editing');
-            const input = lineEl.querySelector('.line-edit-input');
-            if (input) {
-                input.value = input.value || lineEl.querySelector('.line-text')?.textContent || '';
-                input.focus();
-                input.select();
-            }
-        }
-
-        const saveBtn = document.getElementById('diarySaveEditBtn');
-        if (saveBtn) saveBtn.classList.add('show');
-    }
-
-    function exitDiaryEditMode() {
-        if (editingDiaryLineIndex !== null) {
-            const oldEl = document.querySelector(`.diary-line[data-index="${editingDiaryLineIndex}"]`);
-            if (oldEl) {
-                oldEl.classList.remove('editing');
-                const input = oldEl.querySelector('.line-edit-input');
-                const textSpan = oldEl.querySelector('.line-text');
-                if (input && textSpan) {
-                    const newText = input.value.trim();
-                    if (newText) textSpan.textContent = newText;
-                }
-            }
-            editingDiaryLineIndex = null;
-        }
-        const saveBtn = document.getElementById('diarySaveEditBtn');
-        if (saveBtn) saveBtn.classList.remove('show');
-    }
-
-    function deleteDiaryLine(index, diary) {
-        const lines = diary.content.split('\n').filter(line => line.trim() !== '');
-        if (index < lines.length) {
-            lines.splice(index, 1);
-            diary.content = lines.join('\n');
-            const diaryRef = getDiaryForDate(diary.roleId, diary.dateKey);
-            if (diaryRef) {
-                diaryRef.content = diary.content;
-                saveAllData();
-            }
-            const roleId = selectedDiaryRoleId || config.selectedRoleId;
-            renderDiaryView(roleId);
-            showToast('🗑️ 已删除该句');
-        }
-    }
-
-    function saveDiaryEdits(diary) {
-        exitDiaryEditMode();
-
-        const lineElements = document.querySelectorAll('.diary-line');
-        const lines = [];
-        lineElements.forEach(el => {
-            const textSpan = el.querySelector('.line-text');
-            if (textSpan) {
-                const text = textSpan.textContent.trim();
-                if (text) lines.push(text);
-            }
-        });
-
-        if (lines.length === 0) {
-            showToast('⚠️ 日记不能为空');
-            return;
-        }
-
-        diary.content = lines.join('\n');
-        const diaryRef = getDiaryForDate(diary.roleId, diary.dateKey);
-        if (diaryRef) {
-            diaryRef.content = diary.content;
-            saveAllData();
-        }
-
-        showToast('✅ 日记已保存');
-        const roleId = selectedDiaryRoleId || config.selectedRoleId;
-        renderDiaryView(roleId);
-    }
+    //  日记功能 - 删除
+    // ============================================================
 
     function deleteDiary(diaryId) {
         const idx = (config.diaries || []).findIndex(d => d.id === diaryId);
@@ -6567,9 +6423,7 @@
         });
     }
 
-    backFromDiary.addEventListener('click', closeDiary);
-
-    // ============================================================
+    backFromDiary.addEventListener('click', closeDiary); // ============================================================
     //  渲染：联系人列表
     // ============================================================
 
@@ -6929,7 +6783,9 @@
 
             roleManagerContainer.appendChild(card);
         });
-    } function openImagePickerForRole(roleId, type) {
+    }
+
+    function openImagePickerForRole(roleId, type) {
         const titles = {
             'avatar': '选择角色头像',
             'bg': '选择角色聊天背景',
@@ -6979,9 +6835,7 @@
             chatRoleName.textContent = 'DeepSeek';
             chatRoleName.classList.remove('typing');
         }
-    }
-
-    // ============================================================
+    } // ============================================================
     //  已读标记优化
     // ============================================================
 
@@ -7456,9 +7310,7 @@
         renderMemoryList();
     });
 
-    backFromMemory.addEventListener('click', closeMemory);
-
-    // ============================================================
+    backFromMemory.addEventListener('click', closeMemory); // ============================================================
     //  图片选择器
     // ============================================================
 
@@ -7945,9 +7797,7 @@
             reader.readAsText(file);
         };
         input.click();
-    }
-
-    // ============================================================
+    } // ============================================================
     //  设置
     // ============================================================
 
@@ -8428,9 +8278,7 @@
                 dragData.hasMoved = false;
             }
         });
-    }
-
-    // ============================================================
+    } // ============================================================
     //  事件绑定
     // ============================================================
 
@@ -8839,11 +8687,7 @@
     });
 
     // ============================================================
-    //  个性化弹窗（简化版，保留核心功能）
-    // ============================================================
-
-// ============================================================
-    //  渲染：个性化弹窗
+    //  个性化弹窗
     // ============================================================
 
     function renderStylePicker() {
@@ -8900,7 +8744,6 @@
             iconGrid.appendChild(option);
         });
 
-        // 气泡风格
         const bubbleGrid = document.getElementById('bubbleOptionGrid');
         if (bubbleGrid) {
             bubbleGrid.innerHTML = '';
@@ -8956,7 +8799,6 @@
             });
         }
 
-        // 时间模式
         const timeGrid = document.getElementById('timeModeGrid');
         if (timeGrid) {
             timeGrid.innerHTML = '';
@@ -8992,7 +8834,6 @@
             });
         }
 
-        // 悬浮窗开关
         const floatingGrid = document.getElementById('floatingSwitchGrid');
         if (floatingGrid) {
             floatingGrid.innerHTML = '';
@@ -9045,7 +8886,6 @@
             });
         }
 
-        // 心跳颜色
         const colorGrid = document.getElementById('heartColorGrid');
         if (colorGrid) {
             colorGrid.innerHTML = '';
@@ -9088,7 +8928,6 @@
             });
         }
 
-        // AI 表情包开关
         const aiMemeGrid = document.getElementById('aiMemeSwitchGrid');
         if (aiMemeGrid) {
             aiMemeGrid.innerHTML = '';
@@ -9164,7 +9003,7 @@
     });
 
     // ============================================================
-    //  表情包功能（简化版，保留核心功能）
+    //  表情包功能
     // ============================================================
 
     function openMeme() {
@@ -9195,9 +9034,7 @@
         `;
     }
 
-    backFromMeme.addEventListener('click', closeMeme);
-
-    // ============================================================
+    backFromMeme.addEventListener('click', closeMeme); // ============================================================
     //  初始化
     // ============================================================
 
