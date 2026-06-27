@@ -9034,17 +9034,543 @@
         launcherScreen.classList.remove('hidden');
     }
 
-    function renderMemeScreen() {
-        memeBodyScroll.innerHTML = `
-            <div class="meme-empty-state" style="padding:60px 20px;text-align:center;color:var(--text-secondary);">
-                <i class="fas fa-face-smile" style="font-size:48px;opacity:0.3;display:block;margin-bottom:16px;"></i>
-                <p style="font-size:15px;">表情包管理功能已就绪</p>
-                <p style="font-size:13px;margin-top:6px;opacity:0.6;">请在完整版中体验全部功能</p>
-            </div>
-        `;
+// ============================================================
+    //  表情包功能（完整版）
+    // ============================================================
+
+    function openMeme() {
+        launcherScreen.classList.add('hidden');
+        chatScreen.classList.remove('open');
+        contactsScreen.classList.remove('open');
+        memoryScreen.classList.remove('open');
+        diaryScreen.classList.remove('open');
+        memeScreen.classList.add('open');
+        renderMemeScreen();
+        if (config.heart.floatingEnabled !== false) {
+            setTimeout(showFloatingHeart, 300);
+        }
     }
 
-    backFromMeme.addEventListener('click', closeMeme); // ============================================================
+    function closeMeme() {
+        memeScreen.classList.remove('open');
+        launcherScreen.classList.remove('hidden');
+    }
+
+    function renderMemeScreen() {
+        renderCategoryList();
+    }
+
+    function renderCategoryList() {
+        const title = document.getElementById('memeTitle');
+        title.textContent = '📚 表情包';
+        memeCurrentCategoryId = null;
+        exitDeleteMode();
+
+        let html = `
+            <div class="meme-category-list">
+                <div class="meme-list-header">
+                    <span class="meme-list-title">分类列表</span>
+                    <button class="meme-add-category-btn" id="memeAddCategoryBtn">+ 添加分类</button>
+                </div>
+        `;
+
+        memeCategories.forEach(cat => {
+            const count = memes.filter(m => m.categoryId === cat.id).length;
+            html += `
+                <div class="meme-category-item" data-catid="${cat.id}" data-catname="${cat.name}">
+                    <span class="meme-cat-icon">${cat.icon || '📁'}</span>
+                    <span class="meme-cat-name">${cat.name}</span>
+                    <span class="meme-cat-count">${count}张</span>
+                    <button class="meme-cat-enter-btn" data-catid="${cat.id}"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+        memeBodyScroll.innerHTML = html;
+
+        memeBodyScroll.querySelectorAll('.meme-cat-enter-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const catId = this.dataset.catid;
+                if (catId) {
+                    renderMemeList(catId);
+                }
+            });
+        });
+
+        memeBodyScroll.querySelectorAll('.meme-category-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (e.target.closest('.meme-cat-enter-btn')) return;
+                const catId = this.dataset.catid;
+                if (catId) {
+                    renderMemeList(catId);
+                }
+            });
+
+            let pressTimer = null;
+            item.addEventListener('touchstart', function(e) {
+                pressTimer = setTimeout(() => {
+                    const catId = this.dataset.catid;
+                    const catName = this.dataset.catname;
+                    showCategoryOptions(catId, catName);
+                    pressTimer = null;
+                }, 600);
+            });
+            item.addEventListener('touchend', function() {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            });
+            item.addEventListener('touchmove', function() {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            });
+            item.addEventListener('mousedown', function(e) {
+                pressTimer = setTimeout(() => {
+                    const catId = this.dataset.catid;
+                    const catName = this.dataset.catname;
+                    showCategoryOptions(catId, catName);
+                    pressTimer = null;
+                }, 600);
+            });
+            item.addEventListener('mouseup', function() {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            });
+            item.addEventListener('mouseleave', function() {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            });
+        });
+
+        const addBtn = document.getElementById('memeAddCategoryBtn');
+        if (addBtn) {
+            addBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const name = prompt('请输入新分类名称：');
+                if (name && name.trim()) {
+                    const newCat = {
+                        id: generateId(),
+                        name: name.trim(),
+                        icon: '📁'
+                    };
+                    memeCategories.push(newCat);
+                    saveMemeData();
+                    renderCategoryList();
+                    showToast('✅ 已添加分类');
+                }
+            });
+        }
+    }
+
+    function showCategoryOptions(catId, catName) {
+        if (catId === 'uncategorized') {
+            showToast('⚠️ "未分类" 不可修改或删除');
+            return;
+        }
+        const choice = prompt(`分类「${catName}」\n输入 1 修改名称\n输入 2 删除分类（表情包将移至"未分类"）\n输入 取消 取消操作`);
+        if (choice === '1') {
+            const newName = prompt('请输入新分类名称：', catName);
+            if (newName && newName.trim()) {
+                const cat = memeCategories.find(c => c.id === catId);
+                if (cat) {
+                    cat.name = newName.trim();
+                    saveMemeData();
+                    renderCategoryList();
+                    showToast('✅ 分类已重命名');
+                }
+            }
+        } else if (choice === '2') {
+            if (confirm(`确定要删除分类「${catName}」吗？其中的表情包将移至「未分类」。`)) {
+                if (!memeCategories.find(c => c.id === 'uncategorized')) {
+                    memeCategories.push({ id: 'uncategorized', name: '未分类', icon: '📁' });
+                }
+                memes.forEach(m => {
+                    if (m.categoryId === catId) {
+                        m.categoryId = 'uncategorized';
+                    }
+                });
+                memeCategories = memeCategories.filter(c => c.id !== catId);
+                saveMemeData();
+                renderCategoryList();
+                showToast('🗑️ 分类已删除，表情包已移至「未分类」');
+            }
+        }
+    }
+
+    function exitDeleteMode() {
+        memeDeleteMode = false;
+        memeSelectedForDelete = [];
+        document.querySelectorAll('.meme-item.selected').forEach(el => {
+            el.classList.remove('selected');
+        });
+        document.querySelectorAll('.meme-checkbox.checked').forEach(el => {
+            el.classList.remove('checked');
+        });
+        const deleteBtn = document.getElementById('memeDeleteBtn');
+        if (deleteBtn) {
+            deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            deleteBtn.style.color = '#e74c3c';
+            deleteBtn.style.background = 'transparent';
+            deleteBtn.style.borderRadius = '0';
+            deleteBtn.style.padding = '4px';
+        }
+    }
+
+    function renderMemeList(categoryId) {
+        if (!categoryId) {
+            showToast('⚠️ 分类不存在');
+            renderCategoryList();
+            return;
+        }
+        memeCurrentCategoryId = categoryId;
+        exitDeleteMode();
+
+        const cat = memeCategories.find(c => c.id === categoryId);
+        if (!cat) {
+            showToast('⚠️ 分类不存在');
+            renderCategoryList();
+            return;
+        }
+        const catName = cat.name || '未知分类';
+        const title = document.getElementById('memeTitle');
+        title.textContent = `📚 ${catName}`;
+
+        const catMemes = memes.filter(m => m.categoryId === categoryId);
+
+        let html = `
+            <div class="meme-list-view">
+                <div class="meme-list-header">
+                    <button class="meme-back-btn" id="memeBackBtn"><i class="fas fa-arrow-left"></i> 返回</button>
+                    <span class="meme-list-title">${catName}（${catMemes.length}张）</span>
+                    <div class="meme-list-actions">
+                        <button class="meme-add-btn" id="memeAddBtn"><i class="fas fa-plus"></i></button>
+                        <button class="meme-delete-btn" id="memeDeleteBtn" style="color:#e74c3c;"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+                <div class="meme-grid" id="memeGrid">
+        `;
+
+        if (catMemes.length === 0) {
+            html += `
+                <div class="meme-empty-state">
+                    <i class="fas fa-face-smile"></i>
+                    <p>这个分类还没有表情包<br />点击右上角「+」添加</p>
+                </div>
+            `;
+        } else {
+            catMemes.forEach((meme) => {
+                html += `
+                    <div class="meme-item" data-memeid="${meme.id}" data-memename="${meme.name}">
+                        <img src="${meme.imageData}" alt="${meme.name}" class="meme-thumb" />
+                        <div class="meme-item-name">${meme.name}</div>
+                    </div>
+                `;
+            });
+        }
+
+        html += `
+                </div>
+            </div>
+        `;
+
+        memeBodyScroll.innerHTML = html;
+
+        const backBtn = document.getElementById('memeBackBtn');
+        if (backBtn) {
+            backBtn.addEventListener('click', function() {
+                renderCategoryList();
+            });
+        }
+
+        const addBtn = document.getElementById('memeAddBtn');
+        if (addBtn) {
+            addBtn.addEventListener('click', function() {
+                if (config.permission === 'denied') {
+                    showToast('🚫 相册权限已被拒绝，请在设置中重新请求');
+                    return;
+                }
+                if (config.permission === 'allowed') {
+                    openMemeAddDialog(categoryId);
+                    return;
+                }
+                showPermissionDialog('memeAdd');
+                pendingPickerAction = { type: 'memeAdd', categoryId: categoryId };
+            });
+        }
+
+        const deleteBtn = document.getElementById('memeDeleteBtn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                if (!memeDeleteMode) {
+                    enterDeleteMode(categoryId);
+                } else {
+                    if (memeSelectedForDelete.length === 0) {
+                        showToast('📌 请至少选择一个表情包');
+                        return;
+                    }
+                    if (confirm(`确定要删除选中的 ${memeSelectedForDelete.length} 个表情包吗？`)) {
+                        memes = memes.filter(m => !memeSelectedForDelete.includes(m.id));
+                        saveMemeData();
+                        showToast(`🗑️ 已删除 ${memeSelectedForDelete.length} 个表情包`);
+                        exitDeleteMode();
+                        renderMemeList(categoryId);
+                    }
+                }
+            });
+        }
+
+        memeBodyScroll.querySelectorAll('.meme-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const memeId = this.dataset.memeid;
+                const meme = memes.find(m => m.id === memeId);
+                if (!meme) return;
+
+                if (memeDeleteMode) {
+                    toggleMemeSelection(memeId, this);
+                } else {
+                    const newName = prompt('修改表情包名称：', meme.name);
+                    if (newName !== null && newName.trim()) {
+                        meme.name = newName.trim();
+                        saveMemeData();
+                        renderMemeList(categoryId);
+                        showToast('✅ 名称已更新');
+                    }
+                }
+            });
+        });
+    }
+
+    function enterDeleteMode(categoryId) {
+        memeDeleteMode = true;
+        memeSelectedForDelete = [];
+        const deleteBtn = document.getElementById('memeDeleteBtn');
+        if (deleteBtn) {
+            deleteBtn.innerHTML = '<i class="fas fa-check"></i> 删除';
+            deleteBtn.style.color = '#e74c3c';
+            deleteBtn.style.background = 'rgba(231, 76, 60, 0.1)';
+            deleteBtn.style.borderRadius = '4px';
+            deleteBtn.style.padding = '4px 8px';
+        }
+        showToast('📌 点击表情包选中/取消选中，点击「删除」按钮执行删除');
+        renderMemeListWithDeleteMode(categoryId);
+    }
+
+    function renderMemeListWithDeleteMode(categoryId) {
+        memeCurrentCategoryId = categoryId;
+        const cat = memeCategories.find(c => c.id === categoryId);
+        const catName = cat ? cat.name : '未知分类';
+        const title = document.getElementById('memeTitle');
+        title.textContent = `📚 ${catName}`;
+
+        const catMemes = memes.filter(m => m.categoryId === categoryId);
+
+        let html = `
+            <div class="meme-list-view">
+                <div class="meme-list-header">
+                    <button class="meme-back-btn" id="memeBackBtn"><i class="fas fa-arrow-left"></i> 返回</button>
+                    <span class="meme-list-title">${catName}（${catMemes.length}张）</span>
+                    <div class="meme-list-actions">
+                        <button class="meme-add-btn" id="memeAddBtn"><i class="fas fa-plus"></i></button>
+                        <button class="meme-delete-btn" id="memeDeleteBtn" style="color:#e74c3c;background:rgba(231,76,60,0.1);border-radius:4px;padding:4px 8px;"><i class="fas fa-check"></i> 删除</button>
+                    </div>
+                </div>
+                <div class="meme-grid" id="memeGrid">
+        `;
+
+        if (catMemes.length === 0) {
+            html += `
+                <div class="meme-empty-state">
+                    <i class="fas fa-face-smile"></i>
+                    <p>这个分类还没有表情包<br />点击右上角「+」添加</p>
+                </div>
+            `;
+        } else {
+            catMemes.forEach((meme) => {
+                const isSelected = memeSelectedForDelete.includes(meme.id);
+                html += `
+                    <div class="meme-item ${isSelected ? 'selected' : ''}" data-memeid="${meme.id}" data-memename="${meme.name}">
+                        <div class="meme-checkbox ${isSelected ? 'checked' : ''}"><i class="fas fa-check"></i></div>
+                        <img src="${meme.imageData}" alt="${meme.name}" class="meme-thumb" />
+                        <div class="meme-item-name">${meme.name}</div>
+                    </div>
+                `;
+            });
+        }
+
+        html += `
+                </div>
+                <div style="text-align:center;padding:10px 0;font-size:12px;color:var(--text-secondary);">
+                    💡 点击表情包选中/取消选中，点击「删除」按钮执行删除
+                </div>
+            </div>
+        `;
+
+        memeBodyScroll.innerHTML = html;
+
+        const backBtn = document.getElementById('memeBackBtn');
+        if (backBtn) {
+            backBtn.addEventListener('click', function() {
+                exitDeleteMode();
+                renderCategoryList();
+            });
+        }
+
+        const addBtn = document.getElementById('memeAddBtn');
+        if (addBtn) {
+            addBtn.addEventListener('click', function() {
+                if (config.permission === 'denied') {
+                    showToast('🚫 相册权限已被拒绝，请在设置中重新请求');
+                    return;
+                }
+                if (config.permission === 'allowed') {
+                    openMemeAddDialog(categoryId);
+                    return;
+                }
+                showPermissionDialog('memeAdd');
+                pendingPickerAction = { type: 'memeAdd', categoryId: categoryId };
+            });
+        }
+
+        const deleteBtn = document.getElementById('memeDeleteBtn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                if (memeSelectedForDelete.length === 0) {
+                    showToast('📌 请至少选择一个表情包');
+                    return;
+                }
+                if (confirm(`确定要删除选中的 ${memeSelectedForDelete.length} 个表情包吗？`)) {
+                    memes = memes.filter(m => !memeSelectedForDelete.includes(m.id));
+                    saveMemeData();
+                    showToast(`🗑️ 已删除 ${memeSelectedForDelete.length} 个表情包`);
+                    exitDeleteMode();
+                    renderMemeList(categoryId);
+                }
+            });
+        }
+
+        memeBodyScroll.querySelectorAll('.meme-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const memeId = this.dataset.memeid;
+                toggleMemeSelection(memeId, this);
+            });
+        });
+    }
+
+    function toggleMemeSelection(memeId, element) {
+        const idx = memeSelectedForDelete.indexOf(memeId);
+        if (idx !== -1) {
+            memeSelectedForDelete.splice(idx, 1);
+            element.classList.remove('selected');
+            const checkbox = element.querySelector('.meme-checkbox');
+            if (checkbox) checkbox.classList.remove('checked');
+        } else {
+            memeSelectedForDelete.push(memeId);
+            element.classList.add('selected');
+            const checkbox = element.querySelector('.meme-checkbox');
+            if (checkbox) checkbox.classList.add('checked');
+        }
+        if (memeSelectedForDelete.length > 0) {
+            showToast(`已选中 ${memeSelectedForDelete.length} 个表情包，点击「删除」执行`);
+        } else {
+            showToast('📌 点击选择要删除的表情包');
+        }
+    }
+
+    function openMemeAddDialog(categoryId) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 200 * 1024) {
+                showToast('⚠️ 图片超过 200KB，请压缩后上传');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const name = prompt('请输入这个表情包的名称（用于 AI 识别）：');
+                if (name !== null && name.trim()) {
+                    const newMeme = {
+                        id: generateId(),
+                        name: name.trim(),
+                        categoryId: categoryId || 'uncategorized',
+                        imageData: ev.target.result,
+                        createdAt: new Date().toISOString()
+                    };
+                    memes.push(newMeme);
+                    saveMemeData().then(() => {
+                        renderMemeList(categoryId || memeCurrentCategoryId);
+                        showToast(`✅ 已添加表情包「${name.trim()}」`);
+                    });
+                }
+            };
+            reader.readAsDataURL(file);
+        };
+        input.click();
+    }
+
+    memeExportBtn.addEventListener('click', async () => {
+        const data = {
+            version: '1.0',
+            exportTime: new Date().toISOString(),
+            categories: memeCategories,
+            memes: memes,
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `表情包库_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast('✅ 表情包已导出');
+    });
+
+    memeImportBtn.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (ev) => {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    if (!data.memes || !Array.isArray(data.memes)) {
+                        showToast('❌ 无效的表情包数据文件');
+                        return;
+                    }
+                    if (!confirm(`即将导入 ${data.memes.length} 个表情包，当前数据将被覆盖。是否继续？`)) {
+                        return;
+                    }
+                    if (data.categories && Array.isArray(data.categories)) {
+                        memeCategories = data.categories;
+                    }
+                    memes = data.memes;
+                    if (!memeCategories.find(c => c.id === 'uncategorized')) {
+                        memeCategories.push({ id: 'uncategorized', name: '未分类', icon: '📁' });
+                    }
+                    await saveMemeData();
+                    renderMemeScreen();
+                    showToast(`✅ 成功导入 ${memes.length} 个表情包`);
+                } catch (err) {
+                    showToast('❌ 导入失败，文件格式错误');
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    });
+
+    backFromMeme.addEventListener('click', closeMeme);// ============================================================
     //  初始化
     // ============================================================
 
