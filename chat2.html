@@ -1808,7 +1808,7 @@
             from { transform: translateY(100%); }
             to { transform: translateY(0); }
         } /* ============================================================
-           日记界面样式（新增）- 紧凑段落格式
+           日记界面样式（新增）- 紧凑段落格式 + 修复日历折叠
            ============================================================ */
         .screen-diary {
             width: 100%;
@@ -1902,13 +1902,39 @@
             cursor: not-allowed;
         }
 
-        /* ===== 日历导航（可折叠） ===== */
+        /* ===== 日历折叠按钮 - 独立在外，始终可见 ===== */
+        .calendar-toggle-outside {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px 4px;
+            cursor: pointer;
+            user-select: none;
+            background: rgba(255, 248, 240, 0.4);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            flex-shrink: 0;
+        }
+        .calendar-toggle-outside .toggle-label {
+            font-size: 13px;
+            color: #8a7a6a;
+            font-weight: 500;
+        }
+        .calendar-toggle-outside .toggle-icon {
+            font-size: 14px;
+            color: #8a7a6a;
+            transition: transform 0.3s ease;
+        }
+        .calendar-toggle-outside .toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        /* ===== 日历导航（可折叠内容） ===== */
         .diary-calendar-nav {
             background: rgba(255, 248, 240, 0.6);
             border-bottom: 1px solid rgba(0, 0, 0, 0.04);
             flex-shrink: 0;
             overflow: hidden;
-            transition: max-height 0.35s cubic-bezier(0.32, 0.72, 0, 1), padding 0.3s ease;
+            transition: max-height 0.35s cubic-bezier(0.32, 0.72, 0, 1), padding 0.3s ease, border 0.3s ease;
             max-height: 210px;
             padding: 10px 16px 8px;
         }
@@ -1916,28 +1942,6 @@
             max-height: 0;
             padding: 0 16px;
             border-bottom: none;
-        }
-
-        .diary-calendar-nav .calendar-toggle {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            padding: 2px 0 6px;
-            user-select: none;
-        }
-        .diary-calendar-nav .calendar-toggle .toggle-label {
-            font-size: 13px;
-            color: #8a7a6a;
-            font-weight: 500;
-        }
-        .diary-calendar-nav .calendar-toggle .toggle-icon {
-            font-size: 14px;
-            color: #8a7a6a;
-            transition: transform 0.3s ease;
-        }
-        .diary-calendar-nav .calendar-toggle .toggle-icon.rotated {
-            transform: rotate(180deg);
         }
 
         .diary-calendar-nav .month-nav {
@@ -3642,7 +3646,7 @@
     </div>
 
     <!-- ============================================================
-    日记界面
+    日记界面（日历折叠按钮独立在外）
     ============================================================ -->
     <div class="screen-diary" id="diaryScreen">
         <div class="diary-header">
@@ -3658,11 +3662,14 @@
             </div>
         </div>
 
+        <!-- ===== 日历折叠按钮 - 独立在外，始终可见 ===== -->
+        <div class="calendar-toggle-outside" id="calendarToggle">
+            <span class="toggle-label"><i class="fas fa-calendar-alt"></i> 日历</span>
+            <span class="toggle-icon" id="toggleIcon"><i class="fas fa-chevron-up"></i></span>
+        </div>
+
+        <!-- ===== 日历内容（可折叠） ===== -->
         <div class="diary-calendar-nav" id="diaryCalendarNav">
-            <div class="calendar-toggle" id="calendarToggle">
-                <span class="toggle-label"><i class="fas fa-calendar-alt"></i> 日历</span>
-                <span class="toggle-icon" id="toggleIcon"><i class="fas fa-chevron-up"></i></span>
-            </div>
             <div class="month-nav">
                 <button class="month-btn" id="prevMonthBtn"><i class="fas fa-chevron-left"></i></button>
                 <span class="month-label" id="monthLabel">2026年6月</span>
@@ -6058,7 +6065,7 @@
     diaryNotifClose.addEventListener('click', hideDiaryNotification);
 
     // ============================================================
-    //  日记功能 - 渲染（紧凑段落格式）
+    //  日记功能 - 渲染（紧凑段落格式 + 日历折叠修复）
     // ============================================================
 
     let selectedDiaryDate = new Date();
@@ -6266,6 +6273,7 @@
         renderDiaryView(roleId);
         updateDiaryPageNav(roleId);
         
+        // 恢复折叠状态
         if (diaryCalendarNav && diaryToggleIcon) {
             if (config.diaryCalendarCollapsed) {
                 diaryCalendarNav.classList.add('collapsed');
@@ -6368,8 +6376,10 @@
         });
     }
 
+    // 日历折叠事件 - 使用独立在外的 calendarToggle
     if (calendarToggle) {
-        calendarToggle.addEventListener('click', () => {
+        calendarToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
             if (diaryCalendarNav) {
                 diaryCalendarNav.classList.toggle('collapsed');
                 if (diaryToggleIcon) {
@@ -9117,6 +9127,7 @@
         console.log('当前角色数量:', roles.length);
         console.log('日记数量:', config.diaries?.length || 0);
         console.log('📖 日记自动生成已启用（每晚 21:00）');
+        console.log('📅 日历折叠按钮已独立，不会消失了');
     }
 
     init();
