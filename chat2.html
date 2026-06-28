@@ -1203,7 +1203,9 @@
         }
         .longpress-menu .menu-item.danger i {
             color: #e74c3c;
-        } /* ============================================================
+        }
+
+        /* ============================================================
            记忆库独立组件样式
            ============================================================ */
         .screen-memory {
@@ -1393,9 +1395,7 @@
         }
         .memory-add-bar .add-mem-btn:active {
             transform: scale(0.95);
-        }
-
-        /* ============================================================
+        } /* ============================================================
            表情包样式 - 微信风格
            ============================================================ */
         .screen-meme {
@@ -1807,7 +1807,9 @@
         @keyframes slideUp {
             from { transform: translateY(100%); }
             to { transform: translateY(0); }
-        } /* ============================================================
+        }
+
+        /* ============================================================
            日记界面样式（新增）- 紧凑段落格式 + 修复日历折叠
            ============================================================ */
         .screen-diary {
@@ -2618,7 +2620,9 @@
         }
         .bubble-preview .bp-row.self .bp-bubble {
             text-align: right;
-        } /* ===== 图片选择器 ===== */
+        }
+
+        /* ===== 图片选择器 ===== */
         .image-picker-overlay {
             position: absolute;
             inset: 0;
@@ -3036,9 +3040,7 @@
             background: none;
             border: none;
             padding: 4px;
-        }
-
-        .role-card .role-body {
+        } .role-card .role-body {
             margin-top: 10px;
             padding-top: 10px;
             border-top: 1px solid var(--border-color);
@@ -3386,7 +3388,8 @@
     </style>
 </head>
 <body>
-<div class="phone-frame" id="app"> <!-- ============================================================
+<div class="phone-frame" id="app">
+    <!-- ============================================================
     权限弹窗
     ============================================================ -->
     <div class="permission-overlay" id="permissionOverlay">
@@ -3429,9 +3432,7 @@
             <div class="style-category-title" style="margin-top:18px;">🤖 AI 表情包</div>
             <div class="style-option-grid" id="aiMemeSwitchGrid"></div>
         </div>
-    </div>
-
-    <!-- ============================================================
+    </div> <!-- ============================================================
     数据管理弹窗（导入/导出）
     ============================================================ -->
     <div class="data-modal-overlay" id="dataModalOverlay">
@@ -3614,9 +3615,7 @@
                 <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
-    </div>
-
-    <!-- ============================================================
+    </div> <!-- ============================================================
     记忆库独立界面
     ============================================================ -->
     <div class="screen-memory" id="memoryScreen">
@@ -3630,7 +3629,9 @@
             <input type="text" id="memoryAddInput" placeholder="添加新记忆..." />
             <button class="add-mem-btn" id="memoryAddBtn"><i class="fas fa-plus"></i> 添加</button>
         </div>
-    </div> <!-- ============================================================
+    </div>
+
+    <!-- ============================================================
     表情包管理界面
     ============================================================ -->
     <div class="screen-meme" id="memeScreen">
@@ -3722,9 +3723,7 @@
             </div>
             <button class="cancel-btn" id="pickerCancel">取消</button>
         </div>
-    </div>
-
-    <!-- ============================================================
+    </div> <!-- ============================================================
     设置抽屉
     ============================================================ -->
     <div class="settings-overlay" id="settingsOverlay">
@@ -4300,7 +4299,6 @@
             if (!config.heart.value) config.heart.value = 65;
             if (!config.heart.peakValue) config.heart.peakValue = 65;
             if (config.aiMemeEnabled === undefined) config.aiMemeEnabled = true;
-            // 日记数据兼容
             if (!config.diaries || !Array.isArray(config.diaries)) config.diaries = [];
             if (config.diaryAutoGenerateEnabled === undefined) config.diaryAutoGenerateEnabled = true;
             if (!config.lastDiaryCheckDate) config.lastDiaryCheckDate = null;
@@ -4413,18 +4411,19 @@
         const r = roles.find(r => r.id === roleId);
         if (r) {
             const msgId = generateMessageId();
+            const timeStr = new Date().toLocaleTimeString();
             r.messages.push({
                 id: msgId,
                 role: role,
                 content: content,
                 type: type,
-                time: new Date().toLocaleTimeString(),
+                time: timeStr,
             });
             if (!Array.isArray(r.memory)) {
                 r.memory = [];
             }
             if (role === 'assistant' && r.messages.length > 2) {
-                autoExtractMemory(r, msgId);
+                setTimeout(() => autoExtractMemory(r, msgId), 50);
             }
             if (role === 'assistant') {
                 if (!config.unreadCount) config.unreadCount = {};
@@ -4435,7 +4434,7 @@
             }
             saveAllData();
             if (r.messages.length % 6 === 0 && r.messages.length > 0) {
-                triggerSmartSummary(r);
+                setTimeout(() => triggerSmartSummary(r), 100);
             }
             updateHeartDisplay();
         }
@@ -4470,9 +4469,7 @@
     function isContactPinned(roleId) {
         if (!config.pinnedContacts) return false;
         return config.pinnedContacts.includes(roleId);
-    }
-
-    // ============================================================
+    } // ============================================================
     //  自动记忆提取（关键词匹配，保留原有）
     // ============================================================
 
@@ -4530,7 +4527,9 @@
             saveAllData();
             showToast('🧠 已记住新信息');
         }
-    } // ============================================================
+    }
+
+    // ============================================================
     //  AI 智能记忆总结
     // ============================================================
 
@@ -4723,9 +4722,7 @@
             addMessageToRole(role.id, 'assistant', `💔 ${e.message}`);
             renderMessages();
         }
-    }
-
-    // ============================================================
+    } // ============================================================
     //  图标风格系统
     // ============================================================
 
@@ -5783,9 +5780,7 @@
             permissionStatus.textContent = '⏳ 未设置';
             permissionStatus.style.color = '#999';
         }
-    }
-
-    // ============================================================
+    } // ============================================================
     //  日记功能 - 工具函数
     // ============================================================
 
@@ -5836,7 +5831,7 @@
     }
 
     // ============================================================
-    //  日记功能 - AI 生成日记（优化版：有深度思考，非流水账）
+    //  日记功能 - AI 生成日记
     // ============================================================
 
     async function callDiaryAPI(role) {
@@ -5931,7 +5926,9 @@
         const reply = data.choices?.[0]?.message?.content;
         if (!reply) throw new Error('未获取到回复');
         return reply.trim();
-    } async function generateDiary(roleId, showToastMsg = true) {
+    }
+
+    async function generateDiary(roleId, showToastMsg = true) {
         const role = roles.find(r => r.id === roleId);
         if (!role) {
             if (showToastMsg) showToast('⚠️ 请先选择一个角色');
@@ -6065,7 +6062,7 @@
     diaryNotifClose.addEventListener('click', hideDiaryNotification);
 
     // ============================================================
-    //  日记功能 - 渲染（紧凑段落格式 + 日历折叠修复）
+    //  日记功能 - 渲染
     // ============================================================
 
     let selectedDiaryDate = new Date();
@@ -6143,7 +6140,6 @@
         });
     }
 
-    // ===== 日记正文渲染 - 紧凑段落格式（核心修复） =====
     function renderDiaryView(roleId) {
         if (!diaryBody) return;
         const selectedKey = getDiaryDateKey(selectedDiaryDate);
@@ -6162,19 +6158,16 @@
             return;
         }
 
-        // 按段落分割（用 \n\n 分割段落）
         const paragraphs = diary.content.split('\n\n').filter(p => p.trim() !== '');
         
         let contentHtml = '';
         paragraphs.forEach((paragraph, pIdx) => {
-            // 段落内的行用 <br> 连接
             const lines = paragraph.split('\n').filter(line => line.trim() !== '');
             const paragraphHtml = lines.join('<br />');
             const classAttr = pIdx > 0 ? ' class="diary-paragraph"' : ' class="diary-paragraph"';
             contentHtml += `<div${classAttr}>${paragraphHtml}</div>`;
         });
 
-        // 如果没有分段，则按行用 <br> 连接
         if (paragraphs.length === 0) {
             const lines = diary.content.split('\n').filter(line => line.trim() !== '');
             contentHtml = lines.join('<br />');
@@ -6204,7 +6197,6 @@
             </div>
         `;
 
-        // 点击日记内容编辑（整体编辑）
         const contentArea = document.getElementById('diaryContent');
         if (contentArea) {
             contentArea.style.cursor = 'pointer';
@@ -6225,7 +6217,6 @@
             });
         }
 
-        // 删除按钮
         const deleteBtn = document.getElementById('diaryDeleteBtn');
         if (deleteBtn) {
             deleteBtn.addEventListener('click', () => {
@@ -6273,7 +6264,6 @@
         renderDiaryView(roleId);
         updateDiaryPageNav(roleId);
         
-        // 恢复折叠状态
         if (diaryCalendarNav && diaryToggleIcon) {
             if (config.diaryCalendarCollapsed) {
                 diaryCalendarNav.classList.add('collapsed');
@@ -6281,10 +6271,6 @@
             }
         }
     }
-
-    // ============================================================
-    //  日记功能 - 删除
-    // ============================================================
 
     function deleteDiary(diaryId) {
         const idx = (config.diaries || []).findIndex(d => d.id === diaryId);
@@ -6304,10 +6290,6 @@
             showToast('🗑️ 日记已删除');
         }
     }
-
-    // ============================================================
-    //  日记功能 - 页面切换
-    // ============================================================
 
     function openDiary() {
         launcherScreen.classList.add('hidden');
@@ -6330,10 +6312,7 @@
         launcherScreen.classList.remove('hidden');
     }
 
-    // ============================================================
-    //  日记功能 - 事件绑定
-    // ============================================================
-
+    // 日记事件绑定
     if (diaryRoleSelector) {
         diaryRoleSelector.addEventListener('change', function() {
             selectedDiaryRoleId = this.value;
@@ -6376,7 +6355,6 @@
         });
     }
 
-    // 日历折叠事件 - 使用独立在外的 calendarToggle
     if (calendarToggle) {
         calendarToggle.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -6845,7 +6823,9 @@
             chatRoleName.textContent = 'DeepSeek';
             chatRoleName.classList.remove('typing');
         }
-    } // ============================================================
+    }
+
+    // ============================================================
     //  已读标记优化
     // ============================================================
 
@@ -6881,10 +6861,8 @@
         scrollTimeout = setTimeout(() => {
             markVisibleMessagesAsRead();
         }, 200);
-    });
-
-    // ============================================================
-    //  渲染：聊天消息
+    }); // ============================================================
+    //  渲染：聊天消息（全量渲染 + 增量渲染混合模式）
     // ============================================================
 
     function renderMessages() {
@@ -6941,6 +6919,48 @@
                 const role = getCurrentRole();
                 if (role && confirm('确定要删除这条消息吗？关联的记忆也会被删除。')) {
                     deleteMessageAndMemory(role.id, msgId);
+                }
+            });
+        });
+
+        setTimeout(() => {
+            markVisibleMessagesAsRead();
+        }, 100);
+    }
+
+    // ============================================================
+    //  增量渲染：追加单条消息
+    // ============================================================
+
+    function appendMessage(msg, role) {
+        if (!role) role = getCurrentRole();
+        if (!role) return;
+
+        const row = createMessageRow(msg, role);
+        container.appendChild(row);
+        container.scrollTop = container.scrollHeight;
+        applyAvatars();
+        attachLongPressEvents();
+
+        // 绑定新消息的按钮事件
+        row.querySelectorAll('.regenerate-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const msgId = btn.dataset.msgid;
+                const r = getCurrentRole();
+                if (r) {
+                    regenerateMessage(r.id, msgId);
+                }
+            });
+        });
+
+        row.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const msgId = btn.dataset.msgid;
+                const r = getCurrentRole();
+                if (r && confirm('确定要删除这条消息吗？关联的记忆也会被删除。')) {
+                    deleteMessageAndMemory(r.id, msgId);
                 }
             });
         });
@@ -7320,7 +7340,9 @@
         renderMemoryList();
     });
 
-    backFromMemory.addEventListener('click', closeMemory); // ============================================================
+    backFromMemory.addEventListener('click', closeMemory);
+
+    // ============================================================
     //  图片选择器
     // ============================================================
 
@@ -7369,10 +7391,8 @@
         updatePermissionStatusUI();
         pendingPickerAction = null;
         showToast('🚫 已拒绝相册访问，仍可正常聊天');
-    });
-
-    // ============================================================
-    //  图片选择器
+    }); // ============================================================
+    //  图片选择器处理
     // ============================================================
 
     let currentPickerTarget = null;
@@ -7469,13 +7489,16 @@
                 return;
             }
             addMessageToRole(role.id, 'user', dataUrl, 'image');
-            renderMessages();
+            const msg = role.messages[role.messages.length - 1];
+            appendMessage(msg, role);
             closeImagePicker();
             showTyping();
             setTimeout(() => {
                 hideTyping();
-                addMessageToRole(role.id, 'assistant', '📸 这张照片真好看～ 我会好好收藏的 💕');
-                renderMessages();
+                const reply = '📸 这张照片真好看～ 我会好好收藏的 💕';
+                addMessageToRole(role.id, 'assistant', reply);
+                const lastMsg = role.messages[role.messages.length - 1];
+                appendMessage(lastMsg, role);
                 if (contactsScreen.classList.contains('open')) renderContacts();
             }, 800);
             return;
@@ -7580,7 +7603,7 @@
     }
 
     // ============================================================
-    //  数据管理（含日记导出）
+    //  数据管理
     // ============================================================
 
     function openDataModal() {
@@ -7807,7 +7830,9 @@
             reader.readAsText(file);
         };
         input.click();
-    } // ============================================================
+    }
+
+    // ============================================================
     //  设置
     // ============================================================
 
@@ -7986,9 +8011,7 @@
                 roleSelectList.style.display = 'none';
             }
         }
-    });
-
-    // ============================================================
+    }); // ============================================================
     //  温度/字号/字重/分段
     // ============================================================
 
@@ -8288,7 +8311,9 @@
                 dragData.hasMoved = false;
             }
         });
-    } // ============================================================
+    }
+
+    // ============================================================
     //  事件绑定
     // ============================================================
 
@@ -8377,9 +8402,7 @@
         const el = document.getElementById('typingIndicator');
         if (el) el.remove();
         hideTypingIndicator();
-    }
-
-    // ============================================================
+    } // ============================================================
     //  DeepSeek API
     // ============================================================
 
@@ -8491,7 +8514,7 @@
     }
 
     // ============================================================
-    //  发送消息
+    //  发送消息（使用增量渲染）
     // ============================================================
 
     let quotedMessage = null;
@@ -8519,7 +8542,9 @@
         sendBtn.disabled = true;
 
         addMessageToRole(role.id, 'user', finalMessage);
-        renderMessages();
+        const msgs = role.messages;
+        const lastMsg = msgs[msgs.length - 1];
+        appendMessage(lastMsg, role);
 
         showTyping();
 
@@ -8533,8 +8558,8 @@
                 const delay = (i === segments.length - 1) ? 0 : 600;
                 await new Promise(resolve => setTimeout(resolve, delay));
                 addMessageToRole(role.id, 'assistant', msg);
-                renderMessages();
-                container.scrollTop = container.scrollHeight;
+                const newMsg = role.messages[role.messages.length - 1];
+                appendMessage(newMsg, role);
             }
 
             if (contactsScreen.classList.contains('open')) {
@@ -8552,7 +8577,8 @@
         } catch (e) {
             hideTyping();
             addMessageToRole(role.id, 'assistant', `💔 ${e.message}`);
-            renderMessages();
+            const newMsg = role.messages[role.messages.length - 1];
+            appendMessage(newMsg, role);
         } finally {
             input.disabled = false;
             sendBtn.disabled = false;
@@ -9014,28 +9040,6 @@
 
     // ============================================================
     //  表情包功能
-    // ============================================================
-
-    function openMeme() {
-        launcherScreen.classList.add('hidden');
-        chatScreen.classList.remove('open');
-        contactsScreen.classList.remove('open');
-        memoryScreen.classList.remove('open');
-        diaryScreen.classList.remove('open');
-        memeScreen.classList.add('open');
-        renderMemeScreen();
-        if (config.heart.floatingEnabled !== false) {
-            setTimeout(showFloatingHeart, 300);
-        }
-    }
-
-    function closeMeme() {
-        memeScreen.classList.remove('open');
-        launcherScreen.classList.remove('hidden');
-    }
-
-// ============================================================
-    //  表情包功能（完整版）
     // ============================================================
 
     function openMeme() {
@@ -9570,7 +9574,9 @@
         input.click();
     });
 
-    backFromMeme.addEventListener('click', closeMeme);// ============================================================
+    backFromMeme.addEventListener('click', closeMeme);
+
+    // ============================================================
     //  初始化
     // ============================================================
 
@@ -9654,6 +9660,7 @@
         console.log('日记数量:', config.diaries?.length || 0);
         console.log('📖 日记自动生成已启用（每晚 21:00）');
         console.log('📅 日历折叠按钮已独立，不会消失了');
+        console.log('⚡ 增量渲染已启用，发消息不再卡顿！');
     }
 
     init();
