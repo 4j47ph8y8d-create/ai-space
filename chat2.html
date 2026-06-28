@@ -4624,7 +4624,7 @@
         }
 
         saveAllData();
-        renderMessages();
+        renderMessages(); // 删除后全量渲染
         renderContacts();
         if (roleManagerContainer) renderRoleManager();
         renderMemoryScreen();
@@ -4696,8 +4696,8 @@
                 const delay = (i === segments.length - 1) ? 0 : 600;
                 await new Promise(resolve => setTimeout(resolve, delay));
                 addMessageToRole(role.id, 'assistant', msg);
-                renderMessages();
-                container.scrollTop = container.scrollHeight;
+                const aiMsg = role.messages[role.messages.length - 1];
+                appendMessage(role, aiMsg);
             }
 
             if (chatScreen.classList.contains('open')) {
@@ -4708,7 +4708,8 @@
         } catch (e) {
             hideTyping();
             addMessageToRole(role.id, 'assistant', `💔 ${e.message}`);
-            renderMessages();
+            const aiMsg = role.messages[role.messages.length - 1];
+            appendMessage(role, aiMsg);
         }
     } // ============================================================
     //  图标风格系统
@@ -5639,9 +5640,10 @@
     }
 
     // ============================================================
-    //  页面切换 & 渲染函数（核心修复：增强表情包匹配）
+    //  【核心修复1】增强版表情包匹配 + 增量渲染函数
     // ============================================================
 
+    // ----- 全量渲染（用于切换角色、删除消息、重新生成等场景）-----
     function renderMessages() {
         const role = getCurrentRole();
         if (!role) return;
@@ -5704,7 +5706,7 @@
         }, 100);
     }
 
-    // ===== 【核心修复】增强版 createMessageRow - 解决新表情包无法显示的问题 =====
+    // ----- 核心修复：增强版 createMessageRow - 解决新表情包无法显示 -----
     function createMessageRow(msg, role) {
         const row = document.createElement('div');
         row.className = `message-row ${msg.role === 'user' ? 'self' : ''}`;
@@ -5713,12 +5715,11 @@
 
         let contentHtml = msg.content;
 
-        // ===== 修复：增强的表情包匹配逻辑 =====
+        // ===== 增强的表情包匹配逻辑 =====
         const memeRegex = /\[表情包：([^\]]+)\]/g;
         let match;
         let processedContent = contentHtml;
         
-        // 收集所有需要替换的表情包标记
         const matches = [];
         while ((match = memeRegex.exec(contentHtml)) !== null) {
             matches.push({
@@ -5728,11 +5729,10 @@
             });
         }
         
-        // 从后往前替换，避免索引错乱
         for (let i = matches.length - 1; i >= 0; i--) {
             const { fullMatch, memeName } = matches[i];
             
-            // 1. 精确匹配（原有逻辑优先保留）
+            // 1. 精确匹配
             let meme = memes.find(m => m.name === memeName);
             
             // 2. 忽略大小写匹配
@@ -5740,7 +5740,7 @@
                 meme = memes.find(m => m.name.toLowerCase() === memeName.toLowerCase());
             }
             
-            // 3. 包含匹配（名称包含关系）
+            // 3. 包含匹配
             if (!meme) {
                 meme = memes.find(m => 
                     m.name.includes(memeName) || 
@@ -5760,7 +5760,6 @@
                 const imgHtml = `<img src="${meme.imageData}" style="max-width:180px;max-height:180px;border-radius:12px;display:block;margin-top:6px;object-fit:contain;background:rgba(0,0,0,0.03);" alt="${memeName}" loading="lazy" />`;
                 processedContent = processedContent.replace(fullMatch, imgHtml);
             } else {
-                // 找不到匹配时，显示提示信息（不会丢失文字）
                 const fallbackHtml = `<span style="color:var(--text-secondary);font-size:13px;background:rgba(255,0,0,0.05);padding:2px 8px;border-radius:4px;">📷 表情包「${memeName}」未找到</span>`;
                 processedContent = processedContent.replace(fullMatch, fallbackHtml);
             }
@@ -5803,8 +5802,48 @@
         return row;
     }
 
+    // ----- 【核心修复2】增量渲染 - 只追加一条新消息（解决发送卡顿）-----
+    function appendMessage(role, msg) {
+        if (container.children.length === 0) {
+            renderMessages();
+            return;
+        }
+        
+        const row = createMessageRow(msg, role);
+        container.appendChild(row);
+        container.scrollTop = container.scrollHeight;
+        applyAvatars();
+        attachLongPressEvents();
+        
+        // 绑定重新生成按钮
+        const regenerateBtn = row.querySelector('.regenerate-btn');
+        if (regenerateBtn) {
+            regenerateBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const msgId = regenerateBtn.dataset.msgid;
+                const role = getCurrentRole();
+                if (role) {
+                    regenerateMessage(role.id, msgId);
+                }
+            });
+        }
+        
+        // 绑定删除按钮
+        const deleteBtn = row.querySelector('.delete-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const msgId = deleteBtn.dataset.msgid;
+                const role = getCurrentRole();
+                if (role && confirm('确定要删除这条消息吗？关联的记忆也会被删除。')) {
+                    deleteMessageAndMemory(role.id, msgId);
+                }
+            });
+        }
+    }
+
     // ============================================================
-    //  【修复】添加表情包时的数据验证 + 重名检测
+    //  【修复3】添加表情包时的数据验证 + 重名检测
     // ============================================================
 
     function openMemeAddDialog(categoryId) {
@@ -5832,7 +5871,6 @@
                 if (name !== null && name.trim()) {
                     const trimmedName = name.trim();
                     
-                    // 检查是否已存在同名表情包
                     const existing = memes.find(m => m.name === trimmedName && m.categoryId === categoryId);
                     if (existing) {
                         if (!confirm(`「${trimmedName}」已存在，是否覆盖？`)) {
@@ -5867,7 +5905,80 @@
     }
 
     // ============================================================
-    //  其他渲染函数（简略保留，完整功能不变）
+    //  【核心修复4】发送消息 - 使用增量渲染
+    // ============================================================
+
+    async function handleSend() {
+        const text = input.value.trim();
+        if (!text) return;
+
+        let finalMessage = text;
+        if (quotedMessage) {
+            const quotedContent = quotedMessage.content.replace(/\n/g, '\n> ');
+            finalMessage = `> ${quotedContent}\n\n${text}`;
+            quotedMessage = null;
+            document.getElementById('quoteBar').classList.remove('active');
+        }
+
+        const role = getCurrentRole();
+        if (!role) {
+            showToast('⚠️ 未找到当前角色');
+            return;
+        }
+
+        input.value = '';
+        input.disabled = true;
+        sendBtn.disabled = true;
+
+        // ===== 用户消息：增量渲染 =====
+        addMessageToRole(role.id, 'user', finalMessage);
+        const userMsg = role.messages[role.messages.length - 1];
+        appendMessage(role, userMsg);
+
+        showTyping();
+
+        try {
+            const reply = await callDeepSeek(finalMessage, role);
+            hideTyping();
+
+            const segments = config.splitEnabled !== false ? splitReplyIntoMessages(reply) : [reply];
+            for (let i = 0; i < segments.length; i++) {
+                const msg = segments[i];
+                const delay = (i === segments.length - 1) ? 0 : 600;
+                await new Promise(resolve => setTimeout(resolve, delay));
+                
+                // ===== AI 回复：增量渲染 =====
+                addMessageToRole(role.id, 'assistant', msg);
+                const aiMsg = role.messages[role.messages.length - 1];
+                appendMessage(role, aiMsg);
+            }
+
+            if (contactsScreen.classList.contains('open')) {
+                renderContacts();
+            }
+            const currentRole = getCurrentRole();
+            if (currentRole && chatScreen.classList.contains('open')) {
+                clearUnreadForRole(currentRole.id);
+                readMessages = new Set();
+                setTimeout(() => {
+                    markVisibleMessagesAsRead();
+                }, 300);
+            }
+
+        } catch (e) {
+            hideTyping();
+            addMessageToRole(role.id, 'assistant', `💔 ${e.message}`);
+            const aiMsg = role.messages[role.messages.length - 1];
+            appendMessage(role, aiMsg);
+        } finally {
+            input.disabled = false;
+            sendBtn.disabled = false;
+            input.focus();
+        }
+    }
+
+    // ============================================================
+    //  其他辅助函数
     // ============================================================
 
     function applyAvatars() {
@@ -5941,14 +6052,6 @@
             chatBgLayer.style.backgroundColor = 'var(--bg-secondary)';
         }
     }
-
-    function renderContacts() { /* 完整功能保留，此处简略展示 */ 
-        // 实际代码中此函数完整，由于篇幅此处省略，但完整代码已包含
-    }
-
-    // ============================================================
-    //  Toast 提示
-    // ============================================================
 
     function showToast(msg) {
         const old = document.querySelector('.custom-toast');
@@ -6043,6 +6146,7 @@
         console.log('📖 日记自动生成已启用（每晚 21:00）');
         console.log('📅 日历折叠按钮已独立，不会消失了');
         console.log('✅ 表情包增强匹配已生效，新添加的表情包可以正常显示了！');
+        console.log('✅ 增量渲染已启用，发送消息不再卡顿！');
     }
 
     init();
