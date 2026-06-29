@@ -3386,7 +3386,9 @@
     </style>
 </head>
 <body>
-<div class="phone-frame" id="app"> <!-- ===== 权限弹窗 ===== -->
+<div class="phone-frame" id="app"> <!-- ============================================================
+    权限弹窗
+    ============================================================ -->
     <div class="permission-overlay" id="permissionOverlay">
         <div class="permission-dialog">
             <div class="icon">📸</div>
@@ -3399,34 +3401,45 @@
         </div>
     </div>
 
-    <!-- ===== 个性化弹窗 ===== -->
+    <!-- ============================================================
+    个性化弹窗
+    ============================================================ -->
     <div class="style-picker-overlay" id="stylePickerOverlay">
         <div class="style-picker-panel">
             <div class="panel-header">
                 <h3>✨ 个性化</h3>
                 <button class="close-btn" id="closeStylePicker">&times;</button>
             </div>
+
             <div class="style-category-title">📱 桌面图标</div>
             <div class="style-option-grid" id="styleOptionGrid"></div>
+
             <div class="style-category-title" style="margin-top:18px;">🫧 对话框气泡</div>
             <div class="style-option-grid" id="bubbleOptionGrid"></div>
+
             <div class="style-category-title" style="margin-top:18px;">🕒 时间显示</div>
             <div class="style-option-grid" id="timeModeGrid"></div>
+
             <div class="style-category-title" style="margin-top:18px;">💕 心跳悬浮窗</div>
             <div class="style-option-grid" id="floatingSwitchGrid"></div>
+
             <div class="style-category-title" style="margin-top:18px;">🎨 心跳颜色</div>
             <div class="style-option-grid" id="heartColorGrid"></div>
+
             <div class="style-category-title" style="margin-top:18px;">🤖 AI 表情包</div>
             <div class="style-option-grid" id="aiMemeSwitchGrid"></div>
         </div>
     </div>
 
-    <!-- ===== 数据管理弹窗 ===== -->
+    <!-- ============================================================
+    数据管理弹窗（导入/导出）
+    ============================================================ -->
     <div class="data-modal-overlay" id="dataModalOverlay">
         <div class="data-modal">
             <button class="modal-close" id="dataModalClose">&times;</button>
             <div class="modal-title">💾 数据管理</div>
             <div class="modal-subtitle">选择要导出或导入的数据类型</div>
+
             <div id="dataModalOptions">
                 <div class="export-option" data-value="all">
                     <input type="checkbox" checked />
@@ -3460,6 +3473,7 @@
                 </div>
                 <div class="role-select-list" id="roleSelectList" style="display:none;"></div>
             </div>
+
             <div class="modal-actions">
                 <button class="btn-import" id="dataImportBtn"><i class="fas fa-upload"></i> 导入</button>
                 <button class="btn-export" id="dataExportBtn"><i class="fas fa-download"></i> 导出</button>
@@ -3471,7 +3485,9 @@
         </div>
     </div>
 
-    <!-- ===== 日记通知弹窗 ===== -->
+    <!-- ============================================================
+    日记通知弹窗
+    ============================================================ -->
     <div class="diary-notification" id="diaryNotification">
         <div class="notif-icon">📖</div>
         <h3>他的日记已送达</h3>
@@ -3481,7 +3497,9 @@
         <button class="notif-close" id="diaryNotifClose">稍后再说</button>
     </div>
 
-    <!-- ===== 桌面 ===== -->
+    <!-- ============================================================
+    桌面
+    ============================================================ -->
     <div class="screen-launcher" id="launcherScreen">
         <div class="status-bar">
             <span class="time" id="statusTime">21:00</span>
@@ -3519,7 +3537,7 @@
             </div>
         </div>
 
-        <!-- ===== 应用网格 ===== -->
+        <!-- ===== 应用网格 - 只放 3 个功能 ===== -->
         <div class="app-grid">
             <button class="app-icon" data-app="style">
                 <div class="icon-wrap style"><i class="fas fa-palette"></i></div>
@@ -3533,13 +3551,9 @@
                 <div class="icon-wrap diary"><i class="fas fa-book-open"></i></div>
                 <span class="app-name">他的日记</span>
             </button>
-            <button class="app-icon" data-app="mall">
-                <div class="icon-wrap mall"><i class="fas fa-shopping-bag"></i></div>
-                <span class="app-name">商城</span>
-            </button>
         </div>
 
-        <!-- ===== Dock 栏 ===== -->
+        <!-- ===== Dock 栏 - 放 3 个功能 ===== -->
         <div class="dock">
             <button class="app-icon" data-app="contacts">
                 <div class="icon-wrap contacts"><i class="fas fa-address-book"></i></div>
@@ -3554,7 +3568,11 @@
                 <span class="app-name">设置</span>
             </button>
         </div>
-    </div> <!-- ===== 联系人界面 ===== -->
+    </div>
+
+    <!-- ============================================================
+    联系人界面
+    ============================================================ -->
     <div class="screen-contacts" id="contactsScreen">
         <div class="contacts-header">
             <button class="back-btn" id="backFromContacts"><i class="fas fa-chevron-left"></i></button>
@@ -3564,7 +3582,9 @@
         <div class="contacts-list" id="contactsList"></div>
     </div>
 
-    <!-- ===== 聊天界面 ===== -->
+    <!-- ============================================================
+    聊天界面
+    ============================================================ -->
     <div class="screen-chat" id="chatScreen">
         <div class="chat-bg-layer" id="chatBgLayer"></div>
 
@@ -3596,7 +3616,9 @@
         </div>
     </div>
 
-    <!-- ===== 记忆库界面 ===== -->
+    <!-- ============================================================
+    记忆库独立界面
+    ============================================================ -->
     <div class="screen-memory" id="memoryScreen">
         <div class="memory-header-bar">
             <button class="back-btn" id="backFromMemory"><i class="fas fa-chevron-left"></i></button>
@@ -3608,9 +3630,9 @@
             <input type="text" id="memoryAddInput" placeholder="添加新记忆..." />
             <button class="add-mem-btn" id="memoryAddBtn"><i class="fas fa-plus"></i> 添加</button>
         </div>
-    </div>
-
-    <!-- ===== 表情包界面 ===== -->
+    </div> <!-- ============================================================
+    表情包管理界面
+    ============================================================ -->
     <div class="screen-meme" id="memeScreen">
         <div class="meme-header-bar">
             <button class="back-btn" id="backFromMeme"><i class="fas fa-chevron-left"></i></button>
@@ -3623,7 +3645,9 @@
         <div class="meme-body-scroll" id="memeBodyScroll"></div>
     </div>
 
-    <!-- ===== 日记界面 ===== -->
+    <!-- ============================================================
+    日记界面（日历折叠按钮独立在外）
+    ============================================================ -->
     <div class="screen-diary" id="diaryScreen">
         <div class="diary-header">
             <button class="back-btn" id="backFromDiary"><i class="fas fa-chevron-left"></i></button>
@@ -3638,11 +3662,13 @@
             </div>
         </div>
 
+        <!-- ===== 日历折叠按钮 - 独立在外，始终可见 ===== -->
         <div class="calendar-toggle-outside" id="calendarToggle">
             <span class="toggle-label"><i class="fas fa-calendar-alt"></i> 日历</span>
             <span class="toggle-icon" id="toggleIcon"><i class="fas fa-chevron-up"></i></span>
         </div>
 
+        <!-- ===== 日历内容（可折叠） ===== -->
         <div class="diary-calendar-nav" id="diaryCalendarNav">
             <div class="month-nav">
                 <button class="month-btn" id="prevMonthBtn"><i class="fas fa-chevron-left"></i></button>
@@ -3665,7 +3691,9 @@
         </div>
     </div>
 
-    <!-- ===== 表情包选择器弹窗 ===== -->
+    <!-- ============================================================
+    表情包选择器（聊天中弹出）
+    ============================================================ -->
     <div class="meme-picker-overlay" id="memePickerOverlay">
         <div class="meme-picker-panel" id="memePickerPanel">
             <div class="meme-picker-header">
@@ -3674,7 +3702,11 @@
             </div>
             <div class="meme-picker-body" id="memePickerBody"></div>
         </div>
-    </div> <!-- ===== 图片选择器 ===== -->
+    </div>
+
+    <!-- ============================================================
+    图片选择器
+    ============================================================ -->
     <div class="image-picker-overlay" id="imagePickerOverlay">
         <div class="image-picker-menu">
             <div class="menu-title" id="pickerTitle">选择图片来源</div>
@@ -3692,12 +3724,15 @@
         </div>
     </div>
 
-    <!-- ===== 设置抽屉 ===== -->
+    <!-- ============================================================
+    设置抽屉
+    ============================================================ -->
     <div class="settings-overlay" id="settingsOverlay">
         <div class="settings-drawer">
             <button class="close-drawer" id="closeSettingsBtn">×</button>
             <h2><i class="fas fa-sliders-h"></i> 设置</h2>
 
+            <!-- ===== 温度调节 ===== -->
             <div class="temp-slider-container">
                 <div class="temp-header">
                     <span class="temp-label"><i class="fas fa-thermometer-half" style="color:#07c160;"></i> 温度调节</span>
@@ -3711,6 +3746,7 @@
                 </div>
             </div>
 
+            <!-- ===== 字号设置 ===== -->
             <div class="temp-slider-container" style="margin-bottom:14px;">
                 <div class="temp-header">
                     <span class="temp-label"><i class="fas fa-font" style="color:#07c160;"></i> 字号大小</span>
@@ -3725,6 +3761,7 @@
                 </div>
             </div>
 
+            <!-- ===== 字重设置 ===== -->
             <div class="temp-slider-container" style="margin-bottom:14px;">
                 <div class="temp-header">
                     <span class="temp-label"><i class="fas fa-bold" style="color:#07c160;"></i> 字体粗细</span>
@@ -3739,6 +3776,7 @@
                 </div>
             </div>
 
+            <!-- ===== 分段生成开关 ===== -->
             <div class="temp-slider-container" style="margin-bottom:14px;">
                 <div class="temp-header">
                     <span class="temp-label"><i class="fas fa-cut" style="color:#07c160;"></i> 分段生成</span>
@@ -3751,6 +3789,7 @@
                 </div>
             </div>
 
+            <!-- ===== 角色管理 ===== -->
             <div style="margin-bottom:14px;">
                 <div class="role-manager-header">
                     <h3><i class="fas fa-users" style="color:#07c160;"></i> 角色管理</h3>
@@ -3761,6 +3800,7 @@
 
             <hr class="module-divider" />
 
+            <!-- ===== 美化分类 ===== -->
             <div class="beauty-section">
                 <div class="beauty-title"><i class="fas fa-paint-brush"></i> 美化</div>
 
@@ -3800,6 +3840,7 @@
 
             <hr class="module-divider" />
 
+            <!-- ===== API 设置 ===== -->
             <div class="setting-group">
                 <label>🔑 API Key <small style="font-weight:400;color:var(--text-secondary);">(platform.deepseek.com)</small></label>
                 <input type="text" id="apiKeyInput" placeholder="sk-..." />
@@ -3812,6 +3853,7 @@
                 </select>
             </div>
 
+            <!-- ===== 存储用量监控 ===== -->
             <div class="temp-slider-container" style="margin-bottom:14px;border-left:3px solid #a29bfe;">
                 <div class="temp-header">
                     <span class="temp-label" style="font-size:14px;"><i class="fas fa-database" style="color:#6c5ce7;"></i> 存储用量</span>
@@ -3843,6 +3885,7 @@
                 <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">点击后重新弹出权限申请，不会影响聊天记录和角色数据</div>
             </div>
 
+            <!-- ===== 数据管理 ===== -->
             <div class="setting-group" style="margin-top:10px; border-top:1px solid var(--border-color); padding-top:14px;">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
                     <span style="font-size:14px; color:var(--text-primary);">
@@ -3856,6 +3899,7 @@
                 <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">备份或恢复所有数据，支持分类导出</div>
             </div>
 
+            <!-- ===== 清空所有聊天记录 ===== -->
             <div class="setting-group" style="margin-top:10px; border-top:1px solid var(--border-color); padding-top:14px;">
                 <button id="clearAllChatsBtn" style="width:100%; padding:10px; border:1px solid #e74c3c; border-radius:8px; background:var(--bg-card); color:#e74c3c; font-size:13px; cursor:pointer; transition:0.15s; display:flex; align-items:center; justify-content:center; gap:8px;">
                     <i class="fas fa-trash-alt"></i> 清空所有角色的聊天记录
@@ -3870,13 +3914,17 @@
         </div>
     </div>
 
-    <!-- ===== 悬浮窗 ===== -->
+    <!-- ============================================================
+    悬浮窗
+    ============================================================ -->
     <div class="floating-heart" id="floatingHeart">
         <span class="fh-value" id="fhValue">65</span>
         <span class="fh-label">BPM</span>
     </div>
 
-    <!-- ===== 心跳详情面板 ===== -->
+    <!-- ============================================================
+    心动详情面板（点击悬浮窗弹出）
+    ============================================================ -->
     <div class="heart-detail-overlay" id="heartDetailOverlay">
         <div class="heart-detail-panel">
             <button class="close-btn" id="hdCloseBtn">&times;</button>
@@ -3887,244 +3935,9 @@
             <div class="hd-signature" id="hdSignature">今天也很想你 💕</div>
             <div class="hd-recent" id="hdRecent">最近心跳加速：<span class="highlight">等待你的第一句情话</span></div>
         </div>
-    </div> <!-- ===== 🛍️ 商城界面 ===== -->
-    <div class="screen-mall" id="mallScreen">
-        <div class="mall-header">
-            <button class="back-btn" id="backFromMall"><i class="fas fa-chevron-left"></i></button>
-            <div class="title"><i class="fas fa-shopping-bag"></i> 商城</div>
-            <div class="mall-actions">
-                <span class="mall-balance" id="mallBalanceDisplay">💰 <span id="mallBalanceAmount">1000</span></span>
-                <button class="mall-cart-btn" id="mallCartBtn">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span class="cart-count empty" id="mallCartCount">0</span>
-                </button>
-                <button class="mall-invite-btn" id="mallInviteBtn">💕 心爱的TA</button>
-            </div>
-        </div>
-        <div class="mall-body" id="mallBody">
-            <div class="mall-product-grid" id="mallProductGrid"></div>
-        </div>
-        <div class="mall-ai-bubble" id="mallAiBubble">
-            <div class="ai-avatar" id="mallAiAvatar"></div>
-            <div class="ai-text" id="mallAiBubbleText"><span class="ai-name" id="mallAiBubbleName">TA</span> 正在和你一起逛...</div>
-            <button class="ai-end-btn" id="mallAiEndBtn"><i class="fas fa-times"></i></button>
-        </div>
     </div>
 
-    <!-- ===== 商城 - 商品详情页 ===== -->
-    <div class="mall-detail-overlay" id="mallDetailOverlay">
-        <div class="mall-detail-header">
-            <button class="back-btn" id="mallDetailBack"><i class="fas fa-chevron-left"></i></button>
-            <div class="title" id="mallDetailTitle">商品详情</div>
-        </div>
-        <div class="mall-detail-body" id="mallDetailBody"></div>
-        <div class="mall-detail-footer" id="mallDetailFooter">
-            <button class="btn-gift" id="mallDetailGiftBtn">💝 送给TA</button>
-            <button class="btn-buy" id="mallDetailBuyBtn">💰 购买</button>
-        </div>
-    </div>
-
-    <!-- ===== 商城 - 购物车侧滑 ===== -->
-    <div class="cart-overlay" id="cartOverlay">
-        <div class="cart-drawer">
-            <div class="cart-header">
-                <h3>🛒 购物车</h3>
-                <button class="close-cart" id="cartCloseBtn">&times;</button>
-            </div>
-            <div class="cart-list" id="cartList"></div>
-            <div class="cart-footer" id="cartFooter">
-                <div class="total-row"><span>合计</span><span class="total-price" id="cartTotalPrice">¥0</span></div>
-                <div class="balance-row"><span>余额</span><span class="balance-amount" id="cartBalanceDisplay">¥1000</span></div>
-                <button class="checkout-btn" id="cartCheckoutBtn">🧾 去结算</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== 商城 - 充值弹窗 ===== -->
-    <div class="mall-recharge-overlay" id="mallRechargeOverlay">
-        <div class="mall-recharge-panel">
-            <h3>💰 充值虚拟币</h3>
-            <p>输入你要充值的金额，或选择快捷金额</p>
-            <input class="recharge-input" id="rechargeInput" type="number" placeholder="输入金额" value="100" />
-            <div class="recharge-btns">
-                <button data-amount="50"><span class="r-amount">50</span> 币</button>
-                <button data-amount="100"><span class="r-amount">100</span> 币</button>
-                <button data-amount="500"><span class="r-amount">500</span> 币</button>
-                <button data-amount="1000"><span class="r-amount">1000</span> 币</button>
-            </div>
-            <button class="recharge-confirm" id="rechargeConfirmBtn">✅ 确认充值</button>
-            <button class="recharge-cancel" id="rechargeCancelBtn">取消</button>
-        </div>
-    </div>
-
-    <!-- ===== 商城 - AI 看中商品弹窗 ===== -->
-    <div class="mall-ai-spot-overlay" id="mallAiSpotOverlay">
-        <div class="mall-ai-spot-panel">
-            <div class="spot-product">
-                <div class="spot-img" id="spotProductImg">🛍️</div>
-                <div class="spot-name" id="spotProductName">商品名</div>
-                <div class="spot-price" id="spotProductPrice">¥0</div>
-            </div>
-            <div class="spot-ai-words" id="spotAiWords"><span class="ai-name-tag" id="spotAiName">TA</span>：我好喜欢这个...</div>
-            <div class="spot-buttons">
-                <button class="btn-buy-for-him" id="spotBuyForHimBtn">💝 买给他</button>
-                <button class="btn-ai-gift" id="spotAiGiftBtn">🎁 让TA买给你</button>
-                <button class="btn-reject" id="spotRejectBtn">👀 再看看</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== 商城 - 选择角色弹窗（心爱的TA） ===== -->
-    <div class="mall-ai-spot-overlay" id="mallRoleSelectOverlay" style="z-index:36;">
-        <div class="mall-ai-spot-panel" style="max-width:300px;">
-            <h3 style="font-size:18px;color:var(--text-primary);margin-bottom:8px;">💕 选择心爱的TA</h3>
-            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">选择一位角色，一起逛商城吧</p>
-            <div id="mallRoleSelectList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
-            <button class="btn-reject" id="mallRoleSelectCancel" style="width:100%;padding:10px;border:none;border-radius:12px;background:var(--bg-secondary);color:var(--text-secondary);font-size:14px;cursor:pointer;font-family:inherit;">取消</button>
-        </div>
-    </div> <!-- ===== 🛍️ 商城 CSS 样式 ===== -->
-    <style>
-        /* ===== 商城样式 ===== */
-        .screen-mall { width: 100%; height: 100%; background: var(--bg-secondary); display: flex; flex-direction: column; position: absolute; top: 0; left: 0; z-index: 15; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.32,0.72,0,1); }
-        .screen-mall.open { transform: translateX(0); }
-        .mall-header { background: var(--header-bg); backdrop-filter: blur(10px); padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px; flex-shrink: 0; min-height: 52px; flex-wrap: wrap; }
-        .mall-header .back-btn { font-size: 20px; color: #576b95; cursor: pointer; border: none; background: none; padding: 4px; }
-        .mall-header .title { font-size: 17px; font-weight: 600; color: var(--text-primary); flex: 1; display: flex; align-items: center; gap: 6px; }
-        .mall-header .title i { color: #2ed573; }
-        .mall-header .mall-actions { display: flex; align-items: center; gap: 8px; }
-        .mall-header .mall-balance { font-size: 13px; color: var(--text-secondary); background: rgba(46,213,115,0.12); padding: 4px 12px; border-radius: 16px; border: 1px solid rgba(46,213,115,0.2); cursor: pointer; transition: 0.15s; }
-        .mall-header .mall-balance span { color: #2ed573; font-weight: 700; }
-        .mall-header .mall-cart-btn { background: none; border: none; font-size: 20px; color: var(--text-primary); cursor: pointer; position: relative; padding: 4px; }
-        .mall-header .mall-cart-btn .cart-count { position: absolute; top: -4px; right: -4px; background: #ff6b81; color: #fff; font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
-        .mall-header .mall-cart-btn .cart-count.empty { display: none; }
-        .mall-header .mall-invite-btn { background: linear-gradient(135deg,#7bed9f,#2ed573); border: none; color: #fff; padding: 4px 12px; border-radius: 16px; font-size: 12px; cursor: pointer; font-family: inherit; transition: 0.15s; white-space: nowrap; }
-        .mall-header .mall-invite-btn.inviting { background: #ff6b81; }
-        .mall-body { flex: 1; overflow-y: auto; padding: 12px 14px 20px; position: relative; }
-        .mall-body::-webkit-scrollbar { width: 4px; }
-        .mall-body::-webkit-scrollbar-thumb { background: rgba(192,192,192,0.5); border-radius: 4px; }
-        .mall-product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .mall-product-card { background: var(--bg-card); border-radius: 14px; padding: 10px 10px 12px; box-shadow: 0 2px 10px var(--shadow-color); transition: 0.15s; display: flex; flex-direction: column; cursor: pointer; position: relative; }
-        .mall-product-card:active { transform: scale(0.97); }
-        .mall-product-card .product-img { width: 100%; aspect-ratio: 1/1; border-radius: 10px; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; font-size: 36px; margin-bottom: 6px; border: 1px solid var(--border-color); overflow: hidden; }
-        .mall-product-card .product-img img { width: 100%; height: 100%; object-fit: cover; }
-        .mall-product-card .product-name { font-size: 14px; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .mall-product-card .product-price { font-size: 16px; font-weight: 700; color: #2ed573; margin-top: 2px; }
-        .mall-product-card .product-tag { position: absolute; top: 8px; left: 8px; font-size: 10px; background: rgba(46,213,115,0.85); color: #fff; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
-        .mall-product-card .product-tag.hot { background: #ff6b81; }
-        .mall-product-card .product-tag.new { background: #74b9ff; }
-        .mall-product-card .product-tag.couple { background: #a29bfe; }
-        .mall-empty { text-align: center; padding: 60px 20px; color: var(--text-secondary); grid-column: 1 / -1; }
-        .mall-empty i { font-size: 48px; opacity: 0.3; display: block; margin-bottom: 12px; }
-        .mall-detail-overlay { position: absolute; inset: 0; z-index: 30; background: var(--bg-secondary); display: none; flex-direction: column; animation: fadeInUp 0.25s ease; }
-        .mall-detail-overlay.active { display: flex; }
-        .mall-detail-header { background: var(--header-bg); backdrop-filter: blur(10px); padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; flex-shrink: 0; min-height: 52px; }
-        .mall-detail-header .back-btn { font-size: 20px; color: #576b95; cursor: pointer; border: none; background: none; padding: 4px; }
-        .mall-detail-header .title { font-size: 17px; font-weight: 600; color: var(--text-primary); flex: 1; }
-        .mall-detail-body { flex: 1; overflow-y: auto; padding: 16px; }
-        .mall-detail-body .detail-img { width: 100%; aspect-ratio: 1/1; border-radius: 14px; background: var(--bg-secondary); border: 1px solid var(--border-color); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 60px; margin-bottom: 14px; }
-        .mall-detail-body .detail-img img { width: 100%; height: 100%; object-fit: cover; }
-        .mall-detail-body .detail-name { font-size: 20px; font-weight: 700; color: var(--text-primary); }
-        .mall-detail-body .detail-price { font-size: 24px; font-weight: 700; color: #2ed573; margin: 4px 0 10px; }
-        .mall-detail-body .detail-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px; padding: 12px; background: var(--bg-card); border-radius: 10px; border: 1px solid var(--border-color); }
-        .mall-detail-body .detail-qty { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-        .mall-detail-body .detail-qty label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
-        .mall-detail-body .detail-qty .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--bg-card); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-primary); }
-        .mall-detail-body .detail-qty .qty-btn:active { transform: scale(0.92); }
-        .mall-detail-body .detail-qty .qty-num { font-size: 18px; font-weight: 600; color: var(--text-primary); min-width: 30px; text-align: center; }
-        .mall-detail-body .detail-note input { width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; background: var(--bg-card); color: var(--text-primary); outline: none; font-family: inherit; }
-        .mall-detail-body .detail-note input:focus { border-color: #2ed573; }
-        .mall-detail-footer { display: flex; gap: 10px; padding: 12px 16px; background: var(--header-bg); border-top: 1px solid var(--border-color); flex-shrink: 0; }
-        .mall-detail-footer button { flex: 1; padding: 12px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.15s; font-family: inherit; }
-        .mall-detail-footer button:active { transform: scale(0.97); }
-        .mall-detail-footer .btn-gift { background: linear-gradient(135deg,#7bed9f,#2ed573); color: #fff; }
-        .mall-detail-footer .btn-buy { background: linear-gradient(135deg,#ff6b81,#ee5a24); color: #fff; }
-        .cart-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 40; display: none; justify-content: flex-end; }
-        .cart-overlay.active { display: flex; }
-        .cart-drawer { background: var(--bg-card); width: 88%; max-width: 340px; height: 100%; padding: 20px 18px 30px; overflow-y: auto; box-shadow: -4px 0 25px rgba(0,0,0,0.15); animation: slideInRight 0.25s ease; display: flex; flex-direction: column; }
-        .cart-drawer .cart-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
-        .cart-drawer .cart-header h3 { font-size: 18px; color: var(--text-primary); }
-        .cart-drawer .cart-header .close-cart { font-size: 24px; color: var(--text-secondary); cursor: pointer; background: none; border: none; }
-        .cart-drawer .cart-list { flex: 1; overflow-y: auto; padding: 12px 0; }
-        .cart-drawer .cart-empty { text-align: center; padding: 40px 0; color: var(--text-secondary); }
-        .cart-drawer .cart-empty i { font-size: 40px; opacity: 0.3; display: block; margin-bottom: 10px; }
-        .cart-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
-        .cart-item .ci-img { width: 44px; height: 44px; border-radius: 8px; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; overflow: hidden; }
-        .cart-item .ci-img img { width: 100%; height: 100%; object-fit: cover; }
-        .cart-item .ci-info { flex: 1; }
-        .cart-item .ci-info .ci-name { font-size: 14px; color: var(--text-primary); }
-        .cart-item .ci-info .ci-price { font-size: 13px; color: #2ed573; font-weight: 600; }
-        .cart-item .ci-qty { display: flex; align-items: center; gap: 6px; }
-        .cart-item .ci-qty button { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--bg-card); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; color: var(--text-primary); }
-        .cart-item .ci-qty button:active { transform: scale(0.92); }
-        .cart-item .ci-qty .qty-num { font-size: 14px; font-weight: 600; color: var(--text-primary); min-width: 24px; text-align: center; }
-        .cart-item .ci-remove { color: #e74c3c; cursor: pointer; font-size: 16px; background: none; border: none; padding: 4px; }
-        .cart-footer { border-top: 1px solid var(--border-color); padding-top: 14px; flex-shrink: 0; }
-        .cart-footer .total-row { display: flex; justify-content: space-between; font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
-        .cart-footer .total-row .total-price { color: #2ed573; }
-        .cart-footer .balance-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; }
-        .cart-footer .balance-row .balance-amount { color: #2ed573; font-weight: 600; }
-        .cart-footer .balance-row .balance-amount.insufficient { color: #ff6b81; }
-        .cart-footer .checkout-btn { width: 100%; padding: 12px; border: none; border-radius: 12px; background: linear-gradient(135deg,#7bed9f,#2ed573); color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.15s; font-family: inherit; }
-        .cart-footer .checkout-btn:active { transform: scale(0.97); }
-        .cart-footer .checkout-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .mall-recharge-overlay { position: absolute; inset: 0; z-index: 35; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; }
-        .mall-recharge-overlay.active { display: flex; }
-        .mall-recharge-panel { background: var(--bg-card); border-radius: 20px; padding: 24px 20px 20px; max-width: 320px; width: 90%; animation: fadeInUp 0.3s ease; text-align: center; }
-        .mall-recharge-panel h3 { font-size: 18px; color: var(--text-primary); margin-bottom: 4px; }
-        .mall-recharge-panel p { font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; }
-        .mall-recharge-panel .recharge-input { width: 100%; padding: 10px 14px; border: 2px solid var(--border-color); border-radius: 12px; font-size: 18px; text-align: center; outline: none; background: var(--bg-card); color: var(--text-primary); font-weight: 600; }
-        .mall-recharge-panel .recharge-input:focus { border-color: #2ed573; }
-        .mall-recharge-panel .recharge-btns { display: flex; gap: 10px; margin: 12px 0; }
-        .mall-recharge-panel .recharge-btns button { flex: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-secondary); font-size: 14px; cursor: pointer; font-family: inherit; color: var(--text-primary); transition: 0.15s; }
-        .mall-recharge-panel .recharge-btns button .r-amount { font-weight: 700; color: #2ed573; }
-        .mall-recharge-panel .recharge-confirm { width: 100%; padding: 12px; border: none; border-radius: 12px; background: linear-gradient(135deg,#7bed9f,#2ed573); color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; transition: 0.15s; }
-        .mall-recharge-panel .recharge-confirm:active { transform: scale(0.97); }
-        .mall-recharge-panel .recharge-cancel { background: none; border: none; color: var(--text-secondary); font-size: 13px; cursor: pointer; margin-top: 8px; font-family: inherit; }
-        .mall-ai-bubble { position: absolute; bottom: 20px; left: 16px; z-index: 25; background: var(--bg-card); border-radius: 20px; padding: 8px 14px 8px 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: none; align-items: center; gap: 10px; border: 2px solid #2ed573; animation: fadeInUp 0.3s ease; max-width: 75%; }
-        .mall-ai-bubble.active { display: flex; }
-        .mall-ai-bubble .ai-avatar { width: 32px; height: 32px; border-radius: 50%; background-size: cover; background-position: center; background-color: #2ed573; flex-shrink: 0; border: 2px solid #2ed573; }
-        .mall-ai-bubble .ai-text { font-size: 13px; color: var(--text-primary); line-height: 1.4; flex: 1; }
-        .mall-ai-bubble .ai-text .ai-name { font-weight: 600; color: #2ed573; }
-        .mall-ai-bubble .ai-end-btn { background: none; border: none; color: var(--text-secondary); font-size: 16px; cursor: pointer; padding: 0 2px; }
-        .mall-ai-spot-overlay { position: absolute; inset: 0; z-index: 35; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; }
-        .mall-ai-spot-overlay.active { display: flex; }
-        .mall-ai-spot-panel { background: var(--bg-card); border-radius: 20px; padding: 20px 20px 24px; max-width: 350px; width: 92%; animation: fadeInUp 0.3s ease; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
-        .mall-ai-spot-panel .spot-product { display: flex; flex-direction: column; align-items: center; margin-bottom: 12px; }
-        .mall-ai-spot-panel .spot-product .spot-img { width: 80px; height: 80px; border-radius: 12px; background: var(--bg-secondary); border: 1px solid var(--border-color); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 6px; }
-        .mall-ai-spot-panel .spot-product .spot-img img { width: 100%; height: 100%; object-fit: cover; }
-        .mall-ai-spot-panel .spot-product .spot-name { font-size: 16px; font-weight: 600; color: var(--text-primary); }
-        .mall-ai-spot-panel .spot-product .spot-price { font-size: 15px; font-weight: 700; color: #2ed573; }
-        .mall-ai-spot-panel .spot-ai-words { font-size: 15px; color: var(--text-primary); padding: 10px 0; line-height: 1.6; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); margin-bottom: 14px; min-height: 50px; }
-        .mall-ai-spot-panel .spot-ai-words .ai-name-tag { color: #2ed573; font-weight: 600; }
-        .mall-ai-spot-panel .spot-buttons { display: flex; gap: 10px; }
-        .mall-ai-spot-panel .spot-buttons button { flex: 1; padding: 10px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.15s; font-family: inherit; }
-        .mall-ai-spot-panel .spot-buttons .btn-buy-for-him { background: linear-gradient(135deg,#7bed9f,#2ed573); color: #fff; }
-        .mall-ai-spot-panel .spot-buttons .btn-reject { background: var(--bg-secondary); color: var(--text-secondary); }
-        .mall-ai-spot-panel .spot-buttons .btn-ai-gift { background: linear-gradient(135deg,#a29bfe,#6c5ce7); color: #fff; }
-        .mall-order-list { margin-top: 8px; }
-        .mall-order-item { background: var(--bg-card); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 1px 6px var(--shadow-color); border-left: 4px solid #2ed573; }
-        .mall-order-item .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .mall-order-item .order-id { font-size: 12px; color: var(--text-secondary); }
-        .mall-order-item .order-time { font-size: 11px; color: var(--text-secondary); }
-        .mall-order-item .order-status { font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 12px; }
-        .mall-order-item .order-status.status-pending { background: #fdcb6e; color: #5a3d1a; }
-        .mall-order-item .order-status.status-shipped { background: #74b9ff; color: #fff; }
-        .mall-order-item .order-status.status-done { background: #2ed573; color: #fff; }
-        .mall-order-item .order-items { font-size: 13px; color: var(--text-secondary); padding: 4px 0; }
-        .mall-order-item .order-items .oi-gift-tag { color: #a29bfe; font-weight: 500; margin-left: 4px; }
-        .mall-order-item .order-total { font-size: 15px; font-weight: 600; color: #2ed573; text-align: right; margin-top: 4px; }
-        .mall-order-item .order-actions { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; flex-wrap: wrap; }
-        .mall-order-item .order-actions button { padding: 4px 14px; border: none; border-radius: 16px; font-size: 12px; cursor: pointer; font-family: inherit; transition: 0.15s; }
-        .mall-order-item .order-actions button:active { transform: scale(0.95); }
-        .mall-order-item .order-actions .btn-ship { background: #74b9ff; color: #fff; }
-        .mall-order-item .order-actions .btn-done { background: #2ed573; color: #fff; }
-        .mall-order-item .order-actions .btn-delete-order { background: #fee; color: #e74c3c; }
-    </style>
-
-    <!-- ===== 关闭 body 和 html ===== -->
-</div>
-
-<script>
+</div> <script>
     // ============================================================
     //  最关键的修复：这两个函数必须先定义，否则联系人渲染会报错
     // ============================================================
@@ -4449,9 +4262,7 @@
                 recentTrigger: '初次相遇',
             }
         };
-    }
-
-    // ============================================================
+    } // ============================================================
     //  加载所有数据（整合版）
     // ============================================================
 
@@ -4579,7 +4390,9 @@
     let roles = [];
     let currentRoleId = null;
 
-    loadAllData(); // ============================================================
+    loadAllData();
+
+    // ============================================================
     //  辅助函数
     // ============================================================
 
@@ -4717,9 +4530,7 @@
             saveAllData();
             showToast('🧠 已记住新信息');
         }
-    }
-
-    // ============================================================
+    } // ============================================================
     //  AI 智能记忆总结
     // ============================================================
 
@@ -5737,9 +5548,7 @@
                 highlight.style.color = color;
             }
         }
-    }
-
-    // ============================================================
+    } // ============================================================
     //  悬浮窗控制
     // ============================================================
 
@@ -5845,201 +5654,6 @@
     }
 
     // ============================================================
-    //  心跳绑定UI
-    // ============================================================
-
-    function initHeartBindUI() {
-        const bindInfo = document.getElementById('bindInfo');
-        if (bindInfo) {
-            bindInfo.addEventListener('click', () => {
-                if (roles.length === 0) {
-                    showToast('⚠️ 暂无角色可绑定');
-                    return;
-                }
-                const roleNames = roles.map((r, i) => `${i+1}. ${r.name}`).join('\n');
-                const choice = prompt(`选择要绑定的角色（输入编号）：\n${roleNames}`);
-                if (choice === null) return;
-                const idx = parseInt(choice) - 1;
-                if (isNaN(idx) || idx < 0 || idx >= roles.length) {
-                    showToast('❌ 无效的选择');
-                    return;
-                }
-                const selectedRole = roles[idx];
-                bindHeartRole(selectedRole.id);
-                renderContacts();
-                renderRoleManager();
-                renderMemoryScreen();
-                renderDiaryAll();
-            });
-        }
-    }
-
-    // ============================================================
-    //  个签编辑
-    // ============================================================
-
-    function initSignatureEdit() {
-        const signatureText = document.getElementById('signatureText');
-        const signatureInput = document.getElementById('signatureInput');
-        const signatureArea = document.getElementById('signatureArea');
-
-        if (!signatureText || !signatureInput || !signatureArea) return;
-
-        let isEditing = false;
-
-        signatureArea.addEventListener('click', (e) => {
-            if (e.target === signatureInput) return;
-
-            if (!isEditing) {
-                isEditing = true;
-                signatureText.classList.add('hide');
-                signatureInput.classList.add('show');
-                signatureInput.value = signatureText.textContent.trim();
-                signatureInput.focus();
-                signatureInput.select();
-            } else {
-                saveSignature();
-            }
-        });
-
-        signatureInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                saveSignature();
-            }
-        });
-
-        signatureInput.addEventListener('blur', () => {
-            setTimeout(() => {
-                if (isEditing) {
-                    saveSignature();
-                }
-            }, 200);
-        });
-
-        function saveSignature() {
-            const newText = signatureInput.value.trim() || '今天也很想你 💕';
-            signatureText.textContent = newText;
-            signatureText.classList.remove('hide');
-            signatureInput.classList.remove('show');
-            isEditing = false;
-
-            const bindRoleId = config.heart.bindRoleId;
-            if (bindRoleId) {
-                const role = roles.find(r => r.id === bindRoleId);
-                if (role) {
-                    if (!role.heartData) {
-                        role.heartData = { value: 65, restingValue: 65, peakValue: 65, signature: newText, recentTrigger: '初次相遇' };
-                    }
-                    role.heartData.signature = newText;
-                    config.heart.signature = newText;
-                    saveAllData();
-                    updateHeartDisplay();
-                    showToast('✅ 个签已更新');
-                }
-            } else {
-                config.heart.signature = newText;
-                saveAllData();
-                updateHeartDisplay();
-            }
-        }
-    }
-
-    // ============================================================
-    //  悬浮窗拖拽
-    // ============================================================
-
-    let dragData = {
-        isDragging: false,
-        startX: 0,
-        startY: 0,
-        offsetX: 0,
-        offsetY: 0,
-        hasMoved: false,
-    };
-
-    function initFloatingDrag() {
-        const el = document.getElementById('floatingHeart');
-        if (!el) return;
-
-        el.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            const rect = el.getBoundingClientRect();
-            dragData.isDragging = true;
-            dragData.startX = touch.clientX;
-            dragData.startY = touch.clientY;
-            dragData.offsetX = touch.clientX - rect.left;
-            dragData.offsetY = touch.clientY - rect.top;
-            dragData.hasMoved = false;
-            el.style.transition = 'none';
-        }, { passive: true });
-
-        el.addEventListener('touchmove', (e) => {
-            if (!dragData.isDragging) return;
-            e.preventDefault();
-            const touch = e.touches[0];
-            const newX = touch.clientX - dragData.offsetX;
-            const newY = touch.clientY - dragData.offsetY;
-            
-            const maxX = window.innerWidth - el.offsetWidth;
-            const maxY = window.innerHeight - el.offsetHeight;
-            const clampedX = Math.max(0, Math.min(maxX, newX));
-            const clampedY = Math.max(0, Math.min(maxY, newY));
-            
-            el.style.left = clampedX + 'px';
-            el.style.top = clampedY + 'px';
-            el.style.right = 'auto';
-            el.style.bottom = 'auto';
-            dragData.hasMoved = true;
-        }, { passive: false });
-
-        el.addEventListener('touchend', (e) => {
-            if (!dragData.isDragging) return;
-            dragData.isDragging = false;
-            el.style.transition = '';
-            if (!dragData.hasMoved) {
-                openHeartDetail();
-            }
-            dragData.hasMoved = false;
-        }, { passive: true });
-
-        el.addEventListener('mousedown', (e) => {
-            const rect = el.getBoundingClientRect();
-            dragData.isDragging = true;
-            dragData.startX = e.clientX;
-            dragData.startY = e.clientY;
-            dragData.offsetX = e.clientX - rect.left;
-            dragData.offsetY = e.clientY - rect.top;
-            dragData.hasMoved = false;
-            el.style.transition = 'none';
-            e.preventDefault();
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!dragData.isDragging) return;
-            const newX = e.clientX - dragData.offsetX;
-            const newY = e.clientY - dragData.offsetY;
-            const maxX = window.innerWidth - el.offsetWidth;
-            const maxY = window.innerHeight - el.offsetHeight;
-            const clampedX = Math.max(0, Math.min(maxX, newX));
-            const clampedY = Math.max(0, Math.min(maxY, newY));
-            el.style.left = clampedX + 'px';
-            el.style.top = clampedY + 'px';
-            el.style.right = 'auto';
-            el.style.bottom = 'auto';
-            dragData.hasMoved = true;
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (dragData.isDragging) {
-                dragData.isDragging = false;
-                el.style.transition = '';
-                if (!dragData.hasMoved) {
-                    openHeartDetail();
-                }
-                dragData.hasMoved = false;
-            }
-        });
-    } // ============================================================
     //  DOM 引用
     // ============================================================
 
@@ -6222,7 +5836,7 @@
     }
 
     // ============================================================
-    //  日记功能 - AI 生成日记
+    //  日记功能 - AI 生成日记（优化版：有深度思考，非流水账）
     // ============================================================
 
     async function callDiaryAPI(role) {
@@ -6317,9 +5931,7 @@
         const reply = data.choices?.[0]?.message?.content;
         if (!reply) throw new Error('未获取到回复');
         return reply.trim();
-    }
-
-    async function generateDiary(roleId, showToastMsg = true) {
+    } async function generateDiary(roleId, showToastMsg = true) {
         const role = roles.find(r => r.id === roleId);
         if (!role) {
             if (showToastMsg) showToast('⚠️ 请先选择一个角色');
@@ -6453,7 +6065,7 @@
     diaryNotifClose.addEventListener('click', hideDiaryNotification);
 
     // ============================================================
-    //  日记功能 - 渲染
+    //  日记功能 - 渲染（紧凑段落格式 + 日历折叠修复）
     // ============================================================
 
     let selectedDiaryDate = new Date();
@@ -6531,6 +6143,7 @@
         });
     }
 
+    // ===== 日记正文渲染 - 紧凑段落格式（核心修复） =====
     function renderDiaryView(roleId) {
         if (!diaryBody) return;
         const selectedKey = getDiaryDateKey(selectedDiaryDate);
@@ -6549,16 +6162,19 @@
             return;
         }
 
+        // 按段落分割（用 \n\n 分割段落）
         const paragraphs = diary.content.split('\n\n').filter(p => p.trim() !== '');
         
         let contentHtml = '';
         paragraphs.forEach((paragraph, pIdx) => {
+            // 段落内的行用 <br> 连接
             const lines = paragraph.split('\n').filter(line => line.trim() !== '');
             const paragraphHtml = lines.join('<br />');
             const classAttr = pIdx > 0 ? ' class="diary-paragraph"' : ' class="diary-paragraph"';
             contentHtml += `<div${classAttr}>${paragraphHtml}</div>`;
         });
 
+        // 如果没有分段，则按行用 <br> 连接
         if (paragraphs.length === 0) {
             const lines = diary.content.split('\n').filter(line => line.trim() !== '');
             contentHtml = lines.join('<br />');
@@ -6588,6 +6204,7 @@
             </div>
         `;
 
+        // 点击日记内容编辑（整体编辑）
         const contentArea = document.getElementById('diaryContent');
         if (contentArea) {
             contentArea.style.cursor = 'pointer';
@@ -6608,6 +6225,7 @@
             });
         }
 
+        // 删除按钮
         const deleteBtn = document.getElementById('diaryDeleteBtn');
         if (deleteBtn) {
             deleteBtn.addEventListener('click', () => {
@@ -6655,6 +6273,7 @@
         renderDiaryView(roleId);
         updateDiaryPageNav(roleId);
         
+        // 恢复折叠状态
         if (diaryCalendarNav && diaryToggleIcon) {
             if (config.diaryCalendarCollapsed) {
                 diaryCalendarNav.classList.add('collapsed');
@@ -6662,6 +6281,10 @@
             }
         }
     }
+
+    // ============================================================
+    //  日记功能 - 删除
+    // ============================================================
 
     function deleteDiary(diaryId) {
         const idx = (config.diaries || []).findIndex(d => d.id === diaryId);
@@ -6753,6 +6376,7 @@
         });
     }
 
+    // 日历折叠事件 - 使用独立在外的 calendarToggle
     if (calendarToggle) {
         calendarToggle.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -6809,9 +6433,7 @@
         });
     }
 
-    backFromDiary.addEventListener('click', closeDiary);
-
-    // ============================================================
+    backFromDiary.addEventListener('click', closeDiary); // ============================================================
     //  渲染：联系人列表
     // ============================================================
 
@@ -6901,7 +6523,9 @@
 
             contactsList.appendChild(item);
         });
-    } // ============================================================
+    }
+
+    // ============================================================
     //  渲染：角色管理
     // ============================================================
 
@@ -7221,9 +6845,7 @@
             chatRoleName.textContent = 'DeepSeek';
             chatRoleName.classList.remove('typing');
         }
-    }
-
-    // ============================================================
+    } // ============================================================
     //  已读标记优化
     // ============================================================
 
@@ -7260,6 +6882,192 @@
             markVisibleMessagesAsRead();
         }, 200);
     });
+
+    // ============================================================
+    //  渲染：聊天消息
+    // ============================================================
+
+    function renderMessages() {
+        const role = getCurrentRole();
+        if (!role) return;
+
+        applyChatBgForRole(role);
+
+        container.innerHTML = '';
+
+        const msgs = role.messages || [];
+        if (msgs.length === 0) {
+            const w = document.createElement('div');
+            w.className = 'message-row';
+            w.innerHTML = `
+                <div class="avatar bot"></div>
+                <div class="bubble-container">
+                    <div class="bubble-row">
+                        <div class="bubble">
+                            你好呀~ 我是 ${role.name}，很高兴认识你 💕
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(w);
+        } else {
+            msgs.forEach((msg) => {
+                const row = createMessageRow(msg, role);
+                container.appendChild(row);
+            });
+        }
+        container.scrollTop = container.scrollHeight;
+        applyAvatars();
+        applyBubbleStyle(config.bubbleStyle || 'default');
+        applyFontSettings();
+        updateChatTitle();
+        attachLongPressEvents();
+
+        container.querySelectorAll('.regenerate-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const msgId = btn.dataset.msgid;
+                const role = getCurrentRole();
+                if (role) {
+                    regenerateMessage(role.id, msgId);
+                }
+            });
+        });
+
+        container.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const msgId = btn.dataset.msgid;
+                const role = getCurrentRole();
+                if (role && confirm('确定要删除这条消息吗？关联的记忆也会被删除。')) {
+                    deleteMessageAndMemory(role.id, msgId);
+                }
+            });
+        });
+
+        setTimeout(() => {
+            markVisibleMessagesAsRead();
+        }, 100);
+    }
+
+    function createMessageRow(msg, role) {
+        const row = document.createElement('div');
+        row.className = `message-row ${msg.role === 'user' ? 'self' : ''}`;
+        if (msg.id) row.dataset.msgId = msg.id;
+        const avatarClass = msg.role === 'user' ? 'user' : 'bot';
+        const nick = msg.role === 'user' ? '我' : role.name;
+
+        let contentHtml = msg.content;
+
+        const memeMatch = contentHtml.match(/\[表情包：([^\]]+)\]/);
+        if (memeMatch) {
+            const memeName = memeMatch[1];
+            const meme = memes.find(m => m.name === memeName);
+            if (meme && meme.imageData) {
+                contentHtml = contentHtml.replace(
+                    /\[表情包：[^\]]+\]/,
+                    `<img src="${meme.imageData}" style="max-width:180px;max-height:180px;border-radius:12px;display:block;margin-top:6px;" alt="${memeName}" />`
+                );
+            } else {
+                contentHtml = contentHtml.replace(/\[表情包：[^\]]+\]/, '');
+            }
+        }
+
+        if (msg.type === 'text' && msg.content.startsWith('> ')) {
+            const lines = msg.content.split('\n');
+            const quoteLine = lines[0].substring(2);
+            const replyLines = lines.slice(2).join('\n').trim();
+            const senderName = msg.role === 'user' ? '我' : role.name;
+
+            contentHtml = `
+                <div class="quote-block">
+                    <div class="quote-sender">${senderName} 引用：</div>
+                    <div class="quote-content">${quoteLine}</div>
+                </div>
+                ${replyLines ? `<hr class="quote-divider" /><div class="reply-content">${replyLines}</div>` : ''}
+            `;
+        } else if (msg.type === 'image') {
+            contentHtml = `<img src="${msg.content}" alt="图片" />`;
+        }
+
+        const timeStr = formatTime(msg.time, config.timeMode || 'HH:MM');
+
+        let actionsHtml = '';
+        if (msg.role === 'assistant') {
+            actionsHtml = `
+                <div class="msg-actions">
+                    <button class="action-btn regenerate-btn" data-msgid="${msg.id}" title="重新生成"><i class="fas fa-sync-alt"></i></button>
+                    <button class="action-btn delete-btn" data-msgid="${msg.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            `;
+        } else if (msg.role === 'user') {
+            actionsHtml = `
+                <div class="msg-actions">
+                    <button class="action-btn delete-btn" data-msgid="${msg.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            `;
+        }
+
+        row.innerHTML = `
+            <div class="avatar ${avatarClass}"></div>
+            <div class="bubble-container">
+                ${timeStr ? `<div class="msg-time">${timeStr}</div>` : ''}
+                <div class="bubble-row">
+                    <div class="bubble">${contentHtml}</div>
+                    ${actionsHtml}
+                </div>
+            </div>
+        `;
+        return row;
+    }
+
+    function applyAvatars() {
+        const role = getCurrentRole();
+        if (!role) return;
+
+        const botAvatars = document.querySelectorAll('.avatar.bot');
+        if (role.avatar) {
+            botAvatars.forEach(el => {
+                el.style.backgroundImage = `url(${role.avatar})`;
+                el.style.backgroundSize = 'cover';
+                el.style.backgroundPosition = 'center';
+                el.classList.add('has-image');
+            });
+        } else {
+            botAvatars.forEach(el => {
+                el.style.backgroundImage = '';
+                el.style.backgroundSize = '';
+                el.style.backgroundPosition = '';
+                el.classList.remove('has-image');
+                el.style.backgroundColor = '#07c160';
+            });
+        }
+
+        const userAvatars = document.querySelectorAll('.avatar.user');
+        if (config.userAvatar) {
+            userAvatars.forEach(el => {
+                el.style.backgroundImage = `url(${config.userAvatar})`;
+                el.style.backgroundSize = 'cover';
+                el.style.backgroundPosition = 'center';
+                el.classList.add('has-image');
+            });
+        } else {
+            userAvatars.forEach(el => {
+                el.style.backgroundImage = '';
+                el.style.backgroundSize = '';
+                el.style.backgroundPosition = '';
+                el.classList.remove('has-image');
+                el.style.backgroundColor = '#576b95';
+            });
+        }
+    }
+
+    function applyFontSettings() {
+        const fontSize = config.fontSize || 'medium';
+        const fontWeight = config.fontWeight || 'regular';
+        document.documentElement.setAttribute('data-font-size', fontSize);
+        document.documentElement.setAttribute('data-font-weight', fontWeight);
+    }
 
     // ============================================================
     //  页面切换
@@ -7512,9 +7320,7 @@
         renderMemoryList();
     });
 
-    backFromMemory.addEventListener('click', closeMemory);
-
-    // ============================================================
+    backFromMemory.addEventListener('click', closeMemory); // ============================================================
     //  图片选择器
     // ============================================================
 
@@ -7529,6 +7335,10 @@
         }
         showPermissionDialog('chatImage');
     });
+
+    // ============================================================
+    //  权限弹窗事件
+    // ============================================================
 
     permAllowAll.addEventListener('click', () => {
         config.permission = 'allowed';
@@ -7560,6 +7370,10 @@
         pendingPickerAction = null;
         showToast('🚫 已拒绝相册访问，仍可正常聊天');
     });
+
+    // ============================================================
+    //  图片选择器
+    // ============================================================
 
     let currentPickerTarget = null;
 
@@ -7993,9 +7807,7 @@
             reader.readAsText(file);
         };
         input.click();
-    }
-
-    // ============================================================
+    } // ============================================================
     //  设置
     // ============================================================
 
@@ -8141,6 +7953,10 @@
         }
     });
 
+    // ============================================================
+    //  数据管理事件
+    // ============================================================
+
     dataManageBtn.addEventListener('click', () => {
         closeSettings();
         setTimeout(openDataModal, 300);
@@ -8251,7 +8067,9 @@
         const val = config.splitEnabled !== false ? 1 : 0;
         splitToggleSlider.value = val;
         splitToggleDisplay.textContent = val === 1 ? '开启' : '关闭';
-    } // ============================================================
+    }
+
+    // ============================================================
     //  系统主题监听
     // ============================================================
 
@@ -8276,333 +8094,268 @@
     }
 
     // ============================================================
-    //  渲染：聊天消息
+    //  心跳绑定UI
     // ============================================================
 
-    function renderMessages() {
-        const role = getCurrentRole();
-        if (!role) return;
-
-        applyChatBgForRole(role);
-
-        container.innerHTML = '';
-
-        const msgs = role.messages || [];
-        if (msgs.length === 0) {
-            const w = document.createElement('div');
-            w.className = 'message-row';
-            w.innerHTML = `
-                <div class="avatar bot"></div>
-                <div class="bubble-container">
-                    <div class="bubble-row">
-                        <div class="bubble">
-                            你好呀~ 我是 ${role.name}，很高兴认识你 💕
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.appendChild(w);
-        } else {
-            msgs.forEach((msg) => {
-                const row = createMessageRow(msg, role);
-                container.appendChild(row);
+    function initHeartBindUI() {
+        const bindInfo = document.getElementById('bindInfo');
+        if (bindInfo) {
+            bindInfo.addEventListener('click', () => {
+                if (roles.length === 0) {
+                    showToast('⚠️ 暂无角色可绑定');
+                    return;
+                }
+                const roleNames = roles.map((r, i) => `${i+1}. ${r.name}`).join('\n');
+                const choice = prompt(`选择要绑定的角色（输入编号）：\n${roleNames}`);
+                if (choice === null) return;
+                const idx = parseInt(choice) - 1;
+                if (isNaN(idx) || idx < 0 || idx >= roles.length) {
+                    showToast('❌ 无效的选择');
+                    return;
+                }
+                const selectedRole = roles[idx];
+                bindHeartRole(selectedRole.id);
+                renderContacts();
+                renderRoleManager();
+                renderMemoryScreen();
+                renderDiaryAll();
             });
         }
-        container.scrollTop = container.scrollHeight;
-        applyAvatars();
-        applyBubbleStyle(config.bubbleStyle || 'default');
-        applyFontSettings();
-        updateChatTitle();
-        attachLongPressEvents();
-
-        container.querySelectorAll('.regenerate-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const msgId = btn.dataset.msgid;
-                const role = getCurrentRole();
-                if (role) {
-                    regenerateMessage(role.id, msgId);
-                }
-            });
-        });
-
-        container.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const msgId = btn.dataset.msgid;
-                const role = getCurrentRole();
-                if (role && confirm('确定要删除这条消息吗？关联的记忆也会被删除。')) {
-                    deleteMessageAndMemory(role.id, msgId);
-                }
-            });
-        });
-
-        setTimeout(() => {
-            markVisibleMessagesAsRead();
-        }, 100);
     }
 
-    function createMessageRow(msg, role) {
-        const row = document.createElement('div');
-        row.className = `message-row ${msg.role === 'user' ? 'self' : ''}`;
-        if (msg.id) row.dataset.msgId = msg.id;
-        const avatarClass = msg.role === 'user' ? 'user' : 'bot';
-        const nick = msg.role === 'user' ? '我' : role.name;
+    // ============================================================
+    //  个签编辑
+    // ============================================================
 
-        let contentHtml = msg.content;
+    function initSignatureEdit() {
+        const signatureText = document.getElementById('signatureText');
+        const signatureInput = document.getElementById('signatureInput');
+        const signatureArea = document.getElementById('signatureArea');
 
-        const memeMatch = contentHtml.match(/\[表情包：([^\]]+)\]/);
-        if (memeMatch) {
-            const memeName = memeMatch[1];
-            const meme = memes.find(m => m.name === memeName);
-            if (meme && meme.imageData) {
-                contentHtml = contentHtml.replace(
-                    /\[表情包：[^\]]+\]/,
-                    `<img src="${meme.imageData}" style="max-width:180px;max-height:180px;border-radius:12px;display:block;margin-top:6px;" alt="${memeName}" />`
-                );
+        if (!signatureText || !signatureInput || !signatureArea) return;
+
+        let isEditing = false;
+
+        signatureArea.addEventListener('click', (e) => {
+            if (e.target === signatureInput) return;
+
+            if (!isEditing) {
+                isEditing = true;
+                signatureText.classList.add('hide');
+                signatureInput.classList.add('show');
+                signatureInput.value = signatureText.textContent.trim();
+                signatureInput.focus();
+                signatureInput.select();
             } else {
-                contentHtml = contentHtml.replace(/\[表情包：[^\]]+\]/, '');
+                saveSignature();
+            }
+        });
+
+        signatureInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                saveSignature();
+            }
+        });
+
+        signatureInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                if (isEditing) {
+                    saveSignature();
+                }
+            }, 200);
+        });
+
+        function saveSignature() {
+            const newText = signatureInput.value.trim() || '今天也很想你 💕';
+            signatureText.textContent = newText;
+            signatureText.classList.remove('hide');
+            signatureInput.classList.remove('show');
+            isEditing = false;
+
+            const bindRoleId = config.heart.bindRoleId;
+            if (bindRoleId) {
+                const role = roles.find(r => r.id === bindRoleId);
+                if (role) {
+                    if (!role.heartData) {
+                        role.heartData = { value: 65, restingValue: 65, peakValue: 65, signature: newText, recentTrigger: '初次相遇' };
+                    }
+                    role.heartData.signature = newText;
+                    config.heart.signature = newText;
+                    saveAllData();
+                    updateHeartDisplay();
+                    showToast('✅ 个签已更新');
+                }
+            } else {
+                config.heart.signature = newText;
+                saveAllData();
+                updateHeartDisplay();
             }
         }
-
-        if (msg.type === 'text' && msg.content.startsWith('> ')) {
-            const lines = msg.content.split('\n');
-            const quoteLine = lines[0].substring(2);
-            const replyLines = lines.slice(2).join('\n').trim();
-            const senderName = msg.role === 'user' ? '我' : role.name;
-
-            contentHtml = `
-                <div class="quote-block">
-                    <div class="quote-sender">${senderName} 引用：</div>
-                    <div class="quote-content">${quoteLine}</div>
-                </div>
-                ${replyLines ? `<hr class="quote-divider" /><div class="reply-content">${replyLines}</div>` : ''}
-            `;
-        } else if (msg.type === 'image') {
-            contentHtml = `<img src="${msg.content}" alt="图片" />`;
-        }
-
-        const timeStr = formatTime(msg.time, config.timeMode || 'HH:MM');
-
-        let actionsHtml = '';
-        if (msg.role === 'assistant') {
-            actionsHtml = `
-                <div class="msg-actions">
-                    <button class="action-btn regenerate-btn" data-msgid="${msg.id}" title="重新生成"><i class="fas fa-sync-alt"></i></button>
-                    <button class="action-btn delete-btn" data-msgid="${msg.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
-                </div>
-            `;
-        } else if (msg.role === 'user') {
-            actionsHtml = `
-                <div class="msg-actions">
-                    <button class="action-btn delete-btn" data-msgid="${msg.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
-                </div>
-            `;
-        }
-
-        row.innerHTML = `
-            <div class="avatar ${avatarClass}"></div>
-            <div class="bubble-container">
-                ${timeStr ? `<div class="msg-time">${timeStr}</div>` : ''}
-                <div class="bubble-row">
-                    <div class="bubble">${contentHtml}</div>
-                    ${actionsHtml}
-                </div>
-            </div>
-        `;
-        return row;
-    }
-
-    function appendMessage(msg, role) {
-        const row = createMessageRow(msg, role);
-        container.appendChild(row);
-        container.scrollTop = container.scrollHeight;
-        applyAvatars();
-    }
-
-    function applyAvatars() {
-        const role = getCurrentRole();
-        if (!role) return;
-
-        const botAvatars = document.querySelectorAll('.avatar.bot');
-        if (role.avatar) {
-            botAvatars.forEach(el => {
-                el.style.backgroundImage = `url(${role.avatar})`;
-                el.style.backgroundSize = 'cover';
-                el.style.backgroundPosition = 'center';
-                el.classList.add('has-image');
-            });
-        } else {
-            botAvatars.forEach(el => {
-                el.style.backgroundImage = '';
-                el.style.backgroundSize = '';
-                el.style.backgroundPosition = '';
-                el.classList.remove('has-image');
-                el.style.backgroundColor = '#07c160';
-            });
-        }
-
-        const userAvatars = document.querySelectorAll('.avatar.user');
-        if (config.userAvatar) {
-            userAvatars.forEach(el => {
-                el.style.backgroundImage = `url(${config.userAvatar})`;
-                el.style.backgroundSize = 'cover';
-                el.style.backgroundPosition = 'center';
-                el.classList.add('has-image');
-            });
-        } else {
-            userAvatars.forEach(el => {
-                el.style.backgroundImage = '';
-                el.style.backgroundSize = '';
-                el.style.backgroundPosition = '';
-                el.classList.remove('has-image');
-                el.style.backgroundColor = '#576b95';
-            });
-        }
-    }
-
-    function applyFontSettings() {
-        const fontSize = config.fontSize || 'medium';
-        const fontWeight = config.fontWeight || 'regular';
-        document.documentElement.setAttribute('data-font-size', fontSize);
-        document.documentElement.setAttribute('data-font-weight', fontWeight);
     }
 
     // ============================================================
-    //  长按引用回复
+    //  悬浮窗拖拽
     // ============================================================
 
-    const longpressMenu = document.createElement('div');
-    longpressMenu.className = 'longpress-menu';
-    longpressMenu.id = 'longpressMenu';
-    longpressMenu.innerHTML = `
-        <button class="menu-item" data-action="quote"><i class="fas fa-quote-left"></i> 引用回复</button>
-        <button class="menu-item danger" data-action="delete"><i class="fas fa-trash-alt"></i> 删除</button>
-    `;
-    document.body.appendChild(longpressMenu);
+    let dragData = {
+        isDragging: false,
+        startX: 0,
+        startY: 0,
+        offsetX: 0,
+        offsetY: 0,
+        hasMoved: false,
+    };
 
-    let longpressTimer = null;
-    let longpressTargetRow = null;
+    function initFloatingDrag() {
+        const el = document.getElementById('floatingHeart');
+        if (!el) return;
 
-    function attachLongPressEvents() {
-        const rows = container.querySelectorAll('.message-row');
-        rows.forEach(row => {
-            row.removeEventListener('touchstart', onTouchStart);
-            row.removeEventListener('touchend', onTouchEnd);
-            row.removeEventListener('touchmove', onTouchMove);
-            row.addEventListener('touchstart', onTouchStart);
-            row.addEventListener('touchend', onTouchEnd);
-            row.addEventListener('touchmove', onTouchMove);
+        el.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            const rect = el.getBoundingClientRect();
+            dragData.isDragging = true;
+            dragData.startX = touch.clientX;
+            dragData.startY = touch.clientY;
+            dragData.offsetX = touch.clientX - rect.left;
+            dragData.offsetY = touch.clientY - rect.top;
+            dragData.hasMoved = false;
+            el.style.transition = 'none';
+        }, { passive: true });
+
+        el.addEventListener('touchmove', (e) => {
+            if (!dragData.isDragging) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const newX = touch.clientX - dragData.offsetX;
+            const newY = touch.clientY - dragData.offsetY;
+            
+            const maxX = window.innerWidth - el.offsetWidth;
+            const maxY = window.innerHeight - el.offsetHeight;
+            const clampedX = Math.max(0, Math.min(maxX, newX));
+            const clampedY = Math.max(0, Math.min(maxY, newY));
+            
+            el.style.left = clampedX + 'px';
+            el.style.top = clampedY + 'px';
+            el.style.right = 'auto';
+            el.style.bottom = 'auto';
+            dragData.hasMoved = true;
+        }, { passive: false });
+
+        el.addEventListener('touchend', (e) => {
+            if (!dragData.isDragging) return;
+            dragData.isDragging = false;
+            el.style.transition = '';
+            if (!dragData.hasMoved) {
+                openHeartDetail();
+            }
+            dragData.hasMoved = false;
+        }, { passive: true });
+
+        el.addEventListener('mousedown', (e) => {
+            const rect = el.getBoundingClientRect();
+            dragData.isDragging = true;
+            dragData.startX = e.clientX;
+            dragData.startY = e.clientY;
+            dragData.offsetX = e.clientX - rect.left;
+            dragData.offsetY = e.clientY - rect.top;
+            dragData.hasMoved = false;
+            el.style.transition = 'none';
+            e.preventDefault();
         });
-    }
 
-    function onTouchStart(e) {
-        const row = this;
-        longpressTargetRow = row;
-        longpressTimer = setTimeout(() => {
-            const role = getCurrentRole();
-            if (!role) return;
-            const idx = Array.from(container.querySelectorAll('.message-row')).indexOf(row);
-            const msgs = role.messages || [];
-            if (idx >= msgs.length) return;
-            const msg = msgs[idx];
-            if (!msg) return;
+        document.addEventListener('mousemove', (e) => {
+            if (!dragData.isDragging) return;
+            const newX = e.clientX - dragData.offsetX;
+            const newY = e.clientY - dragData.offsetY;
+            const maxX = window.innerWidth - el.offsetWidth;
+            const maxY = window.innerHeight - el.offsetHeight;
+            const clampedX = Math.max(0, Math.min(maxX, newX));
+            const clampedY = Math.max(0, Math.min(maxY, newY));
+            el.style.left = clampedX + 'px';
+            el.style.top = clampedY + 'px';
+            el.style.right = 'auto';
+            el.style.bottom = 'auto';
+            dragData.hasMoved = true;
+        });
 
-            const senderName = msg.role === 'user' ? '我' : (role ? role.name : '对方');
-            const preview = msg.content.length > 50 ? msg.content.substring(0, 50) + '…' : msg.content;
-
-            const menu = document.getElementById('longpressMenu');
-            const touch = e.touches ? e.touches[0] : e;
-            let x = touch.clientX || window.innerWidth / 2;
-            let y = touch.clientY || window.innerHeight / 2;
-
-            if (x + 170 > window.innerWidth) x = window.innerWidth - 180;
-            if (y + 80 > window.innerHeight) y = window.innerHeight - 90;
-            if (x < 10) x = 10;
-            if (y < 10) y = 10;
-
-            menu.style.left = x + 'px';
-            menu.style.top = y + 'px';
-            menu.classList.add('active');
-
-            const quoteItem = menu.querySelector('[data-action="quote"]');
-            quoteItem.onclick = () => {
-                quotedMessage = { role: msg.role, content: msg.content, name: senderName };
-                document.getElementById('quoteText').textContent = `引用 ${senderName}：${preview}`;
-                document.getElementById('quoteBar').classList.add('active');
-                input.focus();
-                hideLongpressMenu();
-                showToast('💬 已引用，输入回复内容');
-            };
-
-            const deleteItem = menu.querySelector('[data-action="delete"]');
-            deleteItem.onclick = () => {
-                if (confirm('确定要删除这条消息吗？关联的记忆也会被删除。')) {
-                    deleteMessageAndMemory(role.id, msg.id);
-                    hideLongpressMenu();
+        document.addEventListener('mouseup', () => {
+            if (dragData.isDragging) {
+                dragData.isDragging = false;
+                el.style.transition = '';
+                if (!dragData.hasMoved) {
+                    openHeartDetail();
                 }
-            };
-
-            longpressTimer = null;
-        }, 500);
-    }
-
-    function onTouchEnd() {
-        clearTimeout(longpressTimer);
-        longpressTimer = null;
-    }
-
-    function onTouchMove() {
-        clearTimeout(longpressTimer);
-        longpressTimer = null;
-    }
-
-    function hideLongpressMenu() {
-        const menu = document.getElementById('longpressMenu');
-        menu.classList.remove('active');
-    }
-
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.longpress-menu')) hideLongpressMenu();
-    });
-
-    document.getElementById('quoteCancelBtn').addEventListener('click', () => {
-        quotedMessage = null;
-        document.getElementById('quoteBar').classList.remove('active');
-        showToast('已取消引用');
-    });
-
-    // ============================================================
-    //  清空聊天记录
+                dragData.hasMoved = false;
+            }
+        });
+    } // ============================================================
+    //  事件绑定
     // ============================================================
 
-    document.getElementById('clearChatBtn').addEventListener('click', () => {
+    sendBtn.removeEventListener('click', handleSend);
+    sendBtn.addEventListener('click', handleSend);
+    input.removeEventListener('keydown', handleSend);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    });
+
+    input.addEventListener('input', () => {
         const role = getCurrentRole();
-        if (!role) return;
-        if (confirm(`确定要清空「${role.name}」的所有聊天记录吗？`)) {
-            role.messages = [];
-            clearUnreadForRole(role.id);
-            saveAllData();
-            renderMessages();
-            renderContacts();
-            showToast(`🗑️ 已清空「${role.name}」的聊天记录`);
+        if (role) {
+            saveDraft(role.id, input.value);
         }
     });
 
-    document.getElementById('clearAllChatsBtn').addEventListener('click', () => {
-        if (confirm('⚠️ 确定要清空所有角色的聊天记录吗？此操作不可恢复！')) {
-            roles.forEach(role => {
-                role.messages = [];
-                clearUnreadForRole(role.id);
-            });
-            saveAllData();
-            renderMessages();
-            renderContacts();
-            renderRoleManager();
-            renderMemoryScreen();
-            showToast('🗑️ 已清空所有角色的聊天记录');
-        }
+    document.getElementById('hdCloseBtn').addEventListener('click', closeHeartDetail);
+    document.getElementById('heartDetailOverlay').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeHeartDetail();
     });
+
+    backFromContacts.addEventListener('click', closeContacts);
+    backFromChat.addEventListener('click', closeChat);
+    backFromMeme.addEventListener('click', closeMeme);
+
+    // ============================================================
+    //  桌面图标点击
+    // ============================================================
+
+    document.querySelectorAll('.app-icon[data-app]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const app = btn.dataset.app;
+            if (app === 'contacts') {
+                openContacts();
+            } else if (app === 'memory') {
+                openMemory();
+            } else if (app === 'meme') {
+                openMeme();
+            } else if (app === 'style') {
+                openStylePicker();
+            } else if (app === 'settings') {
+                openSettings();
+            } else if (app === 'diary') {
+                openDiary();
+            } else {
+                showToast('📱 功能开发中~');
+            }
+        });
+    });
+
+    // ============================================================
+    //  Toast
+    // ============================================================
+
+    function showToast(msg) {
+        const old = document.querySelector('.custom-toast');
+        if (old) old.remove();
+        const toast = document.createElement('div');
+        toast.className = 'custom-toast';
+        toast.textContent = msg;
+        document.querySelector('.phone-frame').appendChild(toast);
+        setTimeout(() => toast.remove(), 2500);
+    }
 
     // ============================================================
     //  打字指示器
@@ -8627,46 +8380,6 @@
     }
 
     // ============================================================
-    //  Toast
-    // ============================================================
-
-    function showToast(msg) {
-        const old = document.querySelector('.custom-toast');
-        if (old) old.remove();
-        const toast = document.createElement('div');
-        toast.className = 'custom-toast';
-        toast.textContent = msg;
-        document.querySelector('.phone-frame').appendChild(toast);
-        setTimeout(() => toast.remove(), 2500);
-    }
-
-    // ============================================================
-    //  桌面图标点击
-    // ============================================================
-
-    document.querySelectorAll('.app-icon[data-app]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const app = btn.dataset.app;
-            if (app === 'contacts') {
-                openContacts();
-            } else if (app === 'memory') {
-                openMemory();
-            } else if (app === 'meme') {
-                openMeme();
-            } else if (app === 'style') {
-                openStylePicker();
-            } else if (app === 'settings') {
-                openSettings();
-            } else if (app === 'diary') {
-                openDiary();
-else if (app === 'mall') {
-    openMall();
-}
-            } else {
-                showToast('📱 功能开发中~');
-            }
-        });
-    }); // ============================================================
     //  DeepSeek API
     // ============================================================
 
@@ -8847,29 +8560,141 @@ else if (app === 'mall') {
         }
     }
 
-    sendBtn.addEventListener('click', handleSend);
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
-        }
+    // ============================================================
+    //  长按引用回复
+    // ============================================================
+
+    const longpressMenu = document.createElement('div');
+    longpressMenu.className = 'longpress-menu';
+    longpressMenu.id = 'longpressMenu';
+    longpressMenu.innerHTML = `
+        <button class="menu-item" data-action="quote"><i class="fas fa-quote-left"></i> 引用回复</button>
+        <button class="menu-item danger" data-action="delete"><i class="fas fa-trash-alt"></i> 删除</button>
+    `;
+    document.body.appendChild(longpressMenu);
+
+    let longpressTimer = null;
+    let longpressTargetRow = null;
+
+    function attachLongPressEvents() {
+        const rows = container.querySelectorAll('.message-row');
+        rows.forEach(row => {
+            row.removeEventListener('touchstart', onTouchStart);
+            row.removeEventListener('touchend', onTouchEnd);
+            row.removeEventListener('touchmove', onTouchMove);
+            row.addEventListener('touchstart', onTouchStart);
+            row.addEventListener('touchend', onTouchEnd);
+            row.addEventListener('touchmove', onTouchMove);
+        });
+    }
+
+    function onTouchStart(e) {
+        const row = this;
+        longpressTargetRow = row;
+        longpressTimer = setTimeout(() => {
+            const role = getCurrentRole();
+            if (!role) return;
+            const idx = Array.from(container.querySelectorAll('.message-row')).indexOf(row);
+            const msgs = role.messages || [];
+            if (idx >= msgs.length) return;
+            const msg = msgs[idx];
+            if (!msg) return;
+
+            const senderName = msg.role === 'user' ? '我' : (role ? role.name : '对方');
+            const preview = msg.content.length > 50 ? msg.content.substring(0, 50) + '…' : msg.content;
+
+            const menu = document.getElementById('longpressMenu');
+            const touch = e.touches ? e.touches[0] : e;
+            let x = touch.clientX || window.innerWidth / 2;
+            let y = touch.clientY || window.innerHeight / 2;
+
+            if (x + 170 > window.innerWidth) x = window.innerWidth - 180;
+            if (y + 80 > window.innerHeight) y = window.innerHeight - 90;
+            if (x < 10) x = 10;
+            if (y < 10) y = 10;
+
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
+            menu.classList.add('active');
+
+            const quoteItem = menu.querySelector('[data-action="quote"]');
+            quoteItem.onclick = () => {
+                quotedMessage = { role: msg.role, content: msg.content, name: senderName };
+                document.getElementById('quoteText').textContent = `引用 ${senderName}：${preview}`;
+                document.getElementById('quoteBar').classList.add('active');
+                input.focus();
+                hideLongpressMenu();
+                showToast('💬 已引用，输入回复内容');
+            };
+
+            const deleteItem = menu.querySelector('[data-action="delete"]');
+            deleteItem.onclick = () => {
+                if (confirm('确定要删除这条消息吗？关联的记忆也会被删除。')) {
+                    deleteMessageAndMemory(role.id, msg.id);
+                    hideLongpressMenu();
+                }
+            };
+
+            longpressTimer = null;
+        }, 500);
+    }
+
+    function onTouchEnd() {
+        clearTimeout(longpressTimer);
+        longpressTimer = null;
+    }
+
+    function onTouchMove() {
+        clearTimeout(longpressTimer);
+        longpressTimer = null;
+    }
+
+    function hideLongpressMenu() {
+        const menu = document.getElementById('longpressMenu');
+        menu.classList.remove('active');
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.longpress-menu')) hideLongpressMenu();
     });
 
-    input.addEventListener('input', () => {
+    document.getElementById('quoteCancelBtn').addEventListener('click', () => {
+        quotedMessage = null;
+        document.getElementById('quoteBar').classList.remove('active');
+        showToast('已取消引用');
+    });
+
+    // ============================================================
+    //  清空聊天记录
+    // ============================================================
+
+    document.getElementById('clearChatBtn').addEventListener('click', () => {
         const role = getCurrentRole();
-        if (role) {
-            saveDraft(role.id, input.value);
+        if (!role) return;
+        if (confirm(`确定要清空「${role.name}」的所有聊天记录吗？`)) {
+            role.messages = [];
+            clearUnreadForRole(role.id);
+            saveAllData();
+            renderMessages();
+            renderContacts();
+            showToast(`🗑️ 已清空「${role.name}」的聊天记录`);
         }
     });
 
-    document.getElementById('hdCloseBtn').addEventListener('click', closeHeartDetail);
-    document.getElementById('heartDetailOverlay').addEventListener('click', (e) => {
-        if (e.target === e.currentTarget) closeHeartDetail();
+    document.getElementById('clearAllChatsBtn').addEventListener('click', () => {
+        if (confirm('⚠️ 确定要清空所有角色的聊天记录吗？此操作不可恢复！')) {
+            roles.forEach(role => {
+                role.messages = [];
+                clearUnreadForRole(role.id);
+            });
+            saveAllData();
+            renderMessages();
+            renderContacts();
+            renderRoleManager();
+            renderMemoryScreen();
+            showToast('🗑️ 已清空所有角色的聊天记录');
+        }
     });
-
-    backFromContacts.addEventListener('click', closeContacts);
-    backFromChat.addEventListener('click', closeChat);
-    backFromMeme.addEventListener('click', closeMeme);
 
     // ============================================================
     //  个性化弹窗
@@ -9185,8 +9010,32 @@ else if (app === 'mall') {
         if (e.target === this) {
             closeStylePickerPanel();
         }
-    }); // ============================================================
+    });
+
+    // ============================================================
     //  表情包功能
+    // ============================================================
+
+    function openMeme() {
+        launcherScreen.classList.add('hidden');
+        chatScreen.classList.remove('open');
+        contactsScreen.classList.remove('open');
+        memoryScreen.classList.remove('open');
+        diaryScreen.classList.remove('open');
+        memeScreen.classList.add('open');
+        renderMemeScreen();
+        if (config.heart.floatingEnabled !== false) {
+            setTimeout(showFloatingHeart, 300);
+        }
+    }
+
+    function closeMeme() {
+        memeScreen.classList.remove('open');
+        launcherScreen.classList.remove('hidden');
+    }
+
+// ============================================================
+    //  表情包功能（完整版）
     // ============================================================
 
     function openMeme() {
@@ -9721,9 +9570,7 @@ else if (app === 'mall') {
         input.click();
     });
 
-    backFromMeme.addEventListener('click', closeMeme);
-
-    // ============================================================
+    backFromMeme.addEventListener('click', closeMeme);// ============================================================
     //  初始化
     // ============================================================
 
