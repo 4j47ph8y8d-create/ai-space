@@ -4810,7 +4810,7 @@ const response = await fetch(proxyUrl + 'https://api.notion.com/v1/databases/' +
                     description: getTextProp(props, '详情描述') || '',
                     category: getSelectProp(props, '分类') || '',
                     tag: getSelectProp(props, '标签') || '',
-                    isOnSale: getCheckboxProp(props, '上架') !== false,
+                   isOnSale: true,
                 };
             }).filter(function(p) { return p.isOnSale; });
 
