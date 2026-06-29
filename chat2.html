@@ -1205,77 +1205,47 @@
         }));
     }
 
-    function loadAllData() {
-        let savedData = null;
-        try {
-            const raw = localStorage.getItem('ds_multirole_v2');
-            if (raw) {
-                savedData = JSON.parse(raw);
-                if (!savedData.roles || !Array.isArray(savedData.roles) || savedData.roles.length === 0) {
-                    savedData = null;
-                }
+function loadAllData() {
+    let savedData = null;
+    try {
+        const raw = localStorage.getItem('ds_multirole_v2');
+        if (raw) {
+            savedData = JSON.parse(raw);
+            if (!savedData.roles || !Array.isArray(savedData.roles) || savedData.roles.length === 0) {
+                savedData = null;
             }
-        } catch (_) { savedData = null; }
-
-        if (savedData) {
-            config = savedData.config || { ...DEFAULT_CONFIG };
-            if (!config.unreadCount) config.unreadCount = {};
-            if (!config.timeMode) config.timeMode = 'HH:MM';
-            if (!config.fontSize) config.fontSize = 'medium';
-            if (!config.fontWeight) config.fontWeight = 'regular';
-            if (config.splitEnabled === undefined) config.splitEnabled = true;
-            if (!config.theme) config.theme = 'dark';
-            if (!config.pinnedContacts || !Array.isArray(config.pinnedContacts)) config.pinnedContacts = [];
-            if (!config.heart) config.heart = { ...DEFAULT_CONFIG.heart };
-            if (!config.heart.color) config.heart.color = '#ff6b81';
-            if (config.heart.floatingEnabled === undefined) config.heart.floatingEnabled = true;
-            if (!config.heart.speed) config.heart.speed = 'normal';
-            if (!config.heart.level) config.heart.level = '平静';
-            if (!config.heart.restingValue) config.heart.restingValue = 65;
-            if (!config.heart.value) config.heart.value = 65;
-            if (!config.heart.peakValue) config.heart.peakValue = 65;
-            if (config.aiMemeEnabled === undefined) config.aiMemeEnabled = true;
-            if (!config.diaries || !Array.isArray(config.diaries)) config.diaries = [];
-            if (config.diaryAutoGenerateEnabled === undefined) config.diaryAutoGenerateEnabled = true;
-            if (!config.lastDiaryCheckDate) config.lastDiaryCheckDate = null;
-            if (config.diaryCalendarCollapsed === undefined) config.diaryCalendarCollapsed = false;
-            if (!config.notionDbId) config.notionDbId = NOTION_CONFIG.dbId;
-
-            roles = savedData.roles;
-            roles.forEach(role => {
-                if (!role.heartData) {
-                    role.heartData = { value: 65, restingValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
-                }
-                if (!role.heartData.signature) role.heartData.signature = '今天也很想你 💕';
-                if (!role.heartData.recentTrigger) role.heartData.recentTrigger = '初次相遇';
-                if (!role.heartData.restingValue) role.heartData.restingValue = 65;
-                if (!role.heartData.value) role.heartData.value = 65;
-            });
-            currentRoleId = savedData.currentRoleId || roles[0].id;
-        } else {
-            config = { ...DEFAULT_CONFIG };
-            const defaultRole = createDefaultRole('温柔学长');
-            defaultRole.persona = '25岁音乐系研究生，性格内敛细腻，喜欢弹钢琴';
-            defaultRole.background = '从小在江南小镇长大，家里开旧书店';
-            defaultRole.style = '只说对话内容，不要任何动作、表情、环境描写。用短句，像真人微信聊天一样自然分段回复。';
-            defaultRole.extra = '有一只叫「糯米」的白猫';
-            defaultRole.memory = ['用户喜欢被叫"小乖"', '用户对猫毛过敏'];
-            defaultRole.messages = [
-                { role: 'assistant', content: '你好呀~ 我是温柔学长，很高兴认识你 💕', time: new Date().toLocaleTimeString() }
-            ];
-            roles = [defaultRole];
-            currentRoleId = defaultRole.id;
-            config.diaries = [];
-            try { saveAllData(); } catch (_) {}
         }
+    } catch (_) { savedData = null; }
 
-        if (!currentRoleId || !roles.find(r => r.id === currentRoleId)) {
-            currentRoleId = roles[0]?.id || null;
-        }
+    if (savedData) {
+        const savedConfig = savedData.config || {};
+        config = {
+            ...DEFAULT_CONFIG,
+            ...savedConfig,
+            heart: {
+                ...DEFAULT_CONFIG.heart,
+                ...(savedConfig.heart || {})
+            },
+            unreadCount: savedConfig.unreadCount || {},
+            pinnedContacts: Array.isArray(savedConfig.pinnedContacts) ? savedConfig.pinnedContacts : [],
+            diaries: Array.isArray(savedConfig.diaries) ? savedConfig.diaries : [],
+        };
+        if (!config.heart.color) config.heart.color = '#ff6b81';
+        if (config.heart.floatingEnabled === undefined) config.heart.floatingEnabled = true;
+        if (!config.heart.speed) config.heart.speed = 'normal';
+        if (!config.iconStyle) config.iconStyle = 'glass';
+        if (!config.bubbleStyle) config.bubbleStyle = 'default';
+        if (!config.timeMode) config.timeMode = 'HH:MM';
+        if (!config.fontSize) config.fontSize = 'medium';
+        if (!config.fontWeight) config.fontWeight = 'regular';
+        if (config.splitEnabled === undefined) config.splitEnabled = true;
+        if (!config.theme) config.theme = 'dark';
+        if (config.aiMemeEnabled === undefined) config.aiMemeEnabled = true;
+        if (!config.notionDbId) config.notionDbId = NOTION_CONFIG.dbId;
+        if (config.diaryCalendarCollapsed === undefined) config.diaryCalendarCollapsed = false;
 
+        roles = savedData.roles;
         roles.forEach(role => {
-            if (!Array.isArray(role.memory)) role.memory = [];
-            if (!Array.isArray(role.messages)) role.messages = [];
             if (!role.heartData) {
                 role.heartData = { value: 65, restingValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
             }
@@ -1283,8 +1253,43 @@
             if (!role.heartData.recentTrigger) role.heartData.recentTrigger = '初次相遇';
             if (!role.heartData.restingValue) role.heartData.restingValue = 65;
             if (!role.heartData.value) role.heartData.value = 65;
+            if (!Array.isArray(role.memory)) role.memory = [];
+            if (!Array.isArray(role.messages)) role.messages = [];
         });
+        currentRoleId = savedData.currentRoleId || roles[0]?.id || null;
+    } else {
+        config = { ...DEFAULT_CONFIG };
+        const defaultRole = createDefaultRole('温柔学长');
+        defaultRole.persona = '25岁音乐系研究生，性格内敛细腻，喜欢弹钢琴';
+        defaultRole.background = '从小在江南小镇长大，家里开旧书店';
+        defaultRole.style = '只说对话内容，不要任何动作、表情、环境描写。用短句，像真人微信聊天一样自然分段回复。';
+        defaultRole.extra = '有一只叫「糯米」的白猫';
+        defaultRole.memory = ['用户喜欢被叫"小乖"', '用户对猫毛过敏'];
+        defaultRole.messages = [
+            { role: 'assistant', content: '你好呀~ 我是温柔学长，很高兴认识你 💕', time: new Date().toLocaleTimeString() }
+        ];
+        roles = [defaultRole];
+        currentRoleId = defaultRole.id;
+        config.diaries = [];
+        try { saveAllData(); } catch (_) {}
     }
+
+    if (!currentRoleId || !roles.find(r => r.id === currentRoleId)) {
+        currentRoleId = roles[0]?.id || null;
+    }
+
+    roles.forEach(role => {
+        if (!Array.isArray(role.memory)) role.memory = [];
+        if (!Array.isArray(role.messages)) role.messages = [];
+        if (!role.heartData) {
+            role.heartData = { value: 65, restingValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
+        }
+        if (!role.heartData.signature) role.heartData.signature = '今天也很想你 💕';
+        if (!role.heartData.recentTrigger) role.heartData.recentTrigger = '初次相遇';
+        if (!role.heartData.restingValue) role.heartData.restingValue = 65;
+        if (!role.heartData.value) role.heartData.value = 65;
+    });
+}
 
     // ============================================================
     //  商城数据持久化
