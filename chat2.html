@@ -1665,7 +1665,8 @@ function isContactPinned(roleId) {
 
 // ============================================================
 //  渲染：联系人列表
-// ============================================================ function renderContacts() {
+// ============================================================
+function renderContacts() {
     var contactsList = document.getElementById('contactsList');
     if (!contactsList) return;
     if (!Array.isArray(roles) || roles.length === 0) {
@@ -5599,8 +5600,8 @@ function openStylePicker() {
 
 // ============================================================
 //  🚀 初始化入口
-// ============================================================ function init() {
-    try {
+// ============================================================
+function init() {
         loadAllData();
     } catch (e) { console.error('加载数据失败:', e); }
 
