@@ -337,6 +337,7 @@
         .permission-dialog .btn-group button:active { transform: scale(0.97); }
         .permission-dialog .btn-group .btn-allow-all { background: #07c160; color: #fff; }
         .permission-dialog .btn-group .btn-deny { background: #fee; color: #e74c3c; }
+        .permission-dialog .btn-group .btn-cancel-perm { background: var(--bg-secondary); color: var(--text-secondary); }
         .style-picker-overlay { position: absolute; inset: 0; z-index: 90; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); display: none; justify-content: center; align-items: center; border-radius: 32px; overflow: hidden; }
         .style-picker-overlay.active { display: flex; }
         .style-picker-panel { background: #1a1a2e; border-radius: 20px; padding: 24px 18px 20px; max-width: 400px; width: 94%; max-height: 85%; overflow-y: auto; animation: fadeInUp 0.3s ease; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.06); }
@@ -489,6 +490,7 @@
         .mall-product-card .product-tag.hot { background: #ff6b81; }
         .mall-product-card .product-tag.new { background: #74b9ff; }
         .mall-product-card .product-tag.couple { background: #a29bfe; }
+        .mall-product-card .product-tag.default-tag { background: #b2bec3; }
         .mall-empty { text-align: center; padding: 60px 20px; color: var(--text-secondary); grid-column: 1 / -1; }
         .mall-empty i { font-size: 48px; opacity: 0.3; display: block; margin-bottom: 12px; }
         .mall-detail-overlay { position: absolute; inset: 0; z-index: 30; background: var(--bg-secondary); display: none; flex-direction: column; animation: fadeInUp 0.25s ease; }
@@ -634,8 +636,8 @@
         .heart-detail-panel .hd-recent { font-size: 12px; color: rgba(255,255,255,0.25); text-align: center; line-height: 1.6; }
         .heart-detail-panel .hd-recent .highlight { color: var(--heart-color, #ff6b81); }
         @media (max-width: 460px) { .phone-frame { border-radius: 0; height: 100vh; max-height: 100vh; } body { padding: 0; } .mall-header .mall-balance { font-size: 11px; padding: 2px 8px; } .mall-header .mall-invite-btn { font-size: 10px; padding: 2px 8px; } .mall-product-grid { gap: 8px; } .mall-product-card .product-name { font-size: 12px; } .mall-product-card .product-price { font-size: 14px; } .mall-detail-body .detail-name { font-size: 17px; } .mall-detail-body .detail-price { font-size: 20px; } .mall-ai-spot-panel { max-width: 300px; padding: 16px; } .mall-ai-spot-panel .spot-product .spot-img { width: 60px; height: 60px; font-size: 24px; } .mall-ai-spot-panel .spot-ai-words { font-size: 13px; } }
-    </style> </head>
-<body>
+    </style>
+</head> <body>
 <div class="phone-frame" id="app">
     <!-- ===== 桌面 ===== -->
     <div class="screen-launcher" id="launcherScreen">
@@ -959,6 +961,7 @@
             <div class="btn-group">
                 <button class="btn-allow-all" id="permAllowAll">✅ 允许访问</button>
                 <button class="btn-deny" id="permDeny">🚫 不允许</button>
+                <button class="btn-cancel-perm" id="permCancel">取消</button>
             </div>
         </div>
     </div>
@@ -1124,6 +1127,7 @@ var memeDeleteMode = false;
 var memeSelectedForDelete = [];
 var mallScrollTimeout = null;
 var heartBeatInterval = null;
+var lastMessageCount = -1;
 
 // ============================================================
 //  工具函数
@@ -1746,7 +1750,7 @@ function renderRoleManager() {
                 clearUnreadForRole(role.id);
                 saveAllData();
                 renderRoleManager(); renderContacts();
-                if (currentRoleId === role.id) renderMessages();
+                if (currentRoleId === role.id) { lastMessageCount = -1; renderMessages(); }
                 showToast('🗑️ 已清空「' + role.name + '」的聊天记录');
             }
         });
@@ -1871,8 +1875,6 @@ function applyChatBgForRole(role) {
 // ============================================================
 //  渲染：聊天消息（增量渲染 - 修复版）
 // ============================================================
-var lastMessageCount = -1;
-
 function renderMessages() {
     var role = getCurrentRole();
     if (!role) return;
@@ -1881,7 +1883,6 @@ function renderMessages() {
     var container = document.getElementById('messageContainer');
     var msgs = role.messages || [];
 
-    // 如果是首次加载（lastMessageCount === -1），全量渲染
     if (lastMessageCount === -1) {
         container.innerHTML = '';
         if (msgs.length === 0) {
@@ -1907,7 +1908,6 @@ function renderMessages() {
         return;
     }
 
-    // 增量模式：只渲染新消息
     if (msgs.length > lastMessageCount) {
         for (var i = lastMessageCount; i < msgs.length; i++) {
             var msg = msgs[i];
@@ -1917,7 +1917,6 @@ function renderMessages() {
         lastMessageCount = msgs.length;
         container.scrollTop = container.scrollHeight;
     } else if (msgs.length < lastMessageCount) {
-        // 如果消息被删除了，重新全量渲染
         container.innerHTML = '';
         if (msgs.length === 0) {
             var w2 = document.createElement('div');
@@ -2230,8 +2229,20 @@ function buildSystemPrompt(role) {
 }
 
 function splitReplyIntoMessages(text) {
-    var rawSegments = text.match(/[^。！？.!?]*[。！？.!?]+|[^。！？.!?]+/g) || [];
+    var memeMatches = text.match(/\[表情包：[^\]]+\]/g) || [];
+    var memePlaceholders = memeMatches.map(function(m, i) { return '{{MEME_' + i + '}}'; });
+    var cleanText = text;
+    memeMatches.forEach(function(m, i) {
+        cleanText = cleanText.replace(m, memePlaceholders[i]);
+    });
+    var rawSegments = cleanText.match(/[^。！？.!?]*[。！？.!?]+|[^。！？.!?]+/g) || [];
     var segments = rawSegments.map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
+    segments = segments.map(function(s) {
+        memePlaceholders.forEach(function(placeholder, i) {
+            s = s.replace(placeholder, memeMatches[i]);
+        });
+        return s;
+    });
     if (segments.length === 0) return [text.trim()];
     return segments;
 }
@@ -2252,7 +2263,7 @@ function callDeepSeek(userMessage, role) {
             model: config.model || 'deepseek-chat',
             messages: [{ role: 'system', content: systemPrompt }, ...history, { role: 'user', content: userMessage }],
             temperature: temperature,
-            max_tokens: 300,
+            max_tokens: 600,
         }),
     }).then(function(resp) {
         if (!resp.ok) {
@@ -2288,6 +2299,7 @@ function addMessageToRole(roleId, role, content, type) {
     if (role === 'user' || role === 'assistant') {
         detectHeartKeywords(r.id, content, role);
     }
+    lastMessageCount = -1;
     saveAllData();
     updateHeartDisplay();
 }
@@ -2687,9 +2699,7 @@ function renderMemoryList() {
             }
         });
     });
-}
-
-// ============================================================
+} // ============================================================
 //  日记系统
 // ============================================================
 function getDiaryDateKey(date) {
@@ -2994,7 +3004,9 @@ function generateDiary(roleId, showToastMsg) {
         console.error('生成日记失败:', e);
         return null;
     });
-} // ============================================================
+}
+
+// ============================================================
 //  商城 - 商品加载（本地 products.json）
 // ============================================================
 function loadMallProducts() {
@@ -3048,7 +3060,7 @@ function renderMallProducts() {
 
 function getTagClass(tag) {
     var map = { '热销': 'hot', '新品': 'new', '情侣': 'couple' };
-    return map[tag] || '';
+    return map[tag] || 'default-tag';
 }
 
 function addOrderEntry() {
@@ -3466,7 +3478,6 @@ function showOrderList() {
     html += '</div>';
     body.innerHTML = html;
 
-    // ===== 修复：返回商城按钮 =====
     var backBtn = document.getElementById('orderBackBtn');
     if (backBtn) {
         backBtn.addEventListener('click', function() {
@@ -3745,11 +3756,15 @@ function openRoleSelectDialog() {
 function initMallScrollTrigger() {
     var body = document.getElementById('mallBody');
     if (!body) return;
+    var scrollPending = false;
     body.addEventListener('scroll', function() {
         if (!mallShoppingTogether.isActive) return;
         if (mallShoppingTogether.rejectCount >= MALL_CONFIG.maxRejectCount) return;
+        if (scrollPending) return;
+        scrollPending = true;
         clearTimeout(mallScrollTimeout);
         mallScrollTimeout = setTimeout(function() {
+            scrollPending = false;
             var cards = body.querySelectorAll('.mall-product-card');
             var targetCard = null;
             var viewportTop = body.scrollTop;
@@ -4018,7 +4033,7 @@ function applyBubbleStyle(styleId) {
         'pink': '.bubble { background: #ffe8ec !important; box-shadow: 0 1px 4px rgba(0,0,0,0.04) !important; color: #5a2d3a !important; } .message-row.self .bubble { background: #ffb3c6 !important; } .typing-dots { background: #ffe8ec !important; }',
         'green': '.bubble { background: #e0f7fa !important; box-shadow: 0 1px 4px rgba(0,0,0,0.04) !important; color: #1a3a3a !important; } .message-row.self .bubble { background: #81ecec !important; } .typing-dots { background: #e0f7fa !important; }',
         'dark': '.chat-messages { background: #1a1a1a !important; } .bubble { background: #2d3436 !important; box-shadow: 0 1px 4px rgba(0,0,0,0.2) !important; color: #dfe6e9 !important; } .message-row.self .bubble { background: #00b894 !important; } .typing-dots { background: #2d3436 !important; } .typing-dots span { background: #dfe6e9 !important; } .message-row.self .bubble .msg-time { color: rgba(255,255,255,0.5) !important; }',
-        'frost': '.chat-messages { background: transparent !important; } .bubble { background: rgba(255,255,255,0.12) !important; backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important; border: 1px solid rgba(255,255,255,0.08) !important; box-shadow: 0 1px 4px rgba(0,0,0,0.1) !important; color: rgba(255,255,255,0.85) !important; } .message-row.self .bubble { background: rgba(255,255,255,0.18) !important; border: 1px solid rgba(255,255,255,0.12) !important; } .typing-dots { background: rgba(255,255,255,0.12) !important; backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important; border: 1px solid rgba(255,255,255,0.08) !important; } .typing-dots span { background: rgba(255,255,255,0.5) !important; } .message-row.self .bubble .msg-time { color: rgba(255,255,255,0.4) !important; }',
+        'frost': '.chat-messages { background: transparent !important; position: relative; z-index: 1; } .bubble { background: rgba(255,255,255,0.12) !important; backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important; border: 1px solid rgba(255,255,255,0.08) !important; box-shadow: 0 1px 4px rgba(0,0,0,0.1) !important; color: rgba(255,255,255,0.85) !important; } .message-row.self .bubble { background: rgba(255,255,255,0.18) !important; border: 1px solid rgba(255,255,255,0.12) !important; } .typing-dots { background: rgba(255,255,255,0.12) !important; backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important; border: 1px solid rgba(255,255,255,0.08) !important; } .typing-dots span { background: rgba(255,255,255,0.5) !important; } .message-row.self .bubble .msg-time { color: rgba(255,255,255,0.4) !important; }',
         'orange': '.bubble { background: #fff5e6 !important; box-shadow: 0 1px 4px rgba(0,0,0,0.04) !important; color: #5a3d1a !important; } .message-row.self .bubble { background: #fdcb6e !important; } .typing-dots { background: #fff5e6 !important; }',
         'purple': '.bubble { background: #f3e8ff !important; box-shadow: 0 1px 4px rgba(0,0,0,0.04) !important; color: #2d1a4a !important; } .message-row.self .bubble { background: #a29bfe !important; color: #fff !important; } .typing-dots { background: #f3e8ff !important; }',
         'bw': '.bubble { background: #ffffff !important; border: 1px solid #e0e0e0 !important; box-shadow: none !important; color: #1a1a1a !important; } .message-row.self .bubble { background: #000000 !important; color: #ffffff !important; border: none !important; } .typing-dots { background: #ffffff !important; border: 1px solid #e0e0e0 !important; } .message-row.self .bubble .msg-time { color: rgba(255,255,255,0.5) !important; }'
@@ -4077,13 +4092,6 @@ function updateHeartColor(color) {
     if (fhValue) { fhValue.style.color = color; }
     var hdValue = document.getElementById('hdValue');
     if (hdValue) { hdValue.style.color = color; }
-    var hdLevel = document.getElementById('hdLevel');
-    if (hdLevel) { hdLevel.style.color = color; }
-    var hdRecent = document.getElementById('hdRecent');
-    if (hdRecent) {
-        var highlight = hdRecent.querySelector('.highlight');
-        if (highlight) { highlight.style.color = color; }
-    }
 }
 
 // ============================================================
@@ -5059,6 +5067,14 @@ function openStylePicker() {
     }
 }
 
+function updateStatusTime() {
+    var now = new Date();
+    var hours = String(now.getHours()).padStart(2, '0');
+    var mins = String(now.getMinutes()).padStart(2, '0');
+    var el = document.getElementById('statusTime');
+    if (el) el.textContent = hours + ':' + mins;
+}
+
 // ============================================================
 //  🚀 初始化入口
 // ============================================================
@@ -5147,6 +5163,8 @@ function init() {
         renderMemoryScreen();
         renderDiaryAll();
         initMallScrollTrigger();
+        updateStatusTime();
+        setInterval(updateStatusTime, 30000);
     } catch (e) { console.error('界面渲染失败:', e); }
 
     try {
@@ -5530,6 +5548,11 @@ document.addEventListener('DOMContentLoaded', function() {
         updatePermissionStatusUI();
         pendingPickerAction = null;
         showToast('🚫 已拒绝相册访问，仍可正常聊天');
+    });
+    document.getElementById('permCancel').addEventListener('click', function() {
+        document.getElementById('permissionOverlay').classList.remove('active');
+        pendingPickerAction = null;
+        showToast('已取消');
     });
 
     document.getElementById('quoteCancelBtn').addEventListener('click', function() {
