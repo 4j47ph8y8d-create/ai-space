@@ -634,8 +634,7 @@
         .heart-detail-panel .hd-recent { font-size: 12px; color: rgba(255,255,255,0.25); text-align: center; line-height: 1.6; }
         .heart-detail-panel .hd-recent .highlight { color: var(--heart-color, #ff6b81); }
         @media (max-width: 460px) { .phone-frame { border-radius: 0; height: 100vh; max-height: 100vh; } body { padding: 0; } .mall-header .mall-balance { font-size: 11px; padding: 2px 8px; } .mall-header .mall-invite-btn { font-size: 10px; padding: 2px 8px; } .mall-product-grid { gap: 8px; } .mall-product-card .product-name { font-size: 12px; } .mall-product-card .product-price { font-size: 14px; } .mall-detail-body .detail-name { font-size: 17px; } .mall-detail-body .detail-price { font-size: 20px; } .mall-ai-spot-panel { max-width: 300px; padding: 16px; } .mall-ai-spot-panel .spot-product .spot-img { width: 60px; height: 60px; font-size: 24px; } .mall-ai-spot-panel .spot-ai-words { font-size: 13px; } }
-    </style>
-</head>
+    </style> </head>
 <body>
 <div class="phone-frame" id="app">
     <!-- ===== 桌面 ===== -->
@@ -668,7 +667,9 @@
             <button class="app-icon" data-app="memory"><div class="icon-wrap memory"><i class="fas fa-brain"></i></div><span class="app-name">记忆库</span></button>
             <button class="app-icon" data-app="settings"><div class="icon-wrap settings"><i class="fas fa-cog"></i></div><span class="app-name">设置</span></button>
         </div>
-    </div> <!-- ===== 联系人界面 ===== -->
+    </div>
+
+    <!-- ===== 联系人界面 ===== -->
     <div class="screen-contacts" id="contactsScreen">
         <div class="contacts-header">
             <button class="back-btn" id="backFromContacts"><i class="fas fa-chevron-left"></i></button>
@@ -883,7 +884,9 @@
             </div>
             <button class="cancel-btn" id="pickerCancel">取消</button>
         </div>
-    </div> <!-- ===== 设置抽屉 ===== -->
+    </div>
+
+    <!-- ===== 设置抽屉 ===== -->
     <div class="settings-overlay" id="settingsOverlay">
         <div class="settings-drawer">
             <button class="close-drawer" id="closeSettingsBtn">×</button>
@@ -1030,9 +1033,7 @@
             <div class="hd-recent" id="hdRecent">最近心跳加速：<span class="highlight">等待你的第一句情话</span></div>
         </div>
     </div>
-</div>
-
-<script>
+</div> <script>
 // ============================================================
 //  全局配置常量
 // ============================================================
@@ -1099,6 +1100,7 @@ var memoryCurrentRoleId = null;
 var selectedDiaryDate = new Date();
 var currentDiaryViewDate = new Date();
 var selectedDiaryRoleId = null;
+var isFromContacts = false;
 
 var mallProducts = [];
 var mallCart = [];
@@ -1867,56 +1869,117 @@ function applyChatBgForRole(role) {
 }
 
 // ============================================================
-//  渲染：聊天消息
+//  渲染：聊天消息（增量渲染 - 修复版）
 // ============================================================
+var lastMessageCount = -1;
+
 function renderMessages() {
     var role = getCurrentRole();
     if (!role) return;
     applyChatBgForRole(role);
 
     var container = document.getElementById('messageContainer');
-    container.innerHTML = '';
-
     var msgs = role.messages || [];
-    if (msgs.length === 0) {
-        var w = document.createElement('div');
-        w.className = 'message-row';
-        w.innerHTML = '<div class="avatar bot"></div><div class="bubble-container"><div class="bubble-row"><div class="bubble">你好呀~ 我是 ' + role.name + '，很高兴认识你 💕</div></div></div>';
-        container.appendChild(w);
-    } else {
-        msgs.forEach(function(msg) {
+
+    // 如果是首次加载（lastMessageCount === -1），全量渲染
+    if (lastMessageCount === -1) {
+        container.innerHTML = '';
+        if (msgs.length === 0) {
+            var w = document.createElement('div');
+            w.className = 'message-row';
+            w.innerHTML = '<div class="avatar bot"></div><div class="bubble-container"><div class="bubble-row"><div class="bubble">你好呀~ 我是 ' + role.name + '，很高兴认识你 💕</div></div></div>';
+            container.appendChild(w);
+        } else {
+            msgs.forEach(function(msg) {
+                var row = createMessageRow(msg, role);
+                container.appendChild(row);
+            });
+        }
+        lastMessageCount = msgs.length;
+        container.scrollTop = container.scrollHeight;
+        applyAvatars();
+        applyBubbleStyle(config.bubbleStyle || 'default');
+        applyFontSettings();
+        updateChatTitle();
+        attachLongPressEvents();
+        bindMessageActions();
+        setTimeout(function() { markVisibleMessagesAsRead(); }, 100);
+        return;
+    }
+
+    // 增量模式：只渲染新消息
+    if (msgs.length > lastMessageCount) {
+        for (var i = lastMessageCount; i < msgs.length; i++) {
+            var msg = msgs[i];
             var row = createMessageRow(msg, role);
             container.appendChild(row);
-        });
+        }
+        lastMessageCount = msgs.length;
+        container.scrollTop = container.scrollHeight;
+    } else if (msgs.length < lastMessageCount) {
+        // 如果消息被删除了，重新全量渲染
+        container.innerHTML = '';
+        if (msgs.length === 0) {
+            var w2 = document.createElement('div');
+            w2.className = 'message-row';
+            w2.innerHTML = '<div class="avatar bot"></div><div class="bubble-container"><div class="bubble-row"><div class="bubble">你好呀~ 我是 ' + role.name + '，很高兴认识你 💕</div></div></div>';
+            container.appendChild(w2);
+        } else {
+            msgs.forEach(function(msg) {
+                var row = createMessageRow(msg, role);
+                container.appendChild(row);
+            });
+        }
+        lastMessageCount = msgs.length;
+        container.scrollTop = container.scrollHeight;
     }
-    container.scrollTop = container.scrollHeight;
+
     applyAvatars();
     applyBubbleStyle(config.bubbleStyle || 'default');
     applyFontSettings();
     updateChatTitle();
     attachLongPressEvents();
+    bindMessageActions();
+    setTimeout(function() { markVisibleMessagesAsRead(); }, 100);
+}
 
+function bindMessageActions() {
+    var container = document.getElementById('messageContainer');
     container.querySelectorAll('.regenerate-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            var msgId = btn.dataset.msgid;
-            var role2 = getCurrentRole();
-            if (role2) regenerateMessage(role2.id, msgId);
-        });
+        btn.removeEventListener('click', handleRegenerate);
+        btn.addEventListener('click', handleRegenerate);
     });
 
     container.querySelectorAll('.delete-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            var msgId = btn.dataset.msgid;
-            var role2 = getCurrentRole();
-            if (role2 && confirm('确定要删除这条消息吗？关联的记忆也会被删除。')) {
-                deleteMessageAndMemory(role2.id, msgId);
-            }
-        });
+        btn.removeEventListener('click', handleDelete);
+        btn.addEventListener('click', handleDelete);
     });
+}
 
-    setTimeout(function() { markVisibleMessagesAsRead(); }, 100);
+function handleRegenerate(e) {
+    e.stopPropagation();
+    var msgId = this.dataset.msgid;
+    var role = getCurrentRole();
+    if (role) regenerateMessage(role.id, msgId);
+}
+
+function handleDelete(e) {
+    e.stopPropagation();
+    var msgId = this.dataset.msgid;
+    var role = getCurrentRole();
+    if (role && confirm('确定要删除这条消息吗？关联的记忆也会被删除。')) {
+        deleteMessageAndMemory(role.id, msgId);
+    }
+}
+
+function appendSingleMessage(msg, role) {
+    var container = document.getElementById('messageContainer');
+    var row = createMessageRow(msg, role);
+    container.appendChild(row);
+    container.scrollTop = container.scrollHeight;
+    lastMessageCount = (role.messages || []).length;
+    applyAvatars();
+    applyBubbleStyle(config.bubbleStyle || 'default');
 }
 
 function createMessageRow(msg, role) {
@@ -1952,14 +2015,6 @@ function createMessageRow(msg, role) {
 
     row.innerHTML = '<div class="avatar ' + (msg.role === 'user' ? 'user' : 'bot') + '"></div><div class="bubble-container">' + (timeStr ? '<div class="msg-time">' + timeStr + '</div>' : '') + '<div class="bubble-row"><div class="bubble">' + contentHtml + '</div>' + actionsHtml + '</div></div>';
     return row;
-}
-
-function appendMessage(msg, role) {
-    var container = document.getElementById('messageContainer');
-    var row = createMessageRow(msg, role);
-    container.appendChild(row);
-    container.scrollTop = container.scrollHeight;
-    applyAvatars();
 }
 
 function applyAvatars() {
@@ -2079,6 +2134,7 @@ function deleteMessageAndMemory(roleId, messageId) {
         });
     }
     saveAllData();
+    lastMessageCount = -1;
     renderMessages();
     renderContacts();
     renderRoleManager();
@@ -2107,6 +2163,7 @@ function regenerateMessage(roleId, messageId) {
     }
     role.messages.splice(msgIndex, 1);
     saveAllData();
+    lastMessageCount = -1;
     renderMessages();
     showTyping();
 
@@ -2117,6 +2174,7 @@ function regenerateMessage(roleId, messageId) {
         function sendNext() {
             if (idx >= segments.length) { renderContacts(); return; }
             addMessageToRole(role.id, 'assistant', segments[idx]);
+            lastMessageCount = -1;
             renderMessages();
             document.getElementById('messageContainer').scrollTop = document.getElementById('messageContainer').scrollHeight;
             idx++;
@@ -2127,6 +2185,7 @@ function regenerateMessage(roleId, messageId) {
     }).catch(function(e) {
         hideTyping();
         addMessageToRole(role.id, 'assistant', '💔 ' + e.message);
+        lastMessageCount = -1;
         renderMessages();
     });
 }
@@ -2318,7 +2377,9 @@ function handleSend() {
     document.getElementById('sendBtn').disabled = true;
 
     addMessageToRole(role.id, 'user', finalMessage);
+    lastMessageCount = -1;
     renderMessages();
+
     showTyping();
 
     callDeepSeek(finalMessage, role).then(function(reply) {
@@ -2337,6 +2398,7 @@ function handleSend() {
                 return;
             }
             addMessageToRole(role.id, 'assistant', segments[idx]);
+            lastMessageCount = -1;
             renderMessages();
             document.getElementById('messageContainer').scrollTop = document.getElementById('messageContainer').scrollHeight;
             idx++;
@@ -2346,6 +2408,7 @@ function handleSend() {
     }).catch(function(e) {
         hideTyping();
         addMessageToRole(role.id, 'assistant', '💔 ' + e.message);
+        lastMessageCount = -1;
         renderMessages();
     }).finally(function() {
         input.disabled = false;
@@ -2506,12 +2569,14 @@ function handleImageSelected(dataUrl) {
         var role2 = getCurrentRole();
         if (!role2) { showToast('⚠️ 未找到当前角色'); closeImagePicker(); return; }
         addMessageToRole(role2.id, 'user', dataUrl, 'image');
+        lastMessageCount = -1;
         renderMessages();
         closeImagePicker();
         showTyping();
         setTimeout(function() {
             hideTyping();
             addMessageToRole(role2.id, 'assistant', '📸 这张照片真好看～ 我会好好收藏的 💕');
+            lastMessageCount = -1;
             renderMessages();
             if (document.getElementById('contactsScreen').classList.contains('open')) renderContacts();
         }, 800);
@@ -2658,7 +2723,7 @@ function getAllDiaryDates(roleId) {
 }
 
 function getAdjacentDiaryDate(currentDateKey, direction) {
-    var dates = getAllDiaryDates(selectedDiaryRoleId || config.selectedRoleId);
+    var dates = getAllDiaryDates(selectedDiaryRoleId || currentRoleId);
     if (dates.length === 0) return null;
     var idx = dates.indexOf(currentDateKey);
     if (idx === -1) return dates[0];
@@ -2668,7 +2733,7 @@ function getAdjacentDiaryDate(currentDateKey, direction) {
 }
 
 function renderDiaryAll() {
-    var roleId = selectedDiaryRoleId || config.selectedRoleId;
+    var roleId = selectedDiaryRoleId || currentRoleId;
     renderDiaryRoleSelector();
     renderDiaryCalendar(roleId);
     renderDiaryView(roleId);
@@ -2691,7 +2756,7 @@ function renderDiaryRoleSelector() {
         opt.textContent = role.name;
         selector.appendChild(opt);
     });
-    var roleId = selectedDiaryRoleId || config.selectedRoleId;
+    var roleId = selectedDiaryRoleId || currentRoleId;
     if (roleId && roles.find(function(r) { return r.id === roleId; })) {
         selector.value = roleId;
         selectedDiaryRoleId = roleId;
@@ -2747,7 +2812,7 @@ function renderDiaryCalendar(roleId) {
         if (dateKey) {
             cell.addEventListener('click', function() {
                 selectedDiaryDate = new Date(dateKey + 'T00:00:00');
-                var roleId2 = selectedDiaryRoleId || config.selectedRoleId;
+                var roleId2 = selectedDiaryRoleId || currentRoleId;
                 renderDiaryCalendar(roleId2);
                 renderDiaryView(roleId2);
                 updateDiaryPageNav(roleId2);
@@ -2929,9 +2994,7 @@ function generateDiary(roleId, showToastMsg) {
         console.error('生成日记失败:', e);
         return null;
     });
-}
-
-// ============================================================
+} // ============================================================
 //  商城 - 商品加载（本地 products.json）
 // ============================================================
 function loadMallProducts() {
@@ -3037,8 +3100,43 @@ function openMallDetail(product) {
     };
 }
 
+function closeMallDetail() {
+    document.getElementById('mallDetailOverlay').classList.remove('active');
+}
+
 // ============================================================
-//  商城 - 购买逻辑
+//  商城 - 选择角色（同步弹窗）
+// ============================================================
+function selectTargetRoleSync() {
+    return new Promise(function(resolve) {
+        var overlay = document.getElementById('mallRoleSelectOverlay');
+        var list = document.getElementById('mallRoleSelectList');
+
+        var html = '';
+        roles.forEach(function(r) {
+            html += '<button class="role-select-btn" data-id="' + r.id + '" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border:2px solid #2ed573;border-radius:12px;background:var(--bg-card);cursor:pointer;font-family:inherit;width:100%;text-align:left;transition:0.15s;"><div style="width:40px;height:40px;border-radius:50%;' + (r.avatar ? 'background-image:url(' + r.avatar + ');background-size:cover;background-position:center;' : 'background-color:#2ed573;') + 'flex-shrink:0;"></div><div style="flex:1;font-size:15px;font-weight:600;color:var(--text-primary);">' + r.name + '</div><span style="color:#2ed573;font-size:20px;">💕</span></button>';
+        });
+        list.innerHTML = html;
+
+        overlay.classList.add('active');
+
+        list.querySelectorAll('.role-select-btn').forEach(function(btn) {
+            btn.onclick = function() {
+                overlay.classList.remove('active');
+                var role = roles.find(function(r) { return r.id === btn.dataset.id; });
+                resolve(role);
+            };
+        });
+
+        document.getElementById('mallRoleSelectCancel').onclick = function() {
+            overlay.classList.remove('active');
+            resolve(null);
+        };
+    });
+}
+
+// ============================================================
+//  商城 - 购买逻辑（含送礼 + AI 回复 + 退款）
 // ============================================================
 function purchaseProduct(product, qty, note, mode) {
     var totalPrice = product.price * qty;
@@ -3046,19 +3144,28 @@ function purchaseProduct(product, qty, note, mode) {
 
     var targetRole = role;
     if (mode === 'gift') {
-        var selected = selectTargetRoleSync();
-        if (!selected) return;
-        targetRole = selected;
+        selectTargetRoleSync().then(function(selected) {
+            if (!selected) return;
+            targetRole = selected;
+            executePurchase(product, qty, note, mode, targetRole, totalPrice);
+        });
+        return;
     }
 
+    executePurchase(product, qty, note, mode, targetRole, totalPrice);
+}
+
+function executePurchase(product, qty, note, mode, targetRole, totalPrice) {
     if (!targetRole) { showToast('⚠️ 请先在聊天中选择一个角色'); return; }
 
-    if (mallBalance < totalPrice) { showToast('💰 余额不足，去充值吧～'); return; }
+    if (mallBalance < totalPrice && mode !== 'ai_gift') { showToast('💰 余额不足，去充值吧～'); return; }
 
     var confirmMsg = mode === 'gift' ? '💝 确定送给 ' + targetRole.name + '「' + product.name + '」×' + qty + ' 吗？\n花费 ¥' + totalPrice : '💰 确定购买「' + product.name + '」×' + qty + ' 吗？\n花费 ¥' + totalPrice;
     if (!confirm(confirmMsg)) return;
 
-    mallBalance -= totalPrice;
+    if (mode !== 'ai_gift') {
+        mallBalance -= totalPrice;
+    }
 
     var order = {
         id: 'ORD_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
@@ -3072,7 +3179,7 @@ function purchaseProduct(product, qty, note, mode) {
         mode: mode,
         roleName: targetRole.name,
         status: 'pending',
-        giftFromAi: false,
+        giftFromAi: (mode === 'ai_gift'),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
     };
@@ -3088,34 +3195,32 @@ function purchaseProduct(product, qty, note, mode) {
         triggerGiftChatReply(targetRole, product, note);
         addGiftToMemory(targetRole, product, 'user', note);
     }
+
     if (mallShoppingTogether.isActive) mallShoppingTogether.totalTriggers++;
 }
 
-function selectTargetRoleSync() {
-    var overlay = document.getElementById('mallRoleSelectOverlay');
-    var list = document.getElementById('mallRoleSelectList');
+// ============================================================
+//  商城 - 取消订单退款
+// ============================================================
+function cancelOrderAndRefund(orderId) {
+    var order = mallOrders.find(function(o) { return o.id === orderId; });
+    if (!order) { showToast('⚠️ 未找到该订单'); return; }
+    if (order.status !== 'pending') { showToast('⚠️ 只有待发货的订单可以取消退款'); return; }
+    if (order.giftFromAi) { showToast('⚠️ AI 赠送的礼物不能取消退款'); return; }
 
-    var html = '';
-    roles.forEach(function(r) {
-        html += '<button class="role-select-btn" data-id="' + r.id + '" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border:2px solid #2ed573;border-radius:12px;background:var(--bg-card);cursor:pointer;font-family:inherit;width:100%;text-align:left;transition:0.15s;"><div style="width:40px;height:40px;border-radius:50%;' + (r.avatar ? 'background-image:url(' + r.avatar + ');background-size:cover;background-position:center;' : 'background-color:#2ed573;') + 'flex-shrink:0;"></div><div style="flex:1;font-size:15px;font-weight:600;color:var(--text-primary);">' + r.name + '</div><span style="color:#2ed573;font-size:20px;">💕</span></button>';
-    });
-    list.innerHTML = html;
-
-    return new Promise(function(resolve) {
-        overlay.classList.add('active');
-        list.querySelectorAll('.role-select-btn').forEach(function(btn) {
-            btn.onclick = function() {
-                overlay.classList.remove('active');
-                resolve(roles.find(function(r) { return r.id === btn.dataset.id; }));
-            };
-        });
-        document.getElementById('mallRoleSelectCancel').onclick = function() {
-            overlay.classList.remove('active');
-            resolve(null);
-        };
-    });
+    if (confirm('确定要取消订单「' + order.productName + '」并退款 ¥' + order.total + ' 吗？')) {
+        mallBalance += order.total;
+        mallOrders = mallOrders.filter(function(o) { return o.id !== orderId; });
+        saveMallData();
+        updateMallUI();
+        showToast('✅ 已取消订单，退款 ¥' + order.total + ' 已到账');
+        showOrderList();
+    }
 }
 
+// ============================================================
+//  商城 - 礼物触发心跳 + 记忆 + AI 回复
+// ============================================================
 function triggerHeartSpikeForGift(role, product, mode) {
     if (!role) return;
     var spikeAmount = mode === 'gift' ? MALL_CONFIG.heartSpikeOnGift : MALL_CONFIG.heartSpikeOnAiGift;
@@ -3184,9 +3289,9 @@ function triggerGiftChatReply(role, product, note) {
         var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
         if (reply) {
             addMessageToRole(role.id, 'assistant', '🎁 ' + reply);
+            lastMessageCount = -1;
             if (document.getElementById('chatScreen').classList.contains('open')) {
-                var msgs = role.messages;
-                if (msgs.length > 0) { var lastMsg = msgs[msgs.length - 1]; appendMessage(lastMsg, role); }
+                renderMessages();
             }
             renderContacts();
         }
@@ -3332,7 +3437,7 @@ function closeRecharge() {
 }
 
 // ============================================================
-//  商城 - 订单列表
+//  商城 - 订单列表（含退款入口 + 修复返回按钮）
 // ============================================================
 function showOrderList() {
     var body = document.getElementById('mallBody');
@@ -3354,13 +3459,14 @@ function showOrderList() {
             }).join('、') : order.productName + ' ×' + order.qty;
             var giftTag = order.giftFromAi ? ' <span class="oi-gift-tag">🎁 来自 ' + order.roleName + ' 的礼物</span>' : '';
             var modeTag = order.mode === 'gift' ? ' 💝 送礼' : ' 🛒 购买';
-            html += '<div class="mall-order-item"><div class="order-header"><span class="order-id">' + order.id + '</span><span class="order-time">' + new Date(order.createdAt).toLocaleString() + '</span></div><div class="order-items">' + itemsText + giftTag + modeTag + '</div><div class="order-total">¥' + order.total + '</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;"><span class="order-status ' + (statusClass[order.status] || 'status-pending') + '">' + (statusMap[order.status] || '待发货') + '</span><div class="order-actions">' + (order.status === 'pending' ? '<button class="btn-ship" data-id="' + order.id + '">🚚 发货</button>' : '') + (order.status === 'shipped' ? '<button class="btn-done" data-id="' + order.id + '">✅ 确认收货</button>' : '') + '<button class="btn-delete-order" data-id="' + order.id + '">🗑️ 删除</button></div></div></div>';
+            html += '<div class="mall-order-item"><div class="order-header"><span class="order-id">' + order.id + '</span><span class="order-time">' + new Date(order.createdAt).toLocaleString() + '</span></div><div class="order-items">' + itemsText + giftTag + modeTag + '</div><div class="order-total">¥' + order.total + '</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;"><span class="order-status ' + (statusClass[order.status] || 'status-pending') + '">' + (statusMap[order.status] || '待发货') + '</span><div class="order-actions">' + (order.status === 'pending' && !order.giftFromAi ? '<button class="btn-refund" data-id="' + order.id + '">💰 退款</button>' : '') + (order.status === 'pending' ? '<button class="btn-ship" data-id="' + order.id + '">🚚 发货</button>' : '') + (order.status === 'shipped' ? '<button class="btn-done" data-id="' + order.id + '">✅ 确认收货</button>' : '') + '<button class="btn-delete-order" data-id="' + order.id + '">🗑️ 删除</button></div></div></div>';
         });
     }
 
     html += '</div>';
     body.innerHTML = html;
 
+    // ===== 修复：返回商城按钮 =====
     var backBtn = document.getElementById('orderBackBtn');
     if (backBtn) {
         backBtn.addEventListener('click', function() {
@@ -3368,6 +3474,12 @@ function showOrderList() {
             addOrderEntry();
         });
     }
+
+    body.querySelectorAll('.btn-refund').forEach(function(btn) {
+        btn.onclick = function() {
+            cancelOrderAndRefund(btn.dataset.id);
+        };
+    });
 
     body.querySelectorAll('.btn-ship').forEach(function(btn) {
         btn.onclick = function() {
@@ -3518,7 +3630,7 @@ function showAiSpotDialog(product, role) {
         var order = {
             id: 'ORD_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
             productId: product.id, productName: product.name, productImage: product.image,
-            price: product.price, qty: 1, total: 0, mode: 'gift',
+            price: product.price, qty: 1, total: 0, mode: 'ai_gift',
             roleName: role.name, status: 'done', giftFromAi: true,
             note: role.name + ' 送给你的礼物 ✨',
             createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
@@ -3529,11 +3641,12 @@ function showAiSpotDialog(product, role) {
         updateMallUI();
         showToast('🎁 ' + role.name + ' 送给你「' + product.name + '」！好甜～');
 
-        addMessageToRole(role.id, 'assistant', '🎁 我刚刚在商城看到「' + product.name + '」，觉得特别适合你，就买下来送给你啦 💕 你喜欢吗？');
+        var giftMsg = '🎁 我刚刚在商城看到「' + product.name + '」，觉得特别适合你，就买下来送给你啦 💕 你喜欢吗？';
+        addMessageToRole(role.id, 'assistant', giftMsg);
+        lastMessageCount = -1;
         addGiftToMemory(role, product, 'ai', role.name + '送给我');
         if (document.getElementById('chatScreen').classList.contains('open')) {
-            var msgs = role.messages;
-            if (msgs.length > 0) { var lastMsg = msgs[msgs.length - 1]; appendMessage(lastMsg, role); }
+            renderMessages();
         }
         renderContacts();
         triggerHeartSpikeForGift(role, product, 'ai_gift');
@@ -3554,9 +3667,9 @@ function showAiSpotDialog(product, role) {
                 var endWords = ['好吧…我知道你是为我好，听你的。', '嗯…没事的，我们随便逛逛吧。', '我懂的，不勉强你。', '好…那就看看吧。'];
                 var word = endWords[Math.floor(Math.random() * endWords.length)];
                 addMessageToRole(role2.id, 'assistant', '💭 ' + word);
+                lastMessageCount = -1;
                 if (document.getElementById('chatScreen').classList.contains('open')) {
-                    var msgs2 = role2.messages;
-                    if (msgs2.length > 0) { var lastMsg2 = msgs2[msgs2.length - 1]; appendMessage(lastMsg2, role2); }
+                    renderMessages();
                 }
                 renderContacts();
             }
@@ -3669,6 +3782,7 @@ function initMallScrollTrigger() {
 // ============================================================
 function openChat(fromContacts) {
     fromContacts = fromContacts || false;
+    isFromContacts = fromContacts;
     var role = getCurrentRole();
     if (role) saveDraft(role.id, document.getElementById('messageInput').value);
 
@@ -3695,6 +3809,7 @@ function openChat(fromContacts) {
         }, 300);
     }
     updateChatTitle();
+    lastMessageCount = -1;
     renderMessages();
     if (document.getElementById('contactsScreen').classList.contains('open')) renderContacts();
     if (config.heart.floatingEnabled !== false) setTimeout(showFloatingHeart, 300);
@@ -3710,7 +3825,6 @@ function closeChat() {
         document.getElementById('contactsScreen').classList.add('open');
         document.getElementById('launcherScreen').classList.add('hidden');
         renderContacts();
-        isFromContacts = false;
     } else {
         document.getElementById('launcherScreen').classList.remove('hidden');
         document.getElementById('contactsScreen').classList.remove('open');
@@ -3776,7 +3890,7 @@ function openDiary() {
     document.getElementById('memeScreen').classList.remove('open');
     document.getElementById('mallScreen').classList.remove('open');
     document.getElementById('diaryScreen').classList.add('open');
-    if (selectedDiaryRoleId === null) selectedDiaryRoleId = config.selectedRoleId;
+    if (selectedDiaryRoleId === null) selectedDiaryRoleId = currentRoleId;
     renderDiaryAll();
     if (config.heart.floatingEnabled !== false) setTimeout(showFloatingHeart, 300);
 }
@@ -5068,7 +5182,6 @@ function init() {
 //  🏁 启动！
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
-    // 绑定桌面图标
     document.querySelectorAll('.app-icon[data-app]').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var app = this.dataset.app;
@@ -5273,7 +5386,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     if (!confirm('即将导入 ' + imported.roles.length + ' 个角色的数据，当前数据将被覆盖。是否继续？')) return;
 
-                    // 清洗旧版数据，补全所有字段
                     var cleanedRoles = imported.roles.map(function(role) {
                         if (!role.id) role.id = 'role_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
                         if (!role.name) role.name = '未命名角色';
@@ -5297,7 +5409,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         return role;
                     });
 
-                    // 保存清洗后的数据
                     roles = cleanedRoles;
 
                     if (imported.config) {
@@ -5555,7 +5666,7 @@ document.addEventListener('DOMContentLoaded', function() {
         renderDiaryAll();
     });
     document.getElementById('writeDiaryBtn').addEventListener('click', function() {
-        var roleId = selectedDiaryRoleId || config.selectedRoleId;
+        var roleId = selectedDiaryRoleId || currentRoleId;
         var role = roles.find(function(r) { return r.id === roleId; });
         if (!role) { showToast('⚠️ 请先选择一个角色'); return; }
         if (!config.apiKey) { showToast('⚠️ 请先在设置中配置 API Key'); return; }
@@ -5589,12 +5700,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.getElementById('prevMonthBtn').addEventListener('click', function() {
         currentDiaryViewDate.setMonth(currentDiaryViewDate.getMonth() - 1);
-        var roleId = selectedDiaryRoleId || config.selectedRoleId;
+        var roleId = selectedDiaryRoleId || currentRoleId;
         renderDiaryCalendar(roleId);
     });
     document.getElementById('nextMonthBtn').addEventListener('click', function() {
         currentDiaryViewDate.setMonth(currentDiaryViewDate.getMonth() + 1);
-        var roleId = selectedDiaryRoleId || config.selectedRoleId;
+        var roleId = selectedDiaryRoleId || currentRoleId;
         renderDiaryCalendar(roleId);
     });
     document.getElementById('prevDayBtn').addEventListener('click', function() {
@@ -5602,7 +5713,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var prev = getAdjacentDiaryDate(currentKey, -1);
         if (prev) {
             selectedDiaryDate = new Date(prev + 'T00:00:00');
-            var roleId = selectedDiaryRoleId || config.selectedRoleId;
+            var roleId = selectedDiaryRoleId || currentRoleId;
             renderDiaryCalendar(roleId);
             renderDiaryView(roleId);
             updateDiaryPageNav(roleId);
@@ -5613,7 +5724,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var next = getAdjacentDiaryDate(currentKey, 1);
         if (next) {
             selectedDiaryDate = new Date(next + 'T00:00:00');
-            var roleId = selectedDiaryRoleId || config.selectedRoleId;
+            var roleId = selectedDiaryRoleId || currentRoleId;
             renderDiaryCalendar(roleId);
             renderDiaryView(roleId);
             updateDiaryPageNav(roleId);
@@ -5701,7 +5812,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 启动
     try {
         init();
     } catch (e) {
