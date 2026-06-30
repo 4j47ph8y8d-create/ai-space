@@ -3451,7 +3451,6 @@ function closeRecharge() {
 // ============================================================
 //  商城 - 订单列表（含退款入口 + 修复返回按钮）
 // ============================================================
-
 function showOrderList() {
     var body = document.getElementById('mallBody');
     if (!body) return;
@@ -3475,47 +3474,6 @@ function showOrderList() {
             html += '<div class="mall-order-item"><div class="order-header"><span class="order-id">' + order.id + '</span><span class="order-time">' + new Date(order.createdAt).toLocaleString() + '</span></div><div class="order-items">' + itemsText + giftTag + modeTag + '</div><div class="order-total">¥' + order.total + '</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;"><span class="order-status ' + (statusClass[order.status] || 'status-pending') + '">' + (statusMap[order.status] || '待发货') + '</span><div class="order-actions">' + (order.status === 'pending' && !order.giftFromAi ? '<button class="btn-refund" data-id="' + order.id + '">💰 退款</button>' : '') + (order.status === 'pending' ? '<button class="btn-ship" data-id="' + order.id + '">🚚 发货</button>' : '') + (order.status === 'shipped' ? '<button class="btn-done" data-id="' + order.id + '">✅ 确认收货</button>' : '') + '<button class="btn-delete-order" data-id="' + order.id + '">🗑️ 删除</button></div></div></div>';
         });
     }
-
-    html += '</div>';
-    body.innerHTML = html;
-
-    var backBtn = document.getElementById('orderBackBtn');
-    if (backBtn) {
-        backBtn.addEventListener('click', function() {
-            renderMallProducts();
-            addOrderEntry();
-        });
-    }
-
-    body.querySelectorAll('.btn-refund').forEach(function(btn) {
-        btn.onclick = function() {
-            cancelOrderAndRefund(btn.dataset.id);
-        };
-    });
-
-    body.querySelectorAll('.btn-ship').forEach(function(btn) {
-        btn.onclick = function() {
-            var order = mallOrders.find(function(o) { return o.id === btn.dataset.id; });
-            if (order) { order.status = 'shipped'; order.updatedAt = new Date().toISOString(); saveMallData(); showOrderList(); showToast('🚚 已发货'); }
-        };
-    });
-    body.querySelectorAll('.btn-done').forEach(function(btn) {
-        btn.onclick = function() {
-            var order = mallOrders.find(function(o) { return o.id === btn.dataset.id; });
-            if (order) { order.status = 'done'; order.updatedAt = new Date().toISOString(); saveMallData(); showOrderList(); showToast('✅ 已确认收货'); }
-        };
-    });
-    body.querySelectorAll('.btn-delete-order').forEach(function(btn) {
-        btn.onclick = function() {
-            if (confirm('确定要删除此订单吗？')) {
-                mallOrders = mallOrders.filter(function(o) { return o.id !== btn.dataset.id; });
-                saveMallData();
-                showOrderList();
-                showToast('🗑️ 已删除订单');
-            }
-        };
-    });
-}
 
     html += '</div>';
     body.innerHTML = html;
