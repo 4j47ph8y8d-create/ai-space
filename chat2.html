@@ -1988,6 +1988,41 @@ function createMessageRow(msg, role) {
 
     var contentHtml = msg.content;
 
+    // ===== 处理礼物卡片 =====
+    if (msg.type === 'gift_card') {
+        var gift = msg.content;
+        var isPending = gift.status === 'pending';
+        var isUser = msg.role === 'user';
+        var statusText = isPending ? '⏳ 等待签收...' : '✅ 已签收';
+        var statusColor = isPending ? '#f39c12' : '#07c160';
+
+        var btnHtml = '';
+        if (isPending && !isUser) {
+            btnHtml = '<button class="gift-sign-btn" data-msgid="' + msg.id + '" data-roleid="' + role.id + '" data-product=\'' + JSON.stringify(gift).replace(/'/g, "&#39;") + '\' style="background:#07c160;color:#fff;border:none;padding:4px 14px;border-radius:16px;font-size:12px;cursor:pointer;font-family:inherit;">💝 签收</button>';
+        } else if (isPending && isUser) {
+            btnHtml = '<span style="font-size:12px;color:#999;">等待对方签收...</span>';
+        }
+
+        var giftImg = gift.productImage || '🎁';
+        var productName = gift.productName || '礼物';
+        var note = gift.note || '💕 送给你～';
+
+        contentHtml = '<div class="bubble" style="background:transparent;box-shadow:none;padding:0;max-width:100%;">' +
+            '<div class="gift-card" style="background:#fff5e6;border-radius:14px;padding:14px 16px;max-width:280px;border:1px solid #f0d5b0;box-shadow:0 2px 8px rgba(0,0,0,0.06);">' +
+            '<div style="font-size:32px;text-align:center;margin-bottom:2px;">' + giftImg + '</div>' +
+            '<div style="font-weight:600;font-size:15px;text-align:center;color:#3a2a1a;">' + productName + '</div>' +
+            '<div style="font-size:13px;color:#8a7a6a;text-align:center;margin:4px 0;font-style:italic;">💝 ' + note + '</div>' +
+            '<div style="font-size:12px;text-align:center;border-top:1px dashed #e8d5c4;padding-top:6px;margin-top:6px;display:flex;justify-content:space-between;align-items:center;">' +
+            '<span style="font-weight:500;color:' + statusColor + ';">' + statusText + '</span>' +
+            btnHtml +
+            '</div></div></div>';
+        
+        var timeStr = formatTime(msg.time, config.timeMode || 'HH:MM');
+        row.innerHTML = '<div class="avatar ' + (msg.role === 'user' ? 'user' : 'bot') + '"></div><div class="bubble-container">' + (timeStr ? '<div class="msg-time">' + timeStr + '</div>' : '') + '<div class="bubble-row"><div class="bubble" style="background:transparent;box-shadow:none;padding:0;max-width:100%;">' + contentHtml + '</div></div></div>';
+        return row;
+    }
+
+    // ===== 处理表情包 =====
     var memeMatch = contentHtml.match(/\[表情包：([^\]]+)\]/);
     if (memeMatch) {
         var memeName = memeMatch[1];
@@ -2006,9 +2041,9 @@ function createMessageRow(msg, role) {
     var timeStr = formatTime(msg.time, config.timeMode || 'HH:MM');
 
     var actionsHtml = '';
-    if (msg.role === 'assistant') {
+    if (msg.role === 'assistant' && msg.type !== 'gift_card') {
         actionsHtml = '<div class="msg-actions"><button class="action-btn regenerate-btn" data-msgid="' + msg.id + '" title="重新生成"><i class="fas fa-sync-alt"></i></button><button class="action-btn delete-btn" data-msgid="' + msg.id + '" title="删除"><i class="fas fa-trash-alt"></i></button></div>';
-    } else if (msg.role === 'user') {
+    } else if (msg.role === 'user' && msg.type !== 'gift_card') {
         actionsHtml = '<div class="msg-actions"><button class="action-btn delete-btn" data-msgid="' + msg.id + '" title="删除"><i class="fas fa-trash-alt"></i></button></div>';
     }
 
@@ -3903,6 +3938,7 @@ function openDiary() {
     document.getElementById('contactsScreen').classList.remove('open');
     document.getElementById('memoryScreen').classList.remove('open');
     document.getElementById('memeScreen').classList.remove('open');
+    document.getElementById('diaryScreen').classList.remove('open');
     document.getElementById('mallScreen').classList.remove('open');
     document.getElementById('diaryScreen').classList.add('open');
     if (selectedDiaryRoleId === null) selectedDiaryRoleId = currentRoleId;
@@ -5076,6 +5112,106 @@ function updateStatusTime() {
 }
 
 // ============================================================
+//  送礼核心 - 在聊天界面发送礼物卡片
+// ============================================================
+function sendGiftCardToChat(roleId, product, note, sender) {
+    var role = roles.find(function(r) { return r.id === roleId; });
+    if (!role) { showToast('⚠️ 未找到该角色'); return; }
+
+    var giftData = {
+        productName: product.name,
+        productImage: product.image || '🎁',
+        note: note || '💕 送给你～',
+        status: 'pending',
+        productId: product.id,
+    };
+
+    var msgRole = sender === 'user' ? 'user' : 'assistant';
+    var msg = {
+        id: generateId(),
+        role: msgRole,
+        type: 'gift_card',
+        content: giftData,
+        time: new Date().toLocaleTimeString(),
+    };
+    role.messages.push(msg);
+    lastMessageCount = -1;
+    saveAllData();
+    renderMessages();
+    if (document.getElementById('contactsScreen').classList.contains('open')) renderContacts();
+
+    if (sender === 'user') {
+        showToast('🎁 礼物已送出，等待对方签收...');
+        setTimeout(function() {
+            autoSignGift(roleId, msg.id, product);
+        }, 2000);
+    } else {
+        showToast('💝 你收到了一份礼物！点击「签收」领取');
+    }
+}
+
+function autoSignGift(roleId, msgId, product) {
+    var role = roles.find(function(r) { return r.id === roleId; });
+    if (!role) return;
+    var msg = role.messages.find(function(m) { return m.id === msgId; });
+    if (!msg || msg.type !== 'gift_card' || msg.content.status !== 'pending') return;
+
+    msg.content.status = 'received';
+    msg.content.receivedAt = new Date().toLocaleTimeString();
+    saveAllData();
+    lastMessageCount = -1;
+    renderMessages();
+    showToast('💕 对方已签收你的礼物！');
+
+    triggerGiftChatReply(role, product, msg.content.note);
+}
+
+function signGiftHandler(roleId, msgId, productData) {
+    var role = roles.find(function(r) { return r.id === roleId; });
+    if (!role) return;
+    var msg = role.messages.find(function(m) { return m.id === msgId; });
+    if (!msg || msg.type !== 'gift_card' || msg.content.status !== 'pending') return;
+
+    msg.content.status = 'received';
+    msg.content.receivedAt = new Date().toLocaleTimeString();
+    saveAllData();
+    lastMessageCount = -1;
+    renderMessages();
+    showToast('✅ 你已签收这份礼物！');
+
+    var giftText = '🎁 你送了我「' + productData.productName + '」' + (productData.note ? '（附言：' + productData.note + '）' : '');
+    var exists = role.memory.some(function(m) { return m.text && m.text.indexOf(productData.productName) !== -1; });
+    if (!exists) {
+        role.memory.push({ text: giftText, sourceMessageId: 'gift_sign_' + Date.now() });
+        saveAllData();
+        showToast('🧠 已存入记忆');
+    }
+
+    setTimeout(function() {
+        var thanks = ['你送的礼物我收到啦！好开心 🥰', '哇！你居然偷偷给我买了这个！我好喜欢 💕', '呜呜呜你太好了…这份礼物我会一直珍藏的 ❤️', '谢谢你亲爱的！你总是知道我喜欢什么 🥺'];
+        var reply = thanks[Math.floor(Math.random() * thanks.length)];
+        addMessageToRole(roleId, 'user', '🎁 ' + reply);
+        lastMessageCount = -1;
+        renderMessages();
+    }, 800);
+}
+
+function bindGiftSignEvents() {
+    document.querySelectorAll('.gift-sign-btn').forEach(function(btn) {
+        btn.removeEventListener('click', giftSignClick);
+        btn.addEventListener('click', giftSignClick);
+    });
+}
+
+function giftSignClick(e) {
+    var btn = e.currentTarget;
+    var roleId = btn.dataset.roleid;
+    var msgId = btn.dataset.msgid;
+    var productData = JSON.parse(btn.dataset.product.replace(/&#39;/g, "'"));
+    signGiftHandler(roleId, msgId, productData);
+}
+
+// ============================================================
 //  🚀 初始化入口
 // ============================================================
 function init() {
@@ -5834,6 +5970,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // 动态绑定礼物签收事件（每次渲染后调用）
+    var observer = new MutationObserver(function() {
+        bindGiftSignEvents();
+    });
+    var container = document.getElementById('messageContainer');
+    if (container) {
+        observer.observe(container, { childList: true, subtree: true });
+    }
+    setTimeout(bindGiftSignEvents, 500);
 
     try {
         init();
