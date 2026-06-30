@@ -3360,27 +3360,65 @@ function generateDiary(roleId, showToastMsg) {
 // ============================================================
 //  商城 - 商品加载
 // ============================================================
+
 function loadMallProducts() {
     var grid = document.getElementById('mallProductGrid');
     if (!grid) return;
 
-    fetch('./products.json').then(function(resp) {
-        if (!resp.ok) throw new Error('加载失败');
-        return resp.json();
-    }).then(function(data) {
-        mallProducts = data.products || [];
+    // ===== 内置备用商品数据（永不丢失） =====
+    var fallbackProducts = [
+        {
+            id: "default_1",
+            name: "纯白衬衫",
+            price: 129,
+            image: "https://i.ibb.co/CKyw1TGt/IMG-4958.jpg",
+            description: "新疆纯棉制造，柔软舒适",
+            tag: "新品"
+        },
+        {
+            id: "default_2",
+            name: "真丝睡裙",
+            price: 169,
+            image: "https://i.ibb.co/1Y5Xx9SJ/IMG-4960.jpg",
+            description: "真蚕丝，柔软舒适，安稳睡眠",
+            tag: "热销"
+        }
+    ];
+
+    // ===== 尝试加载 products.json =====
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() { controller.abort(); }, 3000);
+
+    fetch('./products.json', { signal: controller.signal })
+        .then(function(resp) {
+            clearTimeout(timeoutId);
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            return resp.json();
+        })
+        .then(function(data) {
+            // 检查返回的数据是否有效
+            if (data && Array.isArray(data) && data.length > 0) {
+                mallProducts = data;
+                renderMallProducts();
+                updateMallUI();
+                showToast('📦 已加载 ' + data.length + ' 件商品');
+            } else {
+                // 数据为空，使用备用
+                useFallbackProducts(fallbackProducts);
+            }
+        })
+        .catch(function(err) {
+            // 任何错误（网络、解析、超时）都使用备用
+            console.warn('商品加载失败，使用备用数据:', err.message);
+            useFallbackProducts(fallbackProducts);
+        });
+
+    function useFallbackProducts(products) {
+        mallProducts = products;
         renderMallProducts();
         updateMallUI();
-    }).catch(function(e) {
-        console.error('加载商品失败:', e);
-        mallProducts = [
-            { id: 'default_1', name: '纯白衬衫', price: 129, image: '', description: '新疆纯棉制造，柔软舒适', tag: '新品' },
-            { id: 'default_2', name: '真丝睡裙', price: 169, image: '', description: '真蚕丝，柔软舒适，安稳睡眠', tag: '热销' },
-        ];
-        renderMallProducts();
-        updateMallUI();
-        showToast('📦 已加载备用商品数据');
-    });
+        showToast('🛍️ 已加载 ' + products.length + ' 件备用商品');
+    }
 }
 
 function renderMallProducts() {
