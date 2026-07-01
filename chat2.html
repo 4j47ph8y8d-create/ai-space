@@ -656,8 +656,7 @@
                 <input class="signature-input" id="signatureInput" type="text" placeholder="写下你的个签..." maxlength="30" />
             </div>
             <div class="bind-info" id="bindInfo">💕 当前绑定：<span class="role-name" id="bindRoleName">未绑定</span> <span style="font-size:10px;opacity:0.5;margin-left:4px;">点击更换</span></div>
-        </div>
-        <div class="app-grid">
+        </div> <div class="app-grid">
             <button class="app-icon" data-app="style"><div class="icon-wrap style"><i class="fas fa-palette"></i></div><span class="app-name">个性化</span></button>
             <button class="app-icon" data-app="meme"><div class="icon-wrap meme"><i class="fas fa-face-smile"></i></div><span class="app-name">表情包</span></button>
             <button class="app-icon" data-app="diary"><div class="icon-wrap diary"><i class="fas fa-book-open"></i></div><span class="app-name">他的日记</span></button>
@@ -1126,6 +1125,7 @@ var memeSelectedForDelete = [];
 var mallScrollTimeout = null;
 var heartBeatInterval = null;
 var lastMessageCount = -1;
+var storageCache = null;
 
 // ============================================================
 //  工具函数
@@ -1196,17 +1196,26 @@ function createDefaultRole(name) {
         messages: [],
         memory: [],
         createdAt: new Date().toISOString(),
-        heartData: { value: 65, restingValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' }
+        heartData: { value: 65, restingValue: 65, peakValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' }
     };
 }
 
 function saveAllData() {
     try {
-        localStorage.setItem('ds_multirole_v2', JSON.stringify({
+        var dataToSave = {
             config: config,
             roles: roles,
             currentRoleId: currentRoleId,
-        }));
+            mallData: {
+                balance: mallBalance,
+                cart: mallCart,
+                orders: mallOrders,
+                rechargeHistory: mallRechargeHistory,
+                aiGiftReceived: mallAiGiftReceived,
+                shoppingTogether: mallShoppingTogether,
+            }
+        };
+        localStorage.setItem('ds_multirole_v2', JSON.stringify(dataToSave));
     } catch (e) {
         console.warn('保存数据失败:', e);
     }
@@ -1242,15 +1251,33 @@ function loadAllData() {
         if (!config.lastDiaryCheckDate) config.lastDiaryCheckDate = null;
         if (config.diaryCalendarCollapsed === undefined) config.diaryCalendarCollapsed = false;
 
+        if (savedData.mallData) {
+            mallBalance = savedData.mallData.balance !== undefined ? savedData.mallData.balance : MALL_CONFIG.initialBalance;
+            mallCart = savedData.mallData.cart || [];
+            mallOrders = savedData.mallData.orders || [];
+            mallRechargeHistory = savedData.mallData.rechargeHistory || [];
+            mallAiGiftReceived = savedData.mallData.aiGiftReceived || [];
+            if (savedData.mallData.shoppingTogether) {
+                mallShoppingTogether.roleId = savedData.mallData.shoppingTogether.roleId || null;
+                mallShoppingTogether.roleName = savedData.mallData.shoppingTogether.roleName || '';
+                mallShoppingTogether.rejectCount = savedData.mallData.shoppingTogether.rejectCount || 0;
+                mallShoppingTogether.totalTriggers = savedData.mallData.shoppingTogether.totalTriggers || 0;
+                mallShoppingTogether.cooldownUntil = savedData.mallData.shoppingTogether.cooldownUntil || null;
+                mallShoppingTogether.isActive = savedData.mallData.shoppingTogether.isActive || false;
+                mallShoppingTogether.pendingProduct = savedData.mallData.shoppingTogether.pendingProduct || null;
+            }
+        }
+
         roles = savedData.roles;
         roles.forEach(function(role) {
             if (!role.heartData) {
-                role.heartData = { value: 65, restingValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
+                role.heartData = { value: 65, restingValue: 65, peakValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
             }
             if (!role.heartData.signature) role.heartData.signature = '今天也很想你 💕';
             if (!role.heartData.recentTrigger) role.heartData.recentTrigger = '初次相遇';
             if (!role.heartData.restingValue) role.heartData.restingValue = 65;
             if (!role.heartData.value) role.heartData.value = 65;
+            if (!role.heartData.peakValue) role.heartData.peakValue = 65;
             if (!Array.isArray(role.messages)) role.messages = [];
             if (!Array.isArray(role.memory)) role.memory = [];
         });
@@ -1264,12 +1291,18 @@ function loadAllData() {
             heart: { bindRoleId: null, value: 65, restingValue: 65, level: '平静', signature: '今天也很想你 💕', color: '#ff6b81', floatingEnabled: true, speed: 'normal', recentTrigger: '等待你的第一句情话', spikeActive: false, spikeTimer: null, recoveryTimer: null, peakValue: 65 },
             aiMemeEnabled: true, diaries: [], diaryAutoGenerateEnabled: true, lastDiaryCheckDate: null, diaryCalendarCollapsed: false,
         };
+        mallBalance = MALL_CONFIG.initialBalance;
+        mallCart = [];
+        mallOrders = [];
+        mallRechargeHistory = [];
+        mallAiGiftReceived = [];
+        mallShoppingTogether = { roleId: null, roleName: '', rejectCount: 0, totalTriggers: 0, cooldownUntil: null, isActive: false, pendingProduct: null };
         var defaultRole = createDefaultRole('温柔学长');
         defaultRole.persona = '25岁音乐系研究生，性格内敛细腻，喜欢弹钢琴';
         defaultRole.background = '从小在江南小镇长大，家里开旧书店';
         defaultRole.style = '只说对话内容，不要任何动作、表情、环境描写。用短句，像真人微信聊天一样自然分段回复。';
         defaultRole.extra = '有一只叫「糯米」的白猫';
-        defaultRole.memory = ['用户喜欢被叫"小乖"', '用户对猫毛过敏'];
+        defaultRole.memory = [{ text: '用户喜欢被叫"小乖"' }, { text: '用户对猫毛过敏' }];
         defaultRole.messages = [{ role: 'assistant', content: '你好呀~ 我是温柔学长，很高兴认识你 💕', time: new Date().toLocaleTimeString() }];
         roles = [defaultRole];
         currentRoleId = defaultRole.id;
@@ -1284,49 +1317,14 @@ function loadAllData() {
         if (!Array.isArray(role.memory)) role.memory = [];
         if (!Array.isArray(role.messages)) role.messages = [];
         if (!role.heartData) {
-            role.heartData = { value: 65, restingValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
+            role.heartData = { value: 65, restingValue: 65, peakValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
         }
         if (!role.heartData.signature) role.heartData.signature = '今天也很想你 💕';
         if (!role.heartData.recentTrigger) role.heartData.recentTrigger = '初次相遇';
         if (!role.heartData.restingValue) role.heartData.restingValue = 65;
         if (!role.heartData.value) role.heartData.value = 65;
+        if (!role.heartData.peakValue) role.heartData.peakValue = 65;
     });
-}
-
-function loadMallData() {
-    try {
-        var raw = localStorage.getItem('mall_data');
-        if (raw) {
-            var data = JSON.parse(raw);
-            mallBalance = data.balance !== undefined ? data.balance : MALL_CONFIG.initialBalance;
-            mallCart = data.cart || [];
-            mallOrders = data.orders || [];
-            mallRechargeHistory = data.rechargeHistory || [];
-            mallAiGiftReceived = data.aiGiftReceived || [];
-            if (data.shoppingTogether) {
-                mallShoppingTogether.roleId = data.shoppingTogether.roleId || null;
-                mallShoppingTogether.roleName = data.shoppingTogether.roleName || '';
-                mallShoppingTogether.rejectCount = data.shoppingTogether.rejectCount || 0;
-                mallShoppingTogether.totalTriggers = data.shoppingTogether.totalTriggers || 0;
-                mallShoppingTogether.cooldownUntil = data.shoppingTogether.cooldownUntil || null;
-                mallShoppingTogether.isActive = data.shoppingTogether.isActive || false;
-                mallShoppingTogether.pendingProduct = data.shoppingTogether.pendingProduct || null;
-            }
-        }
-    } catch (_) {}
-}
-
-function saveMallData() {
-    try {
-        localStorage.setItem('mall_data', JSON.stringify({
-            balance: mallBalance,
-            cart: mallCart,
-            orders: mallOrders,
-            rechargeHistory: mallRechargeHistory,
-            aiGiftReceived: mallAiGiftReceived,
-            shoppingTogether: mallShoppingTogether,
-        }));
-    } catch (_) {}
 }
 
 // ============================================================
@@ -1357,12 +1355,20 @@ function getLevel(value) {
     return '灵魂共振';
 }
 
+function getHeartData(roleId) {
+    if (!roleId) return config.heart;
+    var role = roles.find(function(r) { return r.id === roleId; });
+    if (!role || !role.heartData) return config.heart;
+    return role.heartData;
+}
+
 function updateHeartDisplay() {
-    var heartValue = config.heart.value || 65;
-    var heartLevel = config.heart.level || getLevel(heartValue);
-    var signature = config.heart.signature || '今天也很想你 💕';
-    var recentTrigger = config.heart.recentTrigger || '等待你的第一句情话';
     var bindRoleId = config.heart.bindRoleId;
+    var heartData = bindRoleId ? getHeartData(bindRoleId) : config.heart;
+    var heartValue = heartData.value || 65;
+    var heartLevel = getLevel(heartValue);
+    var signature = heartData.signature || '今天也很想你 💕';
+    var recentTrigger = heartData.recentTrigger || '等待你的第一句情话';
     var bindRole = bindRoleId ? roles.find(function(r) { return r.id === bindRoleId; }) : null;
     var color = config.heart.color || '#ff6b81';
 
@@ -1432,7 +1438,6 @@ function bindHeartRole(roleId) {
     config.heart.signature = role.heartData.signature || '今天也很想你 💕';
     config.heart.recentTrigger = role.heartData.recentTrigger || '初次相遇';
     config.heart.level = getLevel(config.heart.value);
-    config.heart.spikeActive = false;
     if (config.heart.recoveryTimer) {
         clearTimeout(config.heart.recoveryTimer);
         config.heart.recoveryTimer = null;
@@ -1444,8 +1449,9 @@ function bindHeartRole(roleId) {
 }
 
 function triggerHeartSpike(role, weight, keyword, level) {
+    if (!role) return;
     if (!role.heartData) {
-        role.heartData = { value: 65, restingValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
+        role.heartData = { value: 65, restingValue: 65, peakValue: 65, signature: '今天也很想你 💕', recentTrigger: '初次相遇' };
     }
     var resting = role.heartData.restingValue || 65;
     var spikeAmount = Math.min(25, 15 + Math.floor(Math.random() * 10) + Math.floor(weight / 2));
@@ -1456,14 +1462,14 @@ function triggerHeartSpike(role, weight, keyword, level) {
     role.heartData.recentTrigger = triggerText;
 
     if (config.heart.bindRoleId === role.id) {
-        config.heart.value = peakValue;
-        config.heart.peakValue = peakValue;
-        config.heart.level = getLevel(peakValue);
-        config.heart.recentTrigger = triggerText;
         if (config.heart.recoveryTimer) {
             clearTimeout(config.heart.recoveryTimer);
             config.heart.recoveryTimer = null;
         }
+        config.heart.value = peakValue;
+        config.heart.peakValue = peakValue;
+        config.heart.level = getLevel(peakValue);
+        config.heart.recentTrigger = triggerText;
         var heartWrap = document.getElementById('heartWrap');
         if (heartWrap) {
             heartWrap.classList.add('spike');
@@ -1489,7 +1495,6 @@ function recoverHeartRate(role) {
             config.heart.value = resting;
             config.heart.peakValue = resting;
             config.heart.level = getLevel(resting);
-            config.heart.spikeActive = false;
             config.heart.recentTrigger = '心跳恢复平静 💕';
             if (config.heart.recoveryTimer) { clearTimeout(config.heart.recoveryTimer); config.heart.recoveryTimer = null; }
         }
@@ -1510,7 +1515,6 @@ function recoverHeartRate(role) {
             if (config.heart.recoveryTimer) clearTimeout(config.heart.recoveryTimer);
             config.heart.recoveryTimer = setTimeout(function() { recoverHeartRate(role); }, 5000 + Math.random() * 5000);
         } else {
-            config.heart.spikeActive = false;
             config.heart.recentTrigger = '心跳恢复平静 💕';
             if (config.heart.recoveryTimer) { clearTimeout(config.heart.recoveryTimer); config.heart.recoveryTimer = null; }
             showToast('💕 心跳已恢复平静');
@@ -1523,33 +1527,22 @@ function recoverHeartRate(role) {
 function startHeartBeatFluctuation() {
     if (heartBeatInterval) clearInterval(heartBeatInterval);
     heartBeatInterval = setInterval(function() {
-        // 修复：页面不可见时跳过更新，避免后台冲突
         if (document.hidden) return;
-
         var bindRoleId = config.heart.bindRoleId;
         if (!bindRoleId) return;
         var role = roles.find(function(r) { return r.id === bindRoleId; });
         if (!role) return;
-        if (config.heart.spikeActive) {
-            var currentValue = role.heartData.value || 65;
-            var peak = role.heartData.peakValue || currentValue;
-            var jitter = Math.floor(Math.random() * 6) - 3;
-            var finalValue = Math.max(peak - 5, Math.min(Math.min(99, peak + 5), currentValue + jitter));
-            role.heartData.value = finalValue;
-            if (config.heart.bindRoleId === role.id) config.heart.value = finalValue;
-            saveAllData();
-            updateHeartDisplay();
-            return;
-        }
-        var resting = role.heartData.restingValue || 65;
-        var current = role.heartData.value || resting;
+        var heartData = role.heartData;
+        if (!heartData) return;
+        var resting = heartData.restingValue || 65;
+        var current = heartData.value || resting;
         var diff = resting - current;
         if (Math.abs(diff) > 2) {
             var step = diff * 0.05;
             var newVal = current + step + (Math.random() * 2 - 1);
             var finalVal = Math.max(55, Math.min(75, Math.round(newVal)));
-            role.heartData.value = finalVal;
-            role.heartData.peakValue = finalVal;
+            heartData.value = finalVal;
+            heartData.peakValue = finalVal;
             if (config.heart.bindRoleId === role.id) {
                 config.heart.value = finalVal;
                 config.heart.peakValue = finalVal;
@@ -1877,11 +1870,10 @@ function applyChatBgForRole(role) {
 }
 
 // ============================================================
-//  渲染：聊天消息（增量渲染 - 修复版 + 防御性保护）
+//  渲染：聊天消息（全量渲染，稳定可靠）
 // ============================================================
 function renderMessages() {
     var role = getCurrentRole();
-    // 修复：角色为空时显示占位提示，不闪回桌面
     if (!role) {
         var container = document.getElementById('messageContainer');
         if (container && container.children.length === 0) {
@@ -1894,102 +1886,25 @@ function renderMessages() {
     var container = document.getElementById('messageContainer');
     var msgs = role.messages || [];
 
-    if (lastMessageCount === -1) {
-        container.innerHTML = '';
-        if (msgs.length === 0) {
-            var w = document.createElement('div');
-            w.className = 'message-row';
-            w.innerHTML = '<div class="avatar bot"></div><div class="bubble-container"><div class="bubble-row"><div class="bubble">你好呀~ 我是 ' + role.name + '，很高兴认识你 💕</div></div></div>';
-            container.appendChild(w);
-        } else {
-            msgs.forEach(function(msg) {
-                var row = createMessageRow(msg, role);
-                container.appendChild(row);
-            });
-        }
-        lastMessageCount = msgs.length;
-        container.scrollTop = container.scrollHeight;
-        applyAvatars();
-        applyBubbleStyle(config.bubbleStyle || 'default');
-        applyFontSettings();
-        updateChatTitle();
-        attachLongPressEvents();
-        bindMessageActions();
-        setTimeout(function() { markVisibleMessagesAsRead(); }, 100);
-        return;
-    }
-
-    if (msgs.length > lastMessageCount) {
-        for (var i = lastMessageCount; i < msgs.length; i++) {
-            var msg = msgs[i];
+    container.innerHTML = '';
+    if (msgs.length === 0) {
+        var w = document.createElement('div');
+        w.className = 'message-row';
+        w.innerHTML = '<div class="avatar bot"></div><div class="bubble-container"><div class="bubble-row"><div class="bubble">你好呀~ 我是 ' + role.name + '，很高兴认识你 💕</div></div></div>';
+        container.appendChild(w);
+    } else {
+        msgs.forEach(function(msg) {
             var row = createMessageRow(msg, role);
             container.appendChild(row);
-        }
-        lastMessageCount = msgs.length;
-        container.scrollTop = container.scrollHeight;
-    } else if (msgs.length < lastMessageCount) {
-        container.innerHTML = '';
-        if (msgs.length === 0) {
-            var w2 = document.createElement('div');
-            w2.className = 'message-row';
-            w2.innerHTML = '<div class="avatar bot"></div><div class="bubble-container"><div class="bubble-row"><div class="bubble">你好呀~ 我是 ' + role.name + '，很高兴认识你 💕</div></div></div>';
-            container.appendChild(w2);
-        } else {
-            msgs.forEach(function(msg) {
-                var row = createMessageRow(msg, role);
-                container.appendChild(row);
-            });
-        }
-        lastMessageCount = msgs.length;
-        container.scrollTop = container.scrollHeight;
+        });
     }
-
+    lastMessageCount = msgs.length;
+    container.scrollTop = container.scrollHeight;
     applyAvatars();
     applyBubbleStyle(config.bubbleStyle || 'default');
     applyFontSettings();
     updateChatTitle();
-    attachLongPressEvents();
-    bindMessageActions();
     setTimeout(function() { markVisibleMessagesAsRead(); }, 100);
-}
-
-function bindMessageActions() {
-    var container = document.getElementById('messageContainer');
-    container.querySelectorAll('.regenerate-btn').forEach(function(btn) {
-        btn.removeEventListener('click', handleRegenerate);
-        btn.addEventListener('click', handleRegenerate);
-    });
-
-    container.querySelectorAll('.delete-btn').forEach(function(btn) {
-        btn.removeEventListener('click', handleDelete);
-        btn.addEventListener('click', handleDelete);
-    });
-}
-
-function handleRegenerate(e) {
-    e.stopPropagation();
-    var msgId = this.dataset.msgid;
-    var role = getCurrentRole();
-    if (role) regenerateMessage(role.id, msgId);
-}
-
-function handleDelete(e) {
-    e.stopPropagation();
-    var msgId = this.dataset.msgid;
-    var role = getCurrentRole();
-    if (role && confirm('确定要删除这条消息吗？关联的记忆也会被删除。')) {
-        deleteMessageAndMemory(role.id, msgId);
-    }
-}
-
-function appendSingleMessage(msg, role) {
-    var container = document.getElementById('messageContainer');
-    var row = createMessageRow(msg, role);
-    container.appendChild(row);
-    container.scrollTop = container.scrollHeight;
-    lastMessageCount = (role.messages || []).length;
-    applyAvatars();
-    applyBubbleStyle(config.bubbleStyle || 'default');
 }
 
 function createMessageRow(msg, role) {
@@ -2144,7 +2059,6 @@ function deleteMessageAndMemory(roleId, messageId) {
         });
     }
     saveAllData();
-    lastMessageCount = -1;
     renderMessages();
     renderContacts();
     renderRoleManager();
@@ -2173,7 +2087,6 @@ function regenerateMessage(roleId, messageId) {
     }
     role.messages.splice(msgIndex, 1);
     saveAllData();
-    lastMessageCount = -1;
     renderMessages();
     showTyping();
 
@@ -2184,7 +2097,6 @@ function regenerateMessage(roleId, messageId) {
         function sendNext() {
             if (idx >= segments.length) { renderContacts(); return; }
             addMessageToRole(role.id, 'assistant', segments[idx]);
-            lastMessageCount = -1;
             renderMessages();
             document.getElementById('messageContainer').scrollTop = document.getElementById('messageContainer').scrollHeight;
             idx++;
@@ -2195,7 +2107,6 @@ function regenerateMessage(roleId, messageId) {
     }).catch(function(e) {
         hideTyping();
         addMessageToRole(role.id, 'assistant', '💔 ' + e.message);
-        lastMessageCount = -1;
         renderMessages();
     });
 }
@@ -2293,7 +2204,7 @@ function callDeepSeek(userMessage, role) {
 }
 
 // ============================================================
-//  发送消息（已修复：阻止默认事件 + 同步保存防阻塞）
+//  发送消息
 // ============================================================
 function addMessageToRole(roleId, role, content, type) {
     type = type || 'text';
@@ -2310,8 +2221,6 @@ function addMessageToRole(roleId, role, content, type) {
     if (role === 'user' || role === 'assistant') {
         detectHeartKeywords(r.id, content, role);
     }
-    lastMessageCount = -1;
-    // 修复：同步保存，用 try-catch 保护，避免异步冲突导致页面闪回
     try { saveAllData(); } catch (e) { console.warn('保存消息失败:', e); }
     updateHeartDisplay();
 }
@@ -2381,7 +2290,6 @@ function autoExtractMemory(role, sourceMsgId) {
 }
 
 function handleSend(e) {
-    // 修复：阻止任何可能的默认提交行为（表单提交导致刷新）
     if (e) e.preventDefault();
 
     var input = document.getElementById('messageInput');
@@ -2404,7 +2312,6 @@ function handleSend(e) {
     document.getElementById('sendBtn').disabled = true;
 
     addMessageToRole(role.id, 'user', finalMessage);
-    lastMessageCount = -1;
     renderMessages();
 
     showTyping();
@@ -2425,7 +2332,6 @@ function handleSend(e) {
                 return;
             }
             addMessageToRole(role.id, 'assistant', segments[idx]);
-            lastMessageCount = -1;
             renderMessages();
             document.getElementById('messageContainer').scrollTop = document.getElementById('messageContainer').scrollHeight;
             idx++;
@@ -2435,7 +2341,6 @@ function handleSend(e) {
     }).catch(function(e) {
         hideTyping();
         addMessageToRole(role.id, 'assistant', '💔 ' + e.message);
-        lastMessageCount = -1;
         renderMessages();
     }).finally(function() {
         input.disabled = false;
@@ -2445,25 +2350,25 @@ function handleSend(e) {
 }
 
 // ============================================================
-//  长按引用回复
+//  长按引用回复 - 使用事件委托
 // ============================================================
 function attachLongPressEvents() {
     var container = document.getElementById('messageContainer');
-    var rows = container.querySelectorAll('.message-row');
-    rows.forEach(function(row) {
-        row.removeEventListener('touchstart', onTouchStart);
-        row.removeEventListener('touchend', onTouchEnd);
-        row.removeEventListener('touchmove', onTouchMove);
-        row.addEventListener('touchstart', onTouchStart);
-        row.addEventListener('touchend', onTouchEnd);
-        row.addEventListener('touchmove', onTouchMove);
-    });
+    container.removeEventListener('touchstart', handleContainerTouchStart);
+    container.removeEventListener('touchend', handleContainerTouchEnd);
+    container.removeEventListener('touchmove', handleContainerTouchMove);
+    container.addEventListener('touchstart', handleContainerTouchStart, { passive: true });
+    container.addEventListener('touchend', handleContainerTouchEnd, { passive: true });
+    container.addEventListener('touchmove', handleContainerTouchMove, { passive: true });
 }
 
 var longpressTimer = null;
+var longpressTarget = null;
 
-function onTouchStart(e) {
-    var row = this;
+function handleContainerTouchStart(e) {
+    var row = e.target.closest('.message-row');
+    if (!row) return;
+    longpressTarget = row;
     longpressTimer = setTimeout(function() {
         var role = getCurrentRole();
         if (!role) return;
@@ -2481,8 +2386,10 @@ function onTouchStart(e) {
         var x = touch.clientX || window.innerWidth / 2;
         var y = touch.clientY || window.innerHeight / 2;
 
-        if (x + 170 > window.innerWidth) x = window.innerWidth - 180;
-        if (y + 80 > window.innerHeight) y = window.innerHeight - 90;
+        var maxX = window.innerWidth - 170;
+        var maxY = window.innerHeight - 90;
+        if (x > maxX) x = maxX;
+        if (y > maxY) y = maxY;
         if (x < 10) x = 10;
         if (y < 10) y = 10;
 
@@ -2512,8 +2419,17 @@ function onTouchStart(e) {
     }, 500);
 }
 
-function onTouchEnd() { clearTimeout(longpressTimer); longpressTimer = null; }
-function onTouchMove() { clearTimeout(longpressTimer); longpressTimer = null; }
+function handleContainerTouchEnd(e) {
+    clearTimeout(longpressTimer);
+    longpressTimer = null;
+    longpressTarget = null;
+}
+
+function handleContainerTouchMove(e) {
+    clearTimeout(longpressTimer);
+    longpressTimer = null;
+    longpressTarget = null;
+}
 
 function hideLongpressMenu() {
     var menu = document.getElementById('longpressMenu');
@@ -2596,14 +2512,12 @@ function handleImageSelected(dataUrl) {
         var role2 = getCurrentRole();
         if (!role2) { showToast('⚠️ 未找到当前角色'); closeImagePicker(); return; }
         addMessageToRole(role2.id, 'user', dataUrl, 'image');
-        lastMessageCount = -1;
         renderMessages();
         closeImagePicker();
         showTyping();
         setTimeout(function() {
             hideTyping();
             addMessageToRole(role2.id, 'assistant', '📸 这张照片真好看～ 我会好好收藏的 💕');
-            lastMessageCount = -1;
             renderMessages();
             if (document.getElementById('contactsScreen').classList.contains('open')) renderContacts();
         }, 800);
@@ -2622,9 +2536,7 @@ function openImagePickerForRole(roleId, type) {
     document.getElementById('pickerTitle').textContent = titles[type] || '选择图片';
     currentPickerTarget = { type: 'role', roleId: roleId, field: type };
     document.getElementById('imagePickerOverlay').classList.add('active');
-}
-
-// ============================================================
+} // ============================================================
 //  权限弹窗
 // ============================================================
 function showPermissionDialog(action) {
@@ -2984,7 +2896,7 @@ function generateDiary(roleId, showToastMsg) {
             model: config.model || 'deepseek-chat',
             messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
             temperature: 0.9,
-            max_tokens: 500,
+            max_tokens: 600,
         }),
     }).then(function(resp) {
         if (!resp.ok) throw new Error('API 错误');
@@ -3214,7 +3126,7 @@ function executePurchase(product, qty, note, mode, targetRole, totalPrice) {
     };
 
     mallOrders.push(order);
-    saveMallData();
+    saveAllData();
     closeMallDetail();
     showToast('✅ ' + (mode === 'gift' ? '🎁 已送给 ' + targetRole.name : '购买') + '成功！');
     updateMallUI();
@@ -3240,7 +3152,7 @@ function cancelOrderAndRefund(orderId) {
     if (confirm('确定要取消订单「' + order.productName + '」并退款 ¥' + order.total + ' 吗？')) {
         mallBalance += order.total;
         mallOrders = mallOrders.filter(function(o) { return o.id !== orderId; });
-        saveMallData();
+        saveAllData();
         updateMallUI();
         showToast('✅ 已取消订单，退款 ¥' + order.total + ' 已到账');
         showOrderList();
@@ -3262,12 +3174,11 @@ function triggerHeartSpikeForGift(role, product, mode) {
         role.heartData.peakValue = newValue;
         role.heartData.recentTrigger = '💝 ' + keyword;
         if (config.heart.bindRoleId === role.id) {
+            if (config.heart.recoveryTimer) clearTimeout(config.heart.recoveryTimer);
             config.heart.value = newValue;
             config.heart.peakValue = newValue;
             config.heart.level = getLevel(newValue);
             config.heart.recentTrigger = '💝 ' + keyword;
-            config.heart.spikeActive = true;
-            if (config.heart.recoveryTimer) clearTimeout(config.heart.recoveryTimer);
             config.heart.recoveryTimer = setTimeout(function() { recoverHeartRate(role); }, 60000 + Math.random() * 60000);
             var heartWrap = document.getElementById('heartWrap');
             if (heartWrap) {
@@ -3318,7 +3229,6 @@ function triggerGiftChatReply(role, product, note) {
         var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
         if (reply) {
             addMessageToRole(role.id, 'assistant', '🎁 ' + reply);
-            lastMessageCount = -1;
             if (document.getElementById('chatScreen').classList.contains('open')) {
                 renderMessages();
             }
@@ -3334,14 +3244,14 @@ function addToCart(product, qty) {
     var existing = mallCart.find(function(item) { return item.id === product.id; });
     if (existing) { existing.qty += qty; }
     else { mallCart.push({ id: product.id, name: product.name, price: product.price, image: product.image, qty: qty }); }
-    saveMallData();
+    saveAllData();
     updateMallUI();
     showToast('🛒 已加入购物车：' + product.name + ' ×' + qty);
 }
 
 function removeFromCart(productId) {
     mallCart = mallCart.filter(function(item) { return item.id !== productId; });
-    saveMallData();
+    saveAllData();
     updateMallUI();
     renderCart();
 }
@@ -3351,7 +3261,7 @@ function updateCartQty(productId, delta) {
     if (!item) return;
     item.qty += delta;
     if (item.qty <= 0) { removeFromCart(productId); return; }
-    saveMallData();
+    saveAllData();
     updateMallUI();
     renderCart();
 }
@@ -3422,7 +3332,7 @@ function checkoutCart() {
     };
     mallOrders.push(order);
     mallCart = [];
-    saveMallData();
+    saveAllData();
     closeCart();
     updateMallUI();
     showToast('✅ 下单成功！共 ¥' + total);
@@ -3450,7 +3360,7 @@ function updateMallUI() {
         if (count > 0) { badge.textContent = count > 99 ? '99+' : count; badge.classList.remove('empty'); }
         else { badge.classList.add('empty'); }
     }
-    saveMallData();
+    saveAllData();
 }
 
 // ============================================================
@@ -3466,7 +3376,7 @@ function closeRecharge() {
 }
 
 // ============================================================
-//  商城 - 订单列表（含退款入口 + 修复返回按钮）
+//  商城 - 订单列表（含退款入口）
 // ============================================================
 function showOrderList() {
     var body = document.getElementById('mallBody');
@@ -3512,20 +3422,20 @@ function showOrderList() {
     body.querySelectorAll('.btn-ship').forEach(function(btn) {
         btn.onclick = function() {
             var order = mallOrders.find(function(o) { return o.id === btn.dataset.id; });
-            if (order) { order.status = 'shipped'; order.updatedAt = new Date().toISOString(); saveMallData(); showOrderList(); showToast('🚚 已发货'); }
+            if (order) { order.status = 'shipped'; order.updatedAt = new Date().toISOString(); saveAllData(); showOrderList(); showToast('🚚 已发货'); }
         };
     });
     body.querySelectorAll('.btn-done').forEach(function(btn) {
         btn.onclick = function() {
             var order = mallOrders.find(function(o) { return o.id === btn.dataset.id; });
-            if (order) { order.status = 'done'; order.updatedAt = new Date().toISOString(); saveMallData(); showOrderList(); showToast('✅ 已确认收货'); }
+            if (order) { order.status = 'done'; order.updatedAt = new Date().toISOString(); saveAllData(); showOrderList(); showToast('✅ 已确认收货'); }
         };
     });
     body.querySelectorAll('.btn-delete-order').forEach(function(btn) {
         btn.onclick = function() {
             if (confirm('确定要删除此订单吗？')) {
                 mallOrders = mallOrders.filter(function(o) { return o.id !== btn.dataset.id; });
-                saveMallData();
+                saveAllData();
                 showOrderList();
                 showToast('🗑️ 已删除订单');
             }
@@ -3552,7 +3462,7 @@ function startShoppingTogether(roleId) {
     mallShoppingTogether.isActive = true;
     mallShoppingTogether.cooldownUntil = null;
     mallShoppingTogether.pendingProduct = null;
-    saveMallData();
+    saveAllData();
 
     var inviteBtn = document.getElementById('mallInviteBtn');
     inviteBtn.textContent = '💕 ' + role.name + ' 一起逛';
@@ -3581,7 +3491,10 @@ function endShoppingTogether() {
     mallShoppingTogether.isActive = false;
     mallShoppingTogether.cooldownUntil = Date.now() + MALL_CONFIG.cooldownMinutes * 60 * 1000;
     mallShoppingTogether.rejectCount = 0;
-    saveMallData();
+    mallShoppingTogether.pendingProduct = null;
+    if (mallScrollTimeout) { clearTimeout(mallScrollTimeout); mallScrollTimeout = null; }
+    lastTriggeredProductId = null;
+    saveAllData();
 
     document.getElementById('mallInviteBtn').textContent = '💕 心爱的TA';
     document.getElementById('mallInviteBtn').classList.remove('inviting');
@@ -3642,14 +3555,15 @@ function showAiSpotDialog(product, role) {
                 createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
             };
             mallOrders.push(order);
-            saveMallData();
+            saveAllData();
             updateMallUI();
             showToast('🎁 已送给 ' + role.name + '！');
             triggerHeartSpikeForGift(role, product, 'gift');
             addGiftToMemory(role, product, 'user', 'AI看中后购买');
             triggerGiftChatReply(role, product, 'AI 看中后你送给了我 ❤️');
             mallShoppingTogether.rejectCount = 0;
-            saveMallData();
+            mallShoppingTogether.pendingProduct = null;
+            saveAllData();
         }
     };
 
@@ -3665,13 +3579,12 @@ function showAiSpotDialog(product, role) {
         };
         mallOrders.push(order);
         mallAiGiftReceived.push({ productId: product.id, productName: product.name, productImage: product.image, from: role.name, time: new Date().toISOString() });
-        saveMallData();
+        saveAllData();
         updateMallUI();
         showToast('🎁 ' + role.name + ' 送给你「' + product.name + '」！好甜～');
 
         var giftMsg = '🎁 我刚刚在商城看到「' + product.name + '」，觉得特别适合你，就买下来送给你啦 💕 你喜欢吗？';
         addMessageToRole(role.id, 'assistant', giftMsg);
-        lastMessageCount = -1;
         addGiftToMemory(role, product, 'ai', role.name + '送给我');
         if (document.getElementById('chatScreen').classList.contains('open')) {
             renderMessages();
@@ -3679,13 +3592,15 @@ function showAiSpotDialog(product, role) {
         renderContacts();
         triggerHeartSpikeForGift(role, product, 'ai_gift');
         mallShoppingTogether.rejectCount = 0;
-        saveMallData();
+        mallShoppingTogether.pendingProduct = null;
+        saveAllData();
     };
 
     document.getElementById('spotRejectBtn').onclick = function() {
         overlay.classList.remove('active');
         mallShoppingTogether.rejectCount++;
-        saveMallData();
+        mallShoppingTogether.pendingProduct = null;
+        saveAllData();
 
         if (mallShoppingTogether.rejectCount >= MALL_CONFIG.maxRejectCount) {
             var name = mallShoppingTogether.roleName || 'TA';
@@ -3695,7 +3610,6 @@ function showAiSpotDialog(product, role) {
                 var endWords = ['好吧…我知道你是为我好，听你的。', '嗯…没事的，我们随便逛逛吧。', '我懂的，不勉强你。', '好…那就看看吧。'];
                 var word = endWords[Math.floor(Math.random() * endWords.length)];
                 addMessageToRole(role2.id, 'assistant', '💭 ' + word);
-                lastMessageCount = -1;
                 if (document.getElementById('chatScreen').classList.contains('open')) {
                     renderMessages();
                 }
@@ -3841,7 +3755,6 @@ function openChat(fromContacts) {
         }, 300);
     }
     updateChatTitle();
-    lastMessageCount = -1;
     renderMessages();
     if (document.getElementById('contactsScreen').classList.contains('open')) renderContacts();
     if (config.heart.floatingEnabled !== false) setTimeout(showFloatingHeart, 300);
@@ -4161,6 +4074,7 @@ function saveMemeData() {
         memes.forEach(function(m) { memeStore.put(m); });
         return new Promise(function(resolve) { memeTx.oncomplete = resolve; });
     }).then(function() {
+        storageCache = null;
         updateStorageDisplay();
     }).catch(function(e) {
         console.error('保存失败:', e);
@@ -4210,6 +4124,7 @@ function loadMemeData() {
                         m.categoryId = 'uncategorized';
                     }
                 });
+                storageCache = null;
                 updateStorageDisplay();
             });
         });
@@ -4222,6 +4137,7 @@ function loadMemeData() {
 }
 
 function getStorageUsage() {
+    if (storageCache) return Promise.resolve(storageCache);
     return openMemeDB().then(function(db) {
         var totalSize = 0;
         var memeCount = 0;
@@ -4255,7 +4171,9 @@ function getStorageUsage() {
                 db.close();
                 var sizeKB = Math.round(totalSize / 1024);
                 var totalKB = 50 * 1024;
-                return { sizeKB: sizeKB, remainKB: Math.max(0, totalKB - sizeKB), totalKB: totalKB, memeCount: memeCount };
+                var result = { sizeKB: sizeKB, remainKB: Math.max(0, totalKB - sizeKB), totalKB: totalKB, memeCount: memeCount };
+                storageCache = result;
+                return result;
             });
         });
     }).catch(function(e) {
@@ -5101,10 +5019,6 @@ function init() {
     } catch (e) { console.error('加载数据失败:', e); }
 
     try {
-        loadMallData();
-    } catch (e) { console.error('加载商城数据失败:', e); }
-
-    try {
         loadMemeData().then(function() {
             updateStorageDisplay();
         });
@@ -5251,7 +5165,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!amount || amount <= 0) { showToast('⚠️ 请输入有效金额'); return; }
         mallBalance += amount;
         mallRechargeHistory.push({ amount: amount, time: new Date().toISOString() });
-        saveMallData();
+        saveAllData();
         closeRecharge();
         updateMallUI();
         showToast('💰 充值成功！+¥' + amount);
@@ -5514,7 +5428,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 修复：发送按钮和回车键都正确阻止默认事件
     document.getElementById('sendBtn').addEventListener('click', function(e) {
         if (e) e.preventDefault();
         handleSend(e);
