@@ -637,8 +637,7 @@
         .heart-detail-panel .hd-recent .highlight { color: var(--heart-color, #ff6b81); }
         @media (max-width: 460px) { .phone-frame { border-radius: 0; height: 100vh; max-height: 100vh; } body { padding: 0; } .mall-header .mall-balance { font-size: 11px; padding: 2px 8px; } .mall-header .mall-invite-btn { font-size: 10px; padding: 2px 8px; } .mall-product-grid { gap: 8px; } .mall-product-card .product-name { font-size: 12px; } .mall-product-card .product-price { font-size: 14px; } .mall-detail-body .detail-name { font-size: 17px; } .mall-detail-body .detail-price { font-size: 20px; } .mall-ai-spot-panel { max-width: 300px; padding: 16px; } .mall-ai-spot-panel .spot-product .spot-img { width: 60px; height: 60px; font-size: 24px; } .mall-ai-spot-panel .spot-ai-words { font-size: 13px; } }
     </style>
-</head> <body>
-<div class="phone-frame" id="app">
+</head> <body> <div class="phone-frame" id="app">
     <!-- ===== 桌面 ===== -->
     <div class="screen-launcher" id="launcherScreen">
         <div class="status-bar">
@@ -1040,8 +1039,7 @@
 // ============================================================
 //  全局配置常量
 // ============================================================
-var MALL_CONFIG = {
-    initialBalance: 1000,
+var MALL_CONFIG = {initialBalance: 1000,
     cooldownMinutes: 60,
     maxRejectCount: 5,
     spotProbability: 0.35,
@@ -1577,8 +1575,7 @@ function isContactPinned(roleId) {
 // ============================================================
 //  渲染：联系人列表
 // ============================================================
-function renderContacts() {
-    var contactsList = document.getElementById('contactsList');
+function renderContacts() {var contactsList = document.getElementById('contactsList');
     if (!contactsList) return;
     if (!Array.isArray(roles) || roles.length === 0) {
         contactsList.innerHTML = '<div class="empty-contacts"><i class="fas fa-address-book"></i><p>还没有联系人<br />去「设置 → 角色管理」创建吧</p></div>';
@@ -2282,7 +2279,7 @@ function callDeepSeek(userMessage, role) {
 }
 
 // ============================================================
-//  发送消息
+//  发送消息（已修复：阻止默认事件 + 异步存储防阻塞）
 // ============================================================
 function addMessageToRole(roleId, role, content, type) {
     type = type || 'text';
@@ -2300,7 +2297,8 @@ function addMessageToRole(roleId, role, content, type) {
         detectHeartKeywords(r.id, content, role);
     }
     lastMessageCount = -1;
-    saveAllData();
+    // 异步保存，避免阻塞主线程导致页面刷新
+    setTimeout(function() { saveAllData(); }, 100);
     updateHeartDisplay();
 }
 
@@ -2358,7 +2356,7 @@ function autoExtractMemory(role, sourceMsgId) {
                     var exists = role.memory.some(function(m) { return m.text && m.text.indexOf(pattern.prefix) !== -1 && m.text.indexOf(extract.substring(0, 10)) !== -1; });
                     if (!exists) {
                         role.memory.push({ text: newEntry, sourceMessageId: sourceMsgId });
-                        saveAllData();
+                        setTimeout(function() { saveAllData(); }, 200);
                         showToast('🧠 已记住新信息');
                     }
                 }
@@ -2368,7 +2366,10 @@ function autoExtractMemory(role, sourceMsgId) {
     }
 }
 
-function handleSend() {
+function handleSend(e) {
+    // 修复：阻止任何可能的默认提交行为（表单提交导致刷新）
+    if (e) e.preventDefault();
+
     var input = document.getElementById('messageInput');
     var text = input.value.trim();
     if (!text) return;
@@ -2699,7 +2700,9 @@ function renderMemoryList() {
             }
         });
     });
-} // ============================================================
+}
+
+// ============================================================
 //  日记系统
 // ============================================================
 function getDiaryDateKey(date) {
@@ -5497,11 +5500,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    document.getElementById('sendBtn').addEventListener('click', handleSend);
+    // 修复：发送按钮和回车键都正确阻止默认事件
+    document.getElementById('sendBtn').addEventListener('click', function(e) {
+        if (e) e.preventDefault();
+        handleSend(e);
+    });
     document.getElementById('messageInput').addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            handleSend();
+            handleSend(e);
         }
     });
     document.getElementById('messageInput').addEventListener('input', function() {
