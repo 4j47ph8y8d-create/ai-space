@@ -1201,11 +1201,15 @@ function createDefaultRole(name) {
 }
 
 function saveAllData() {
-    localStorage.setItem('ds_multirole_v2', JSON.stringify({
-        config: config,
-        roles: roles,
-        currentRoleId: currentRoleId,
-    }));
+    try {
+        localStorage.setItem('ds_multirole_v2', JSON.stringify({
+            config: config,
+            roles: roles,
+            currentRoleId: currentRoleId,
+        }));
+    } catch (e) {
+        console.warn('保存数据失败:', e);
+    }
 }
 
 function loadAllData() {
@@ -1519,6 +1523,9 @@ function recoverHeartRate(role) {
 function startHeartBeatFluctuation() {
     if (heartBeatInterval) clearInterval(heartBeatInterval);
     heartBeatInterval = setInterval(function() {
+        // 修复：页面不可见时跳过更新，避免后台冲突
+        if (document.hidden) return;
+
         var bindRoleId = config.heart.bindRoleId;
         if (!bindRoleId) return;
         var role = roles.find(function(r) { return r.id === bindRoleId; });
@@ -1870,11 +1877,18 @@ function applyChatBgForRole(role) {
 }
 
 // ============================================================
-//  渲染：聊天消息（增量渲染 - 修复版）
+//  渲染：聊天消息（增量渲染 - 修复版 + 防御性保护）
 // ============================================================
 function renderMessages() {
     var role = getCurrentRole();
-    if (!role) return;
+    // 修复：角色为空时显示占位提示，不闪回桌面
+    if (!role) {
+        var container = document.getElementById('messageContainer');
+        if (container && container.children.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">请先选择一个角色</div>';
+        }
+        return;
+    }
     applyChatBgForRole(role);
 
     var container = document.getElementById('messageContainer');
@@ -2279,7 +2293,7 @@ function callDeepSeek(userMessage, role) {
 }
 
 // ============================================================
-//  发送消息（已修复：阻止默认事件 + 异步存储防阻塞）
+//  发送消息（已修复：阻止默认事件 + 同步保存防阻塞）
 // ============================================================
 function addMessageToRole(roleId, role, content, type) {
     type = type || 'text';
@@ -2297,8 +2311,8 @@ function addMessageToRole(roleId, role, content, type) {
         detectHeartKeywords(r.id, content, role);
     }
     lastMessageCount = -1;
-    // 异步保存，避免阻塞主线程导致页面刷新
-    setTimeout(function() { saveAllData(); }, 100);
+    // 修复：同步保存，用 try-catch 保护，避免异步冲突导致页面闪回
+    try { saveAllData(); } catch (e) { console.warn('保存消息失败:', e); }
     updateHeartDisplay();
 }
 
@@ -2356,7 +2370,7 @@ function autoExtractMemory(role, sourceMsgId) {
                     var exists = role.memory.some(function(m) { return m.text && m.text.indexOf(pattern.prefix) !== -1 && m.text.indexOf(extract.substring(0, 10)) !== -1; });
                     if (!exists) {
                         role.memory.push({ text: newEntry, sourceMessageId: sourceMsgId });
-                        setTimeout(function() { saveAllData(); }, 200);
+                        try { saveAllData(); } catch (e) { console.warn('保存记忆失败:', e); }
                         showToast('🧠 已记住新信息');
                     }
                 }
