@@ -1127,6 +1127,10 @@ var heartBeatInterval = null;
 var lastMessageCount = -1;
 var storageCache = null;
 
+// ===== 渲染锁（防止闪回桌面） =====
+var isRendering = false;
+var renderQueue = [];
+
 // ============================================================
 //  工具函数
 // ============================================================
@@ -1710,7 +1714,7 @@ function renderRoleManager() {
             var newStyle = 'background-color: #07c160;';
             avatarPreview.style.cssText = newStyle;
             avatarRemoveBtn.style.display = 'none';
-            renderContacts(); renderMessages(); renderMemoryScreen(); renderDiaryAll();
+            renderContacts(); safeRenderMessages(); renderMemoryScreen(); renderDiaryAll();
             showToast('✅ 已移除头像');
         });
 
@@ -1747,7 +1751,7 @@ function renderRoleManager() {
                 clearUnreadForRole(role.id);
                 saveAllData();
                 renderRoleManager(); renderContacts();
-                if (currentRoleId === role.id) { lastMessageCount = -1; renderMessages(); }
+                if (currentRoleId === role.id) { lastMessageCount = -1; safeRenderMessages(); }
                 showToast('🗑️ 已清空「' + role.name + '」的聊天记录');
             }
         });
@@ -1870,8 +1874,27 @@ function applyChatBgForRole(role) {
 }
 
 // ============================================================
-//  渲染：聊天消息（全量渲染，稳定可靠）
+//  渲染：聊天消息（增量渲染 + 防闪回锁）
 // ============================================================
+function safeRenderMessages() {
+    if (isRendering) {
+        renderQueue.push(Date.now());
+        return;
+    }
+    isRendering = true;
+    try {
+        renderMessages();
+    } catch (e) {
+        console.error('渲染失败:', e);
+    } finally {
+        isRendering = false;
+        if (renderQueue.length > 0) {
+            renderQueue = [];
+            setTimeout(safeRenderMessages, 50);
+        }
+    }
+}
+
 function renderMessages() {
     var role = getCurrentRole();
     if (!role) {
@@ -1885,26 +1908,79 @@ function renderMessages() {
 
     var container = document.getElementById('messageContainer');
     var msgs = role.messages || [];
+    var currentCount = msgs.length;
 
-    container.innerHTML = '';
-    if (msgs.length === 0) {
-        var w = document.createElement('div');
-        w.className = 'message-row';
-        w.innerHTML = '<div class="avatar bot"></div><div class="bubble-container"><div class="bubble-row"><div class="bubble">你好呀~ 我是 ' + role.name + '，很高兴认识你 💕</div></div></div>';
-        container.appendChild(w);
-    } else {
-        msgs.forEach(function(msg) {
-            var row = createMessageRow(msg, role);
-            container.appendChild(row);
-        });
+    if (lastMessageCount === -1 || currentCount === 0) {
+        container.innerHTML = '';
+        if (currentCount === 0) {
+            var w = document.createElement('div');
+            w.className = 'message-row';
+            w.innerHTML = '<div class="avatar bot"></div><div class="bubble-container"><div class="bubble-row"><div class="bubble">你好呀~ 我是 ' + role.name + '，很高兴认识你 💕</div></div></div>';
+            container.appendChild(w);
+        } else {
+            var fragment = document.createDocumentFragment();
+            for (var i = 0; i < currentCount; i++) {
+                var row = createMessageRow(msgs[i], role);
+                fragment.appendChild(row);
+            }
+            container.appendChild(fragment);
+        }
+        lastMessageCount = currentCount;
+        container.scrollTop = container.scrollHeight;
+        applyAvatars();
+        applyBubbleStyle(config.bubbleStyle || 'default');
+        applyFontSettings();
+        updateChatTitle();
+        setTimeout(function() { markVisibleMessagesAsRead(); }, 100);
+        return;
     }
-    lastMessageCount = msgs.length;
-    container.scrollTop = container.scrollHeight;
+
+    if (currentCount > lastMessageCount) {
+        var fragment2 = document.createDocumentFragment();
+        for (var j = lastMessageCount; j < currentCount; j++) {
+            var row2 = createMessageRow(msgs[j], role);
+            fragment2.appendChild(row2);
+        }
+        container.appendChild(fragment2);
+        lastMessageCount = currentCount;
+        container.scrollTop = container.scrollHeight;
+        applyAvatars();
+        applyBubbleStyle(config.bubbleStyle || 'default');
+        applyFontSettings();
+        updateChatTitle();
+        setTimeout(function() { markVisibleMessagesAsRead(); }, 100);
+        return;
+    }
+
+    if (currentCount < lastMessageCount) {
+        container.innerHTML = '';
+        if (currentCount === 0) {
+            var w2 = document.createElement('div');
+            w2.className = 'message-row';
+            w2.innerHTML = '<div class="avatar bot"></div><div class="bubble-container"><div class="bubble-row"><div class="bubble">你好呀~ 我是 ' + role.name + '，很高兴认识你 💕</div></div></div>';
+            container.appendChild(w2);
+        } else {
+            var fragment3 = document.createDocumentFragment();
+            for (var k = 0; k < currentCount; k++) {
+                var row3 = createMessageRow(msgs[k], role);
+                fragment3.appendChild(row3);
+            }
+            container.appendChild(fragment3);
+        }
+        lastMessageCount = currentCount;
+        container.scrollTop = container.scrollHeight;
+        applyAvatars();
+        applyBubbleStyle(config.bubbleStyle || 'default');
+        applyFontSettings();
+        updateChatTitle();
+        setTimeout(function() { markVisibleMessagesAsRead(); }, 100);
+        return;
+    }
+
     applyAvatars();
     applyBubbleStyle(config.bubbleStyle || 'default');
     applyFontSettings();
     updateChatTitle();
-    setTimeout(function() { markVisibleMessagesAsRead(); }, 100);
 }
 
 function createMessageRow(msg, role) {
@@ -2059,7 +2135,7 @@ function deleteMessageAndMemory(roleId, messageId) {
         });
     }
     saveAllData();
-    renderMessages();
+    safeRenderMessages();
     renderContacts();
     renderRoleManager();
     renderMemoryScreen();
@@ -2087,7 +2163,7 @@ function regenerateMessage(roleId, messageId) {
     }
     role.messages.splice(msgIndex, 1);
     saveAllData();
-    renderMessages();
+    safeRenderMessages();
     showTyping();
 
     callDeepSeek(userMessage, role).then(function(reply) {
@@ -2097,7 +2173,7 @@ function regenerateMessage(roleId, messageId) {
         function sendNext() {
             if (idx >= segments.length) { renderContacts(); return; }
             addMessageToRole(role.id, 'assistant', segments[idx]);
-            renderMessages();
+            safeRenderMessages();
             document.getElementById('messageContainer').scrollTop = document.getElementById('messageContainer').scrollHeight;
             idx++;
             setTimeout(sendNext, 600);
@@ -2107,7 +2183,7 @@ function regenerateMessage(roleId, messageId) {
     }).catch(function(e) {
         hideTyping();
         addMessageToRole(role.id, 'assistant', '💔 ' + e.message);
-        renderMessages();
+        safeRenderMessages();
     });
 }
 
@@ -2312,7 +2388,7 @@ function handleSend(e) {
     document.getElementById('sendBtn').disabled = true;
 
     addMessageToRole(role.id, 'user', finalMessage);
-    renderMessages();
+    safeRenderMessages();
 
     showTyping();
 
@@ -2332,7 +2408,7 @@ function handleSend(e) {
                 return;
             }
             addMessageToRole(role.id, 'assistant', segments[idx]);
-            renderMessages();
+            safeRenderMessages();
             document.getElementById('messageContainer').scrollTop = document.getElementById('messageContainer').scrollHeight;
             idx++;
             setTimeout(sendNext, 600);
@@ -2341,7 +2417,7 @@ function handleSend(e) {
     }).catch(function(e) {
         hideTyping();
         addMessageToRole(role.id, 'assistant', '💔 ' + e.message);
-        renderMessages();
+        safeRenderMessages();
     }).finally(function() {
         input.disabled = false;
         document.getElementById('sendBtn').disabled = false;
@@ -2494,7 +2570,7 @@ function handleImageSelected(dataUrl) {
         if (target.field === 'avatar') {
             role.avatar = dataUrl;
             saveAllData();
-            renderRoleManager(); renderContacts(); renderMessages(); renderMemoryScreen(); renderDiaryAll();
+            renderRoleManager(); renderContacts(); safeRenderMessages(); renderMemoryScreen(); renderDiaryAll();
             showToast('✅ 角色头像已更新');
         } else if (target.field === 'bg') {
             role.chatBg = dataUrl;
@@ -2512,13 +2588,13 @@ function handleImageSelected(dataUrl) {
         var role2 = getCurrentRole();
         if (!role2) { showToast('⚠️ 未找到当前角色'); closeImagePicker(); return; }
         addMessageToRole(role2.id, 'user', dataUrl, 'image');
-        renderMessages();
+        safeRenderMessages();
         closeImagePicker();
         showTyping();
         setTimeout(function() {
             hideTyping();
             addMessageToRole(role2.id, 'assistant', '📸 这张照片真好看～ 我会好好收藏的 💕');
-            renderMessages();
+            safeRenderMessages();
             if (document.getElementById('contactsScreen').classList.contains('open')) renderContacts();
         }, 800);
         return;
@@ -3160,7 +3236,7 @@ function cancelOrderAndRefund(orderId) {
 }
 
 // ============================================================
-//  商城 - 礼物触发心跳 + 记忆 + AI 回复
+//  商城 - 礼物触发心跳 + 记忆 + AI 回复（人设强制版）
 // ============================================================
 function triggerHeartSpikeForGift(role, product, mode) {
     if (!role) return;
@@ -3205,11 +3281,53 @@ function addGiftToMemory(role, product, from, note) {
     }
 }
 
+// ===== 🔥 修复：送礼AI回复强制符合人设 =====
 function triggerGiftChatReply(role, product, note) {
-    if (!role || !config.apiKey) return;
-    var giftMessage = '用户送给你了一份礼物：\n商品名：' + product.name + '\n价格：' + product.price + ' 虚拟币\n描述：' + (product.description || '') + '\n' + (note ? '附言：' + note : '') + '\n\n请用你的性格回应这份礼物。';
-    var systemPrompt = '你正在扮演「' + role.name + '」。用户刚刚送了你一份礼物，请根据你的性格（人设：' + (role.persona || '温柔体贴') + '）回应这份礼物。要求：用第一人称「我」说话，表达真实感受，结合聊天上下文，不用预设模板，控制在2-4句话。';
-    var history = (role.messages || []).filter(function(m) { return m.type === 'text'; }).slice(-6).map(function(m) {
+    if (!role || !config.apiKey) {
+        // 无API Key时使用默认回复（但仍符合人设）
+        var fallbackReplies = {
+            '高冷': ['嗯。', '收到了。', '还行。', '下次不用买这些。'],
+            '温柔': ['谢谢你，我很喜欢 💕', '你真好，我会好好珍惜的', '好开心，谢谢你～'],
+            '默认': ['收到了，谢谢。', '嗯，看到了。']
+        };
+        var style = role.persona && role.persona.indexOf('高冷') !== -1 ? '高冷' : 
+                    role.persona && role.persona.indexOf('温柔') !== -1 ? '温柔' : '默认';
+        var replies = fallbackReplies[style] || fallbackReplies['默认'];
+        var reply = replies[Math.floor(Math.random() * replies.length)];
+        addMessageToRole(role.id, 'assistant', '🎁 ' + reply);
+        if (document.getElementById('chatScreen').classList.contains('open')) {
+            safeRenderMessages();
+        }
+        renderContacts();
+        return;
+    }
+
+    // 强制角色扮演的系统提示词
+    var systemPrompt = 
+        '你现在是「' + role.name + '」，以下是你的完整人设，请严格遵守：\n' +
+        '【人设】' + (role.persona || '一个温柔体贴的人') + '\n' +
+        '【说话风格】' + (role.style || '用短句，像真人微信聊天一样自然分段回复。') + '\n' +
+        '【补充项】' + (role.extra || '') + '\n\n' +
+        '⚠️ 核心指令（必须遵守，违反即为错误）：\n' +
+        '1. 你正在收到用户送你的礼物，你必须用「我」的第一人称说话。\n' +
+        '2. 你的回复必须完全符合【说话风格】和【人设】。\n' +
+        '3. 如果人设是「高冷」「毒舌」「话少」，请保持这种人设。不要因为收到礼物就突然变得热情。\n' +
+        '4. 如果人设是「温柔」「热情」，可以自然表达感谢，但不要夸张。\n' +
+        '5. 回复长度：高冷型1-2句话，温和型2-3句话。\n' +
+        '6. 不要使用「💕」「😊」「好开心」等不符合人设的用词。\n' +
+        '7. 不要有任何动作描写（如「摸了摸头」「笑了笑」），只说对话内容。\n' +
+        '8. 你正在用微信聊天，不是写小说。\n\n' +
+        '现在请用「' + role.name + '」的身份回应这份礼物。';
+
+    var giftMessage = 
+        '用户送给你了一份礼物：\n' +
+        '商品名：' + product.name + '\n' +
+        '价格：' + product.price + ' 虚拟币\n' +
+        '描述：' + (product.description || '') + '\n' +
+        (note ? '附言：' + note : '') + '\n\n' +
+        '请用你的性格回应这份礼物。记住你正在扮演「' + role.name + '」，不要出戏。';
+
+    var history = (role.messages || []).filter(function(m) { return m.type === 'text'; }).slice(-4).map(function(m) {
         return { role: m.role === 'user' ? 'user' : 'assistant', content: m.content };
     });
 
@@ -3219,8 +3337,8 @@ function triggerGiftChatReply(role, product, note) {
         body: JSON.stringify({
             model: config.model || 'deepseek-chat',
             messages: [{ role: 'system', content: systemPrompt }, ...history, { role: 'user', content: giftMessage }],
-            temperature: 0.85,
-            max_tokens: 200,
+            temperature: 0.5, // 降低温度，让人设更稳定
+            max_tokens: 150,
         }),
     }).then(function(resp) {
         if (!resp.ok) throw new Error('API 错误');
@@ -3228,9 +3346,10 @@ function triggerGiftChatReply(role, product, note) {
     }).then(function(data) {
         var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
         if (reply) {
+            reply = reply.replace(/[💕😊🥺❤️✨🎀⭐️🌈💖]/g, '').trim();
             addMessageToRole(role.id, 'assistant', '🎁 ' + reply);
             if (document.getElementById('chatScreen').classList.contains('open')) {
-                renderMessages();
+                safeRenderMessages();
             }
             renderContacts();
         }
@@ -3587,7 +3706,7 @@ function showAiSpotDialog(product, role) {
         addMessageToRole(role.id, 'assistant', giftMsg);
         addGiftToMemory(role, product, 'ai', role.name + '送给我');
         if (document.getElementById('chatScreen').classList.contains('open')) {
-            renderMessages();
+            safeRenderMessages();
         }
         renderContacts();
         triggerHeartSpikeForGift(role, product, 'ai_gift');
@@ -3611,7 +3730,7 @@ function showAiSpotDialog(product, role) {
                 var word = endWords[Math.floor(Math.random() * endWords.length)];
                 addMessageToRole(role2.id, 'assistant', '💭 ' + word);
                 if (document.getElementById('chatScreen').classList.contains('open')) {
-                    renderMessages();
+                    safeRenderMessages();
                 }
                 renderContacts();
             }
@@ -3755,7 +3874,7 @@ function openChat(fromContacts) {
         }, 300);
     }
     updateChatTitle();
-    renderMessages();
+    safeRenderMessages();
     if (document.getElementById('contactsScreen').classList.contains('open')) renderContacts();
     if (config.heart.floatingEnabled !== false) setTimeout(showFloatingHeart, 300);
 }
@@ -3985,7 +4104,7 @@ function applyBubbleStyle(styleId) {
 function applyTimeMode(modeId) {
     config.timeMode = modeId || 'HH:MM';
     saveAllData();
-    renderMessages();
+    safeRenderMessages();
 }
 
 function formatTime(timeStr, mode) {
@@ -5383,7 +5502,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     renderMemoryScreen();
                     renderDiaryAll();
                     updateChatTitle();
-                    if (document.getElementById('chatScreen').classList.contains('open')) { renderMessages(); }
+                    if (document.getElementById('chatScreen').classList.contains('open')) { safeRenderMessages(); }
                     updateHeartDisplay();
                     if (config.heart.floatingEnabled !== false) { setTimeout(showFloatingHeart, 500); }
 
@@ -5407,7 +5526,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 clearUnreadForRole(role.id);
             });
             saveAllData();
-            renderMessages();
+            safeRenderMessages();
             renderContacts();
             renderRoleManager();
             renderMemoryScreen();
@@ -5422,7 +5541,7 @@ document.addEventListener('DOMContentLoaded', function() {
             role.messages = [];
             clearUnreadForRole(role.id);
             saveAllData();
-            renderMessages();
+            safeRenderMessages();
             renderContacts();
             showToast('🗑️ 已清空「' + role.name + '」的聊天记录');
         }
