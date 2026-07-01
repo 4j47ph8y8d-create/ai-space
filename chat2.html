@@ -766,9 +766,7 @@
             <span class="page-indicator" id="pageIndicator">今天</span>
             <button class="page-btn" id="nextDayBtn">下一篇 <i class="fas fa-chevron-right"></i></button>
         </div>
-    </div>
-
-    <!-- ===== 表情包选择器弹窗 ===== -->
+    </div> <!-- ===== 表情包选择器弹窗 ===== -->
     <div class="meme-picker-overlay" id="memePickerOverlay">
         <div class="meme-picker-panel" id="memePickerPanel">
             <div class="meme-picker-header">
@@ -2172,10 +2170,8 @@ function regenerateMessage(roleId, messageId) {
         var idx = 0;
         function sendNext() {
             if (idx >= segments.length) { renderContacts(); return; }
-            addMessageToRole(role.id, 'assistant', segments[idx]);
-            lastMessageCount = -1;
-            renderMessages();
-            document.getElementById('messageContainer').scrollTop = document.getElementById('messageContainer').scrollHeight;
+            var newMsg = addMessageToRole(role.id, 'assistant', segments[idx]);
+            appendMessageToChat(role, newMsg);
             idx++;
             setTimeout(sendNext, 600);
         }
@@ -2183,9 +2179,8 @@ function regenerateMessage(roleId, messageId) {
         if (document.getElementById('chatScreen').classList.contains('open')) clearUnreadForRole(role.id);
     }).catch(function(e) {
         hideTyping();
-        addMessageToRole(role.id, 'assistant', '💔 ' + e.message);
-        lastMessageCount = -1;
-        renderMessages();
+        var newMsg = addMessageToRole(role.id, 'assistant', '💔 ' + e.message);
+        appendMessageToChat(role, newMsg);
     });
 }
 
@@ -2290,7 +2285,8 @@ function addMessageToRole(roleId, role, content, type) {
     if (!r) return;
     var msgId = generateId();
     var timeStr = new Date().toLocaleTimeString();
-    r.messages.push({ id: msgId, role: role, content: content, type: type, time: timeStr });
+    var newMsg = { id: msgId, role: role, content: content, type: type, time: timeStr };
+    r.messages.push(newMsg);
     if (role === 'assistant' && r.messages.length > 2) autoExtractMemory(r, msgId);
     if (role === 'assistant') {
         if (!config.unreadCount) config.unreadCount = {};
@@ -2302,6 +2298,7 @@ function addMessageToRole(roleId, role, content, type) {
     lastMessageCount = -1;
     saveAllData();
     updateHeartDisplay();
+    return newMsg;
 }
 
 function detectHeartKeywords(roleId, content, sender) {
@@ -2368,6 +2365,18 @@ function autoExtractMemory(role, sourceMsgId) {
     }
 }
 
+function appendMessageToChat(role, msg) {
+    var container = document.getElementById('messageContainer');
+    var row = createMessageRow(msg, role);
+    container.appendChild(row);
+    container.scrollTop = container.scrollHeight;
+    lastMessageCount = (role.messages || []).length;
+    applyAvatars();
+    applyBubbleStyle(config.bubbleStyle || 'default');
+    applyFontSettings();
+    bindMessageActions();
+}
+
 function handleSend() {
     var input = document.getElementById('messageInput');
     var text = input.value.trim();
@@ -2388,9 +2397,8 @@ function handleSend() {
     input.disabled = true;
     document.getElementById('sendBtn').disabled = true;
 
-    addMessageToRole(role.id, 'user', finalMessage);
-    lastMessageCount = -1;
-    renderMessages();
+    var newMsg = addMessageToRole(role.id, 'user', finalMessage);
+    appendMessageToChat(role, newMsg);
 
     showTyping();
 
@@ -2409,19 +2417,16 @@ function handleSend() {
                 }
                 return;
             }
-            addMessageToRole(role.id, 'assistant', segments[idx]);
-            lastMessageCount = -1;
-            renderMessages();
-            document.getElementById('messageContainer').scrollTop = document.getElementById('messageContainer').scrollHeight;
+            var newMsg2 = addMessageToRole(role.id, 'assistant', segments[idx]);
+            appendMessageToChat(role, newMsg2);
             idx++;
             setTimeout(sendNext, 600);
         }
         sendNext();
     }).catch(function(e) {
         hideTyping();
-        addMessageToRole(role.id, 'assistant', '💔 ' + e.message);
-        lastMessageCount = -1;
-        renderMessages();
+        var newMsg3 = addMessageToRole(role.id, 'assistant', '💔 ' + e.message);
+        appendMessageToChat(role, newMsg3);
     }).finally(function() {
         input.disabled = false;
         document.getElementById('sendBtn').disabled = false;
@@ -2580,16 +2585,14 @@ function handleImageSelected(dataUrl) {
     if (target === 'chatImage') {
         var role2 = getCurrentRole();
         if (!role2) { showToast('⚠️ 未找到当前角色'); closeImagePicker(); return; }
-        addMessageToRole(role2.id, 'user', dataUrl, 'image');
-        lastMessageCount = -1;
-        renderMessages();
+        var newMsg = addMessageToRole(role2.id, 'user', dataUrl, 'image');
+        appendMessageToChat(role2, newMsg);
         closeImagePicker();
         showTyping();
         setTimeout(function() {
             hideTyping();
-            addMessageToRole(role2.id, 'assistant', '📸 这张照片真好看～ 我会好好收藏的 💕');
-            lastMessageCount = -1;
-            renderMessages();
+            var newMsg2 = addMessageToRole(role2.id, 'assistant', '📸 这张照片真好看～ 我会好好收藏的 💕');
+            appendMessageToChat(role2, newMsg2);
             if (document.getElementById('contactsScreen').classList.contains('open')) renderContacts();
         }, 800);
         return;
@@ -2629,9 +2632,7 @@ function updatePermissionStatusUI() {
         status.textContent = '⏳ 未设置';
         status.style.color = '#999';
     }
-}
-
-// ============================================================
+} // ============================================================
 //  记忆库
 // ============================================================
 function renderMemoryScreen() {
@@ -2699,7 +2700,9 @@ function renderMemoryList() {
             }
         });
     });
-} // ============================================================
+}
+
+// ============================================================
 //  日记系统
 // ============================================================
 function getDiaryDateKey(date) {
@@ -3300,10 +3303,9 @@ function triggerGiftChatReply(role, product, note) {
     }).then(function(data) {
         var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
         if (reply) {
-            addMessageToRole(role.id, 'assistant', '🎁 ' + reply);
-            lastMessageCount = -1;
+            var newMsg = addMessageToRole(role.id, 'assistant', '🎁 ' + reply);
             if (document.getElementById('chatScreen').classList.contains('open')) {
-                renderMessages();
+                appendMessageToChat(role, newMsg);
             }
             renderContacts();
         }
@@ -3653,13 +3655,12 @@ function showAiSpotDialog(product, role) {
         showToast('🎁 ' + role.name + ' 送给你「' + product.name + '」！好甜～');
 
         var giftMsg = '🎁 我刚刚在商城看到「' + product.name + '」，觉得特别适合你，就买下来送给你啦 💕 你喜欢吗？';
-        addMessageToRole(role.id, 'assistant', giftMsg);
-        lastMessageCount = -1;
-        addGiftToMemory(role, product, 'ai', role.name + '送给我');
+        var newMsg = addMessageToRole(role.id, 'assistant', giftMsg);
         if (document.getElementById('chatScreen').classList.contains('open')) {
-            renderMessages();
+            appendMessageToChat(role, newMsg);
         }
         renderContacts();
+        addGiftToMemory(role, product, 'ai', role.name + '送给我');
         triggerHeartSpikeForGift(role, product, 'ai_gift');
         mallShoppingTogether.rejectCount = 0;
         saveMallData();
@@ -3677,10 +3678,9 @@ function showAiSpotDialog(product, role) {
             if (role2) {
                 var endWords = ['好吧…我知道你是为我好，听你的。', '嗯…没事的，我们随便逛逛吧。', '我懂的，不勉强你。', '好…那就看看吧。'];
                 var word = endWords[Math.floor(Math.random() * endWords.length)];
-                addMessageToRole(role2.id, 'assistant', '💭 ' + word);
-                lastMessageCount = -1;
+                var newMsg2 = addMessageToRole(role2.id, 'assistant', '💭 ' + word);
                 if (document.getElementById('chatScreen').classList.contains('open')) {
-                    renderMessages();
+                    appendMessageToChat(role2, newMsg2);
                 }
                 renderContacts();
             }
@@ -3790,9 +3790,7 @@ function initMallScrollTrigger() {
             }
         }, 800);
     });
-}
-
-// ============================================================
+} // ============================================================
 //  页面切换
 // ============================================================
 function openChat(fromContacts) {
