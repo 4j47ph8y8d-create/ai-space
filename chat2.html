@@ -637,8 +637,7 @@
         .heart-detail-panel .hd-recent .highlight { color: var(--heart-color, #ff6b81); }
         @media (max-width: 460px) { .phone-frame { border-radius: 0; height: 100vh; max-height: 100vh; } body { padding: 0; } .mall-header .mall-balance { font-size: 11px; padding: 2px 8px; } .mall-header .mall-invite-btn { font-size: 10px; padding: 2px 8px; } .mall-product-grid { gap: 8px; } .mall-product-card .product-name { font-size: 12px; } .mall-product-card .product-price { font-size: 14px; } .mall-detail-body .detail-name { font-size: 17px; } .mall-detail-body .detail-price { font-size: 20px; } .mall-ai-spot-panel { max-width: 300px; padding: 16px; } .mall-ai-spot-panel .spot-product .spot-img { width: 60px; height: 60px; font-size: 24px; } .mall-ai-spot-panel .spot-ai-words { font-size: 13px; } }
     </style>
-</head>
-<body>
+</head> <body>
 <div class="phone-frame" id="app">
     <!-- ===== 桌面 ===== -->
     <div class="screen-launcher" id="launcherScreen">
@@ -670,7 +669,9 @@
             <button class="app-icon" data-app="memory"><div class="icon-wrap memory"><i class="fas fa-brain"></i></div><span class="app-name">记忆库</span></button>
             <button class="app-icon" data-app="settings"><div class="icon-wrap settings"><i class="fas fa-cog"></i></div><span class="app-name">设置</span></button>
         </div>
-    </div> <!-- ===== 联系人界面 ===== -->
+    </div>
+
+    <!-- ===== 联系人界面 ===== -->
     <div class="screen-contacts" id="contactsScreen">
         <div class="contacts-header">
             <button class="back-btn" id="backFromContacts"><i class="fas fa-chevron-left"></i></button>
@@ -2502,7 +2503,8 @@ function onTouchMove() { clearTimeout(longpressTimer); longpressTimer = null; }
 function hideLongpressMenu() {
     var menu = document.getElementById('longpressMenu');
     if (menu) menu.classList.remove('active');
-} <script>
+}
+
 // ============================================================
 //  图片选择器
 // ============================================================
@@ -2697,9 +2699,7 @@ function renderMemoryList() {
             }
         });
     });
-}
-
-// ============================================================
+} // ============================================================
 //  日记系统
 // ============================================================
 function getDiaryDateKey(date) {
